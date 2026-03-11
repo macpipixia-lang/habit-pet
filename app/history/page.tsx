@@ -1,4 +1,5 @@
 import { PointsLedger, RedeemCodeStatus } from "@prisma/client";
+import { CopyCodeButton } from "@/components/copy-code-button";
 import { Card, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { getDashboardState } from "@/lib/data";
@@ -155,9 +156,13 @@ export default async function HistoryPage() {
                   <p className="font-medium text-white">{code.item.nameZh}</p>
                   <Pill>{getRedeemStatusLabel(code.status)}</Pill>
                 </div>
-                <p className="mt-2 break-all text-sm text-white">
-                  {formatText(zhCN.history.codeValue, { code: code.id })}
-                </p>
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="break-all text-sm text-white">{formatText(zhCN.history.codeValue, { code: code.id })}</p>
+                  <CopyCodeButton
+                    code={code.id}
+                    className="rounded-2xl border border-line px-3 py-2 text-sm text-white"
+                  />
+                </div>
                 <p className="mt-2 text-sm text-mist">
                   {formatText(zhCN.history.codeSummary, {
                     item: code.item.nameZh,

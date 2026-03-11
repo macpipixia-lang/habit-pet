@@ -254,6 +254,7 @@ export async function saveShopItemAction(formData: FormData) {
       kind: formData.get("kind"),
       priceBase: formData.get("priceBase"),
       priceStep: formData.get("priceStep"),
+      isActive: formData.get("isActive"),
     });
 
     if (!parsed.success) {

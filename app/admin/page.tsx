@@ -5,6 +5,7 @@ import {
   toggleShopItemActiveAction,
   updateRedeemCodeStatusAction,
 } from "@/app/actions";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { AdminLoginForm } from "@/components/admin-login-form";
 import { Card, Pill } from "@/components/ui";
 import { getAdminState } from "@/lib/data";
@@ -52,6 +53,7 @@ export default async function AdminPage({
     typeof params.status === "string" && ["ISSUED", "REDEEMED", "VOID"].includes(params.status)
       ? (params.status as RedeemCodeStatus)
       : undefined;
+  const codeParam = typeof params.code === "string" ? params.code.trim() : "";
   const successMessage = getSuccessMessage(success);
 
   if (!isAdmin) {
@@ -71,7 +73,7 @@ export default async function AdminPage({
     );
   }
 
-  const adminState = await getAdminState(statusParam);
+  const adminState = await getAdminState(statusParam, codeParam || undefined);
 
   return (
     <div className="space-y-6">
@@ -169,13 +171,112 @@ export default async function AdminPage({
                         <p className="font-medium text-white">{item.nameZh}</p>
                         <p className="mt-1 text-sm text-mist">{item.slug}</p>
                       </div>
-                      <Pill>{item.isActive ? zhCN.admin.activateButton : zhCN.admin.deactivateButton}</Pill>
+                      <Pill>{item.isActive ? zhCN.admin.activeOption : zhCN.admin.inactiveOption}</Pill>
                     </div>
                     <p className="mt-3 text-sm text-mist">{item.descriptionZh}</p>
-                    <p className="mt-3 text-sm text-mist">
-                      {item.kind} · {item.priceBase} / +{item.priceStep}
-                    </p>
-                    <form action={toggleShopItemActiveAction} className="mt-4">
+                    <p className="mt-3 text-sm text-mist">{item.kind}</p>
+                    <form action={saveShopItemAction} className="mt-4 space-y-4">
+                      <input type="hidden" name="id" value={item.id} />
+                      <input type="hidden" name="kind" value={item.kind} />
+                      <div className="space-y-2">
+                        <label className="text-sm text-mist" htmlFor={`slug-${item.id}`}>
+                          {zhCN.admin.slugLabel}
+                        </label>
+                        <input
+                          id={`slug-${item.id}`}
+                          name="slug"
+                          defaultValue={item.slug}
+                          className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm text-mist" htmlFor={`nameZh-${item.id}`}>
+                          {zhCN.admin.nameLabel}
+                        </label>
+                        <input
+                          id={`nameZh-${item.id}`}
+                          name="nameZh"
+                          defaultValue={item.nameZh}
+                          className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm text-mist" htmlFor={`descriptionZh-${item.id}`}>
+                          {zhCN.admin.descriptionLabel}
+                        </label>
+                        <textarea
+                          id={`descriptionZh-${item.id}`}
+                          name="descriptionZh"
+                          defaultValue={item.descriptionZh}
+                          className="min-h-24 w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                          required
+                        />
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-4">
+                        <div className="space-y-2">
+                          <label className="text-sm text-mist" htmlFor={`kind-${item.id}`}>
+                            {zhCN.admin.kindLabel}
+                          </label>
+                          <select
+                            id={`kind-${item.id}`}
+                            defaultValue={item.kind}
+                            disabled
+                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white disabled:cursor-not-allowed disabled:opacity-70"
+                          >
+                            <option value="MAKEUP_CARD">{zhCN.shop.kindMakeupCard}</option>
+                            <option value="COUPON">{zhCN.shop.kindCoupon}</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm text-mist" htmlFor={`priceBase-${item.id}`}>
+                            {zhCN.admin.priceBaseLabel}
+                          </label>
+                          <input
+                            id={`priceBase-${item.id}`}
+                            name="priceBase"
+                            type="number"
+                            min="0"
+                            defaultValue={item.priceBase}
+                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm text-mist" htmlFor={`priceStep-${item.id}`}>
+                            {zhCN.admin.priceStepLabel}
+                          </label>
+                          <input
+                            id={`priceStep-${item.id}`}
+                            name="priceStep"
+                            type="number"
+                            min="0"
+                            defaultValue={item.priceStep}
+                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm text-mist" htmlFor={`isActive-${item.id}`}>
+                            {zhCN.admin.activeLabel}
+                          </label>
+                          <select
+                            id={`isActive-${item.id}`}
+                            name="isActive"
+                            defaultValue={String(item.isActive)}
+                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                          >
+                            <option value="true">{zhCN.admin.activeOption}</option>
+                            <option value="false">{zhCN.admin.inactiveOption}</option>
+                          </select>
+                        </div>
+                      </div>
+                      <button className="rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950">
+                        {zhCN.admin.updateItemButton}
+                      </button>
+                    </form>
+                    <form action={toggleShopItemActiveAction} className="mt-3">
                       <input type="hidden" name="itemId" value={item.id} />
                       <button className="rounded-2xl border border-line px-4 py-2 text-white">
                         {item.isActive ? zhCN.admin.deactivateButton : zhCN.admin.activateButton}
@@ -203,6 +304,12 @@ export default async function AdminPage({
               <option value="REDEEMED">{zhCN.admin.statusFilterRedeemed}</option>
               <option value="VOID">{zhCN.admin.statusFilterVoid}</option>
             </select>
+            <input
+              name="code"
+              defaultValue={codeParam}
+              placeholder={zhCN.admin.codeSearchPlaceholder}
+              className="min-w-0 flex-1 rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+            />
             <button className="rounded-2xl border border-line px-4 py-3 text-white">{zhCN.admin.filterButton}</button>
           </form>
           <div className="mt-6 space-y-3">
@@ -236,9 +343,13 @@ export default async function AdminPage({
                             className="mt-2 w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
                           />
                         </label>
-                        <button className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950">
+                        <ConfirmSubmitButton
+                          confirmMessage={zhCN.admin.redeemConfirm}
+                          pendingLabel={zhCN.auth.submitting}
+                          className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950 disabled:opacity-70"
+                        >
                           {zhCN.admin.redeemButton}
-                        </button>
+                        </ConfirmSubmitButton>
                       </form>
                       <form action={updateRedeemCodeStatusAction} className="space-y-3">
                         <input type="hidden" name="code" value={code.id} />
@@ -251,9 +362,13 @@ export default async function AdminPage({
                             className="mt-2 w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
                           />
                         </label>
-                        <button className="w-full rounded-2xl border border-line px-4 py-3 text-white">
+                        <ConfirmSubmitButton
+                          confirmMessage={zhCN.admin.voidConfirm}
+                          pendingLabel={zhCN.auth.submitting}
+                          className="w-full rounded-2xl border border-line px-4 py-3 text-white disabled:opacity-70"
+                        >
                           {zhCN.admin.voidButton}
-                        </button>
+                        </ConfirmSubmitButton>
                       </form>
                     </div>
                   ) : code.adminNote ? (

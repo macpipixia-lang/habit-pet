@@ -30,6 +30,10 @@ export const adminShopItemSchema = z.object({
   kind: z.enum(["MAKEUP_CARD", "COUPON"], { message: zhCN.feedback.invalidInput }),
   priceBase: z.coerce.number().int().min(0, zhCN.validation.priceMin),
   priceStep: z.coerce.number().int().min(0, zhCN.validation.priceMin),
+  isActive: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((value) => value !== "false"),
 });
 
 export const adminCodeUpdateSchema = z.object({

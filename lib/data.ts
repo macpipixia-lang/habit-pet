@@ -511,13 +511,16 @@ export async function useYesterdayMakeupCard(userId: string) {
   });
 }
 
-export async function getAdminState(status?: RedeemCodeStatus) {
+export async function getAdminState(status?: RedeemCodeStatus, code?: string) {
   const [items, redeemCodes] = await Promise.all([
     prisma.shopItem.findMany({
       orderBy: [{ isActive: "desc" }, { createdAt: "asc" }],
     }),
     prisma.redeemCode.findMany({
-      where: status ? { status } : undefined,
+      where: {
+        ...(status ? { status } : {}),
+        ...(code ? { id: code } : {}),
+      },
       include: {
         user: {
           select: {
@@ -545,17 +548,38 @@ export async function saveShopItem(input: {
   kind: ShopItemKind;
   priceBase: number;
   priceStep: number;
+  isActive?: boolean;
 }) {
+  const existingBySlug = await prisma.shopItem.findUnique({
+    where: { slug: input.slug },
+  });
+
+  if (existingBySlug && existingBySlug.id !== input.id) {
+    throw new Error(zhCN.actions.itemSlugTaken);
+  }
+
   if (input.id) {
+    const item = await prisma.shopItem.findUnique({
+      where: { id: input.id },
+    });
+
+    if (!item) {
+      throw new Error(zhCN.actions.itemNotFound);
+    }
+
+    if (item.kind !== input.kind) {
+      throw new Error(zhCN.actions.itemKindImmutable);
+    }
+
     return prisma.shopItem.update({
       where: { id: input.id },
       data: {
         slug: input.slug,
         nameZh: input.nameZh,
         descriptionZh: input.descriptionZh,
-        kind: input.kind,
         priceBase: input.priceBase,
         priceStep: input.priceStep,
+        isActive: input.isActive ?? item.isActive,
       },
     });
   }
@@ -568,7 +592,7 @@ export async function saveShopItem(input: {
       kind: input.kind,
       priceBase: input.priceBase,
       priceStep: input.priceStep,
-      isActive: true,
+      isActive: input.isActive ?? true,
     },
   });
 }
