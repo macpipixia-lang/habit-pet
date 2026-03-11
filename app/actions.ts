@@ -8,6 +8,7 @@ import {
   adminCodeUpdateSchema,
   adminLoginSchema,
   adminShopItemSchema,
+  adminTaskDefinitionSchema,
   authSchema,
   shopPurchaseSchema,
 } from "@/lib/validation";
@@ -27,6 +28,7 @@ import {
   purchaseMakeupCard,
   purchaseShopItem,
   saveShopItem,
+  saveTaskDefinition,
   settleToday,
   toggleShopItemActive,
   updateRedeemCodeStatus,
@@ -265,6 +267,35 @@ export async function saveShopItemAction(formData: FormData) {
     revalidatePath("/shop");
     revalidatePath("/admin");
     redirect("/admin?success=item-saved");
+  } catch (error) {
+    rethrowIfRedirect(error);
+    redirect(`/admin?error=${encodeURIComponent(toMessage(error))}`);
+  }
+}
+
+export async function saveTaskDefinitionAction(formData: FormData) {
+  try {
+    await requireAdmin();
+    const parsed = adminTaskDefinitionSchema.safeParse({
+      id: formData.get("id") || undefined,
+      slug: formData.get("slug"),
+      nameZh: formData.get("nameZh"),
+      descriptionZh: formData.get("descriptionZh"),
+      exp: formData.get("exp"),
+      points: formData.get("points"),
+      unlockLevel: formData.get("unlockLevel"),
+      unlockAfterTaskSlug: formData.get("unlockAfterTaskSlug"),
+      isActive: formData.get("isActive"),
+    });
+
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? zhCN.feedback.invalidInput);
+    }
+
+    await saveTaskDefinition(parsed.data);
+    revalidatePath("/admin");
+    revalidatePath("/today");
+    redirect("/admin?success=task-saved");
   } catch (error) {
     rethrowIfRedirect(error);
     redirect(`/admin?error=${encodeURIComponent(toMessage(error))}`);

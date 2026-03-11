@@ -101,11 +101,11 @@ export default async function TodayPage({
                   />
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-white">{task.title}</span>
+                      <span className="font-medium text-white">{task.nameZh}</span>
                       <Pill>+{task.exp} EXP</Pill>
                       <Pill>{formatText(zhCN.today.taskPoints, { points: task.points })}</Pill>
                     </div>
-                    <p className="mt-2 text-sm text-mist">{task.description}</p>
+                    <p className="mt-2 text-sm text-mist">{task.descriptionZh}</p>
                   </div>
                 </label>
               );

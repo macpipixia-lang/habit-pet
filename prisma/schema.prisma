@@ -54,6 +54,20 @@ model DailyLog {
   @@unique([userId, date])
 }
 
+model TaskDefinition {
+  id                  String   @id @default(cuid())
+  slug                String   @unique
+  nameZh              String
+  descriptionZh       String
+  exp                 Int
+  points              Int
+  unlockLevel         Int      @default(1)
+  unlockAfterTaskSlug String?
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
 model PointsLedger {
   id          String   @id @default(cuid())
   userId      String

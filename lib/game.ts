@@ -1,8 +1,26 @@
-import { DailyLog, Profile, User } from "@prisma/client";
-import { MAX_LEVEL, EXP_PER_LEVEL, MAKEUP_CARD_BASE_PRICE, TASK_TEMPLATE } from "@/lib/constants";
+import { DailyLog, Profile, TaskDefinition, User } from "@prisma/client";
+import { EXP_PER_LEVEL, MAKEUP_CARD_BASE_PRICE, MAX_LEVEL } from "@/lib/constants";
 import { addDaysToDateKey, compareDateKeys } from "@/lib/time";
 
-export type TaskTemplateItem = (typeof TASK_TEMPLATE)[number];
+export type DailyTaskSnapshot = {
+  id: string;
+  slug: string;
+  nameZh: string;
+  descriptionZh: string;
+  exp: number;
+  points: number;
+};
+
+type StoredTaskSnapshot = {
+  slug?: unknown;
+  nameZh?: unknown;
+  descriptionZh?: unknown;
+  exp?: unknown;
+  points?: unknown;
+  id?: unknown;
+  title?: unknown;
+  description?: unknown;
+};
 
 export function getLevelFromExp(exp: number) {
   const computedLevel = Math.floor(exp / EXP_PER_LEVEL) + 1;
@@ -25,19 +43,75 @@ export function getShopItemPrice(priceBase: number, priceStep: number, purchaseC
   return priceBase + purchaseCount * priceStep;
 }
 
-export function getDailyTaskTemplate() {
-  return TASK_TEMPLATE.map((task) => ({ ...task }));
+export function mapTaskDefinitionToDailyTaskSnapshot(task: Pick<TaskDefinition, "slug" | "nameZh" | "descriptionZh" | "exp" | "points">) {
+  return {
+    slug: task.slug,
+    nameZh: task.nameZh,
+    descriptionZh: task.descriptionZh,
+    exp: task.exp,
+    points: task.points,
+  };
 }
 
-export function normalizeTaskSelection(taskIds: string[]) {
-  const validIds = new Set<string>(TASK_TEMPLATE.map((task) => task.id));
+function isDailyTaskSnapshot(value: StoredTaskSnapshot): value is StoredTaskSnapshot {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (typeof value.slug === "string" || typeof value.id === "string")
+  );
+}
+
+export function parseTasksJson(tasksJson: string): DailyTaskSnapshot[] {
+  try {
+    const parsed = JSON.parse(tasksJson) as StoredTaskSnapshot[];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .filter(isDailyTaskSnapshot)
+      .map((task) => {
+        const slug = typeof task.slug === "string" ? task.slug : String(task.id ?? "");
+        const nameZh = typeof task.nameZh === "string" ? task.nameZh : String(task.title ?? "");
+        const descriptionZh =
+          typeof task.descriptionZh === "string" ? task.descriptionZh : String(task.description ?? "");
+
+        return {
+          id: slug,
+          slug,
+          nameZh,
+          descriptionZh,
+          exp: typeof task.exp === "number" ? task.exp : 0,
+          points: typeof task.points === "number" ? task.points : 0,
+        };
+      })
+      .filter((task) => task.id.length > 0);
+  } catch {
+    return [];
+  }
+}
+
+export function serializeTaskSnapshots(tasks: Array<Pick<DailyTaskSnapshot, "slug" | "nameZh" | "descriptionZh" | "exp" | "points">>) {
+  return JSON.stringify(
+    tasks.map((task) => ({
+      slug: task.slug,
+      nameZh: task.nameZh,
+      descriptionZh: task.descriptionZh,
+      exp: task.exp,
+      points: task.points,
+    })),
+  );
+}
+
+export function normalizeTaskSelection(taskIds: string[], tasks: DailyTaskSnapshot[]) {
+  const validIds = new Set<string>(tasks.map((task) => task.id));
   return [...new Set(taskIds.filter((taskId) => validIds.has(taskId)))];
 }
 
-export function calculateRewards(taskIds: string[]) {
+export function calculateRewards(taskIds: string[], tasks: DailyTaskSnapshot[]) {
   const selected = new Set(taskIds);
 
-  return TASK_TEMPLATE.reduce(
+  return tasks.reduce(
     (acc, task) => {
       if (selected.has(task.id)) {
         acc.exp += task.exp;
@@ -71,12 +145,13 @@ export function shouldResetStreakForMissedDay(profile: Profile, today: string) {
   return compareDateKeys(addDaysToDateKey(profile.lastCompletedDate, 1), today) < 0 && profile.streak !== 0;
 }
 
-export function serializeTaskTemplate() {
-  return JSON.stringify(getDailyTaskTemplate());
-}
-
 export function parseCompletedTaskIds(log: DailyLog) {
-  return JSON.parse(log.completedTaskIds) as string[];
+  try {
+    const parsed = JSON.parse(log.completedTaskIds) as unknown;
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
 }
 
 export function toTodayViewModel(params: {
@@ -84,8 +159,9 @@ export function toTodayViewModel(params: {
   log: DailyLog;
 }) {
   const { user, log } = params;
+  const tasks = parseTasksJson(log.tasksJson);
   const completedTaskIds = parseCompletedTaskIds(log);
-  const rewards = calculateRewards(completedTaskIds);
+  const rewards = calculateRewards(completedTaskIds, tasks);
 
   return {
     userId: user.id,
@@ -93,7 +169,7 @@ export function toTodayViewModel(params: {
     log,
     completedTaskIds,
     rewards,
-    tasks: getDailyTaskTemplate(),
+    tasks,
     levelProgress: getExpIntoCurrentLevel(user.profile?.exp ?? 0),
     nextShopPrice: getNextMakeupCardPrice(user.profile?.purchaseCount ?? 0),
   };

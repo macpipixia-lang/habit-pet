@@ -11,13 +11,14 @@ import { addDaysToDateKey, getShanghaiDateParts } from "@/lib/time";
 import {
   calculateNextStreak,
   calculateRewards,
-  getDailyTaskTemplate,
   getLevelFromExp,
   getNextMakeupCardPrice,
   getShopItemPrice,
+  mapTaskDefinitionToDailyTaskSnapshot,
   normalizeTaskSelection,
   parseCompletedTaskIds,
-  serializeTaskTemplate,
+  parseTasksJson,
+  serializeTaskSnapshots,
   shouldResetStreakForMissedDay,
 } from "@/lib/game";
 import { formatText, zhCN } from "@/lib/i18n/zhCN";
@@ -30,6 +31,8 @@ const SHOP_ITEM_INCLUDE = {
 type ShopItemRecord = Prisma.ShopItemGetPayload<{
   include: typeof SHOP_ITEM_INCLUDE;
 }>;
+
+type TaskAccessClient = Pick<typeof prisma, "profile" | "taskDefinition" | "dailyLog">;
 
 function getItemPurchaseCountFromPurchases(
   purchases: Array<{
@@ -84,6 +87,74 @@ async function getActiveShopItemsWithUserState(userId: string) {
   return items.map((item) => toShopItemView(item as ShopItemRecord, userId));
 }
 
+async function hasCompletedTaskSlugBeforeDate(
+  db: TaskAccessClient,
+  userId: string,
+  slug: string,
+  beforeDate?: string,
+) {
+  const logs = await db.dailyLog.findMany({
+    where: {
+      userId,
+      ...(beforeDate ? { date: { lt: beforeDate } } : {}),
+    },
+    select: {
+      completedTaskIds: true,
+    },
+    orderBy: { date: "desc" },
+    take: 90,
+  });
+
+  return logs.some((log) => {
+    try {
+      const completedTaskIds = JSON.parse(log.completedTaskIds) as unknown;
+      return Array.isArray(completedTaskIds) && completedTaskIds.includes(slug);
+    } catch {
+      return false;
+    }
+  });
+}
+
+async function getAvailableTaskDefinitionsForUserFromDb(
+  db: TaskAccessClient,
+  userId: string,
+  date = getShanghaiDateParts().today,
+) {
+  const [profile, tasks] = await Promise.all([
+    db.profile.upsert({
+      where: { userId },
+      create: { userId },
+      update: {},
+    }),
+    db.taskDefinition.findMany({
+      where: { isActive: true },
+      orderBy: [{ unlockLevel: "asc" }, { createdAt: "asc" }],
+    }),
+  ]);
+
+  const levelEligibleTasks = tasks.filter((task) => profile.level >= task.unlockLevel);
+  const prerequisiteSlugs = [...new Set(levelEligibleTasks.map((task) => task.unlockAfterTaskSlug).filter(Boolean))] as string[];
+  const prerequisiteMap = new Map<string, boolean>();
+
+  await Promise.all(
+    prerequisiteSlugs.map(async (slug) => {
+      prerequisiteMap.set(slug, await hasCompletedTaskSlugBeforeDate(db, userId, slug, date));
+    }),
+  );
+
+  return levelEligibleTasks.filter((task) => {
+    if (!task.unlockAfterTaskSlug) {
+      return true;
+    }
+
+    return prerequisiteMap.get(task.unlockAfterTaskSlug) === true;
+  });
+}
+
+export async function getAvailableTaskDefinitionsForUser(userId: string, date = getShanghaiDateParts().today) {
+  return getAvailableTaskDefinitionsForUserFromDb(prisma, userId, date);
+}
+
 export async function ensureProfile(userId: string) {
   return prisma.profile.upsert({
     where: { userId },
@@ -93,19 +164,27 @@ export async function ensureProfile(userId: string) {
 }
 
 export async function ensureTodayLog(userId: string, date = getShanghaiDateParts().today) {
-  return prisma.dailyLog.upsert({
+  const existing = await prisma.dailyLog.findUnique({
     where: {
       userId_date: {
         userId,
         date,
       },
     },
-    create: {
+  });
+
+  if (existing) {
+    return existing;
+  }
+
+  const availableTasks = await getAvailableTaskDefinitionsForUser(userId, date);
+
+  return prisma.dailyLog.create({
+    data: {
       userId,
       date,
-      tasksJson: serializeTaskTemplate(),
+      tasksJson: serializeTaskSnapshots(availableTasks.map((task) => mapTaskDefinitionToDailyTaskSnapshot(task))),
     },
-    update: {},
   });
 }
 
@@ -158,6 +237,7 @@ export async function getDashboardState(userId: string) {
   const profile = user.profile ? await resetStreakIfNeeded(user.profile) : await ensureProfile(userId);
   const shopItems = await getActiveShopItemsWithUserState(userId);
   const makeupCardItem = shopItems.find((item) => item.kind === "MAKEUP_CARD");
+  const todayTasks = parseTasksJson(log.tasksJson);
 
   return {
     user: {
@@ -170,7 +250,7 @@ export async function getDashboardState(userId: string) {
     recentPurchases,
     recentRedeemCodes,
     todayCompletedTaskIds: parseCompletedTaskIds(log),
-    tasks: getDailyTaskTemplate(),
+    tasks: todayTasks,
     nextShopPrice: makeupCardItem?.currentPrice ?? getNextMakeupCardPrice(profile.purchaseCount),
     shopItems,
   };
@@ -184,7 +264,7 @@ export async function updateTodayTaskSelection(userId: string, taskIds: string[]
     throw new Error(zhCN.actions.alreadySettledToday);
   }
 
-  const normalized = normalizeTaskSelection(taskIds);
+  const normalized = normalizeTaskSelection(taskIds, parseTasksJson(log.tasksJson));
 
   return prisma.dailyLog.update({
     where: { id: log.id },
@@ -211,27 +291,32 @@ export async function settleToday(userId: string) {
       });
     }
 
-    const log = await tx.dailyLog.upsert({
+    let log = await tx.dailyLog.findUnique({
       where: {
         userId_date: {
           userId,
           date: today,
         },
       },
-      create: {
-        userId,
-        date: today,
-        tasksJson: serializeTaskTemplate(),
-      },
-      update: {},
     });
+
+    if (!log) {
+      const availableTasks = await getAvailableTaskDefinitionsForUserFromDb(tx, userId, today);
+      log = await tx.dailyLog.create({
+        data: {
+          userId,
+          date: today,
+          tasksJson: serializeTaskSnapshots(availableTasks.map((task) => mapTaskDefinitionToDailyTaskSnapshot(task))),
+        },
+      });
+    }
 
     if (log.settledAt) {
       throw new Error(zhCN.actions.alreadySettledToday);
     }
 
     const completedTaskIds = parseCompletedTaskIds(log);
-    const rewards = calculateRewards(completedTaskIds);
+    const rewards = calculateRewards(completedTaskIds, parseTasksJson(log.tasksJson));
     const streak = calculateNextStreak(profile, today, completedTaskIds.length > 0);
     const nextExp = profile.exp + rewards.exp;
     const nextPoints = profile.points + rewards.points;
@@ -453,7 +538,7 @@ export async function useYesterdayMakeupCard(userId: string) {
       },
     });
 
-    const rewards = calculateRewards(completedTaskIds);
+    const rewards = calculateRewards(completedTaskIds, parseTasksJson(yesterdayLog.tasksJson));
     const restoredStreak = (previousSettledLog?.streakAfter ?? 0) + 1;
     const nextExp = profile.exp + rewards.exp;
     const nextPoints = profile.points + rewards.points;
@@ -512,9 +597,12 @@ export async function useYesterdayMakeupCard(userId: string) {
 }
 
 export async function getAdminState(status?: RedeemCodeStatus, code?: string) {
-  const [items, redeemCodes] = await Promise.all([
+  const [items, tasks, redeemCodes] = await Promise.all([
     prisma.shopItem.findMany({
       orderBy: [{ isActive: "desc" }, { createdAt: "asc" }],
+    }),
+    prisma.taskDefinition.findMany({
+      orderBy: [{ isActive: "desc" }, { unlockLevel: "asc" }, { createdAt: "asc" }],
     }),
     prisma.redeemCode.findMany({
       where: {
@@ -536,8 +624,81 @@ export async function getAdminState(status?: RedeemCodeStatus, code?: string) {
 
   return {
     items,
+    tasks,
     redeemCodes,
   };
+}
+
+export async function saveTaskDefinition(input: {
+  id?: string;
+  slug: string;
+  nameZh: string;
+  descriptionZh: string;
+  exp: number;
+  points: number;
+  unlockLevel: number;
+  unlockAfterTaskSlug?: string;
+  isActive?: boolean;
+}) {
+  const existingBySlug = await prisma.taskDefinition.findUnique({
+    where: { slug: input.slug },
+  });
+
+  if (existingBySlug && existingBySlug.id !== input.id) {
+    throw new Error(zhCN.actions.taskSlugTaken);
+  }
+
+  if (input.unlockAfterTaskSlug === input.slug) {
+    throw new Error(zhCN.actions.taskPrerequisiteSelf);
+  }
+
+  if (input.unlockAfterTaskSlug) {
+    const prerequisite = await prisma.taskDefinition.findUnique({
+      where: { slug: input.unlockAfterTaskSlug },
+      select: { id: true },
+    });
+
+    if (!prerequisite) {
+      throw new Error(zhCN.actions.taskPrerequisiteMissing);
+    }
+  }
+
+  if (input.id) {
+    const task = await prisma.taskDefinition.findUnique({
+      where: { id: input.id },
+    });
+
+    if (!task) {
+      throw new Error(zhCN.actions.taskNotFound);
+    }
+
+    return prisma.taskDefinition.update({
+      where: { id: input.id },
+      data: {
+        slug: input.slug,
+        nameZh: input.nameZh,
+        descriptionZh: input.descriptionZh,
+        exp: input.exp,
+        points: input.points,
+        unlockLevel: input.unlockLevel,
+        unlockAfterTaskSlug: input.unlockAfterTaskSlug,
+        isActive: input.isActive ?? task.isActive,
+      },
+    });
+  }
+
+  return prisma.taskDefinition.create({
+    data: {
+      slug: input.slug,
+      nameZh: input.nameZh,
+      descriptionZh: input.descriptionZh,
+      exp: input.exp,
+      points: input.points,
+      unlockLevel: input.unlockLevel,
+      unlockAfterTaskSlug: input.unlockAfterTaskSlug,
+      isActive: input.isActive ?? true,
+    },
+  });
 }
 
 export async function saveShopItem(input: {

@@ -2,7 +2,75 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+const initialTaskDefinitions = [
+  {
+    slug: "wake-up",
+    nameZh: "按时起床",
+    descriptionZh: "不赖床，按计划开启今天。",
+    exp: 18,
+    points: 10,
+    unlockLevel: 1,
+  },
+  {
+    slug: "hydrate",
+    nameZh: "主动喝水",
+    descriptionZh: "中午前喝完今天的第一整瓶水。",
+    exp: 14,
+    points: 8,
+    unlockLevel: 1,
+  },
+  {
+    slug: "focus-block",
+    nameZh: "完成一轮专注",
+    descriptionZh: "完成一次不被打断的 25 分钟专注时段。",
+    exp: 24,
+    points: 12,
+    unlockLevel: 1,
+  },
+  {
+    slug: "move-body",
+    nameZh: "活动身体",
+    descriptionZh: "散步、拉伸或运动 20 分钟。",
+    exp: 20,
+    points: 10,
+    unlockLevel: 1,
+  },
+  {
+    slug: "shutdown",
+    nameZh: "晚间收尾",
+    descriptionZh: "回顾今天，并安排明天的计划。",
+    exp: 24,
+    points: 15,
+    unlockLevel: 1,
+  },
+] as const;
+
 async function main() {
+  for (const task of initialTaskDefinitions) {
+    await prisma.taskDefinition.upsert({
+      where: { slug: task.slug },
+      update: {
+        nameZh: task.nameZh,
+        descriptionZh: task.descriptionZh,
+        exp: task.exp,
+        points: task.points,
+        unlockLevel: task.unlockLevel,
+        unlockAfterTaskSlug: null,
+        isActive: true,
+      },
+      create: {
+        slug: task.slug,
+        nameZh: task.nameZh,
+        descriptionZh: task.descriptionZh,
+        exp: task.exp,
+        points: task.points,
+        unlockLevel: task.unlockLevel,
+        unlockAfterTaskSlug: null,
+        isActive: true,
+      },
+    });
+  }
+
   await prisma.shopItem.upsert({
     where: { slug: "makeup-card" },
     update: {
@@ -45,7 +113,7 @@ async function main() {
     },
   });
 
-  console.log("初始化完成。默认商店商品已写入。");
+  console.log("初始化完成。默认任务与商店商品已写入。");
 }
 
 main()

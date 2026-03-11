@@ -36,6 +36,31 @@ export const adminShopItemSchema = z.object({
     .transform((value) => value !== "false"),
 });
 
+export const adminTaskDefinitionSchema = z.object({
+  id: z.string().optional(),
+  slug: z
+    .string()
+    .min(2, zhCN.validation.taskSlugMin)
+    .max(48, zhCN.validation.taskSlugMax)
+    .regex(/^[a-z0-9-]+$/, zhCN.validation.taskSlugPattern),
+  nameZh: z.string().min(1, zhCN.validation.taskNameRequired),
+  descriptionZh: z.string().min(1, zhCN.validation.taskDescriptionRequired),
+  exp: z.coerce.number().int().min(0, zhCN.validation.rewardMin),
+  points: z.coerce.number().int().min(0, zhCN.validation.rewardMin),
+  unlockLevel: z.coerce.number().int().min(1, zhCN.validation.unlockLevelMin),
+  unlockAfterTaskSlug: z
+    .string()
+    .trim()
+    .max(48, zhCN.validation.taskSlugMax)
+    .regex(/^[a-z0-9-]*$/, zhCN.validation.taskSlugPattern)
+    .optional()
+    .transform((value) => value || undefined),
+  isActive: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((value) => value !== "false"),
+});
+
 export const adminCodeUpdateSchema = z.object({
   code: z.string().uuid(zhCN.validation.codeInvalid),
   status: z.enum(["REDEEMED", "VOID"], { message: zhCN.feedback.invalidInput }),
