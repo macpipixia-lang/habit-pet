@@ -110,6 +110,27 @@ export default async function TodayPage({
                 </label>
               );
             })}
+            {state.lockedTasks.length > 0 ? (
+              <details className="rounded-2xl border border-line bg-black/10 p-4">
+                <summary className="cursor-pointer list-none text-sm font-medium text-mist">
+                  <span className="inline-flex items-center gap-2">
+                    <span aria-hidden="true">🔒</span>
+                    {formatText(zhCN.today.lockedSectionTitle, { count: state.lockedTasks.length })}
+                  </span>
+                </summary>
+                <div className="mt-4 space-y-3">
+                  {state.lockedTasks.map((task) => (
+                    <div key={task.slug} className="rounded-2xl border border-line bg-black/20 p-4 opacity-80">
+                      <div className="flex items-center gap-2">
+                        <span aria-hidden="true">🔒</span>
+                        <span className="font-medium text-white">{task.nameZh}</span>
+                      </div>
+                      <p className="mt-2 text-sm text-mist">{task.unlockHint}</p>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            ) : null}
             <div className="flex flex-col gap-3 pt-2 sm:flex-row">
               <button
                 formAction={saveTasksAction}

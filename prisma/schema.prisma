@@ -30,6 +30,7 @@ model Profile {
   streak            Int      @default(0)
   makeupCards       Int      @default(0)
   purchaseCount     Int      @default(0)
+  completedTaskSlugsJson String @default("[]")
   lastSettledDate   String?
   lastCompletedDate String?
   createdAt         DateTime @default(now())

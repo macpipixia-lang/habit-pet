@@ -77,6 +77,10 @@ export default async function AdminPage({
   }
 
   const adminState = await getAdminState(statusParam, codeParam || undefined);
+  const taskOptions = adminState.tasks.map((task) => ({
+    value: task.slug,
+    label: `${task.slug} · ${task.nameZh}`,
+  }));
 
   return (
     <div className="space-y-6">
@@ -156,12 +160,19 @@ export default async function AdminPage({
                   <label className="text-sm text-mist" htmlFor="task-unlockAfterTaskSlug">
                     {zhCN.admin.unlockAfterTaskSlugLabel}
                   </label>
-                  <input
+                  <select
                     id="task-unlockAfterTaskSlug"
                     name="unlockAfterTaskSlug"
                     className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                    placeholder={zhCN.admin.unlockAfterTaskSlugHint}
-                  />
+                    defaultValue=""
+                  >
+                    <option value="">{zhCN.admin.unlockAfterTaskSlugHint}</option>
+                    {taskOptions.map((task) => (
+                      <option key={task.value} value={task.value}>
+                        {task.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <button className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950">
@@ -331,13 +342,21 @@ export default async function AdminPage({
                           <label className="text-sm text-mist" htmlFor={`task-unlockAfterTaskSlug-${task.id}`}>
                             {zhCN.admin.unlockAfterTaskSlugLabel}
                           </label>
-                          <input
+                          <select
                             id={`task-unlockAfterTaskSlug-${task.id}`}
                             name="unlockAfterTaskSlug"
                             defaultValue={task.unlockAfterTaskSlug ?? ""}
-                            placeholder={zhCN.admin.unlockAfterTaskSlugHint}
                             className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                          />
+                          >
+                            <option value="">{zhCN.admin.unlockAfterTaskSlugHint}</option>
+                            {taskOptions
+                              .filter((option) => option.value !== task.slug)
+                              .map((option) => (
+                                <option key={`${task.id}-${option.value}`} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                          </select>
                         </div>
                       </div>
                       <div className="space-y-2">

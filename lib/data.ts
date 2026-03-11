@@ -17,6 +17,7 @@ import {
   mapTaskDefinitionToDailyTaskSnapshot,
   normalizeTaskSelection,
   parseCompletedTaskIds,
+  parseStringArrayJson,
   parseTasksJson,
   serializeTaskSnapshots,
   shouldResetStreakForMissedDay,
@@ -33,6 +34,113 @@ type ShopItemRecord = Prisma.ShopItemGetPayload<{
 }>;
 
 type TaskAccessClient = Pick<typeof prisma, "profile" | "taskDefinition" | "dailyLog">;
+
+type LockedTaskView = {
+  id: string;
+  slug: string;
+  nameZh: string;
+  unlockHint: string;
+};
+
+function getCompletedTaskSlugs(profile: Pick<Profile, "completedTaskSlugsJson">) {
+  return parseStringArrayJson(profile.completedTaskSlugsJson);
+}
+
+function getCompletedTaskSlugsFromLog(log: Pick<DailyLog, "completedTaskIds" | "tasksJson">) {
+  const completedIds = new Set(parseCompletedTaskIds(log as DailyLog));
+  const tasks = parseTasksJson(log.tasksJson);
+  const matchedSlugs = tasks.filter((task) => completedIds.has(task.id)).map((task) => task.slug);
+
+  if (matchedSlugs.length === 0) {
+    return [...completedIds];
+  }
+
+  const matchedSet = new Set(tasks.filter((task) => completedIds.has(task.id)).map((task) => task.id));
+  const unmatchedIds = [...completedIds].filter((id) => !matchedSet.has(id));
+  return [...new Set([...matchedSlugs, ...unmatchedIds])];
+}
+
+async function backfillCompletedTaskSlugs(
+  db: TaskAccessClient,
+  profile: Profile,
+  userId: string,
+  beforeDate?: string,
+) {
+  const logs = await db.dailyLog.findMany({
+    where: {
+      userId,
+      ...(beforeDate
+        ? {
+            date: {
+              gte: addDaysToDateKey(beforeDate, -90),
+              lt: beforeDate,
+            },
+          }
+        : {}),
+    },
+    select: {
+      completedTaskIds: true,
+      tasksJson: true,
+    },
+    orderBy: { date: "desc" },
+    take: 90,
+  });
+
+  const completedTaskSlugs = [...new Set(logs.flatMap((log) => getCompletedTaskSlugsFromLog(log)))];
+
+  const updatedProfile = await db.profile.update({
+    where: { id: profile.id },
+    data: {
+      completedTaskSlugsJson: JSON.stringify(completedTaskSlugs),
+    },
+  });
+
+  return {
+    profile: updatedProfile,
+    completedTaskSlugs,
+  };
+}
+
+async function getCompletionIndex(
+  db: TaskAccessClient,
+  profile: Profile,
+  userId: string,
+  beforeDate?: string,
+) {
+  const completedTaskSlugs = getCompletedTaskSlugs(profile);
+
+  if (completedTaskSlugs.length > 0) {
+    return {
+      profile,
+      completedTaskSlugs,
+    };
+  }
+
+  return backfillCompletedTaskSlugs(db, profile, userId, beforeDate);
+}
+
+async function addCompletedTaskSlugsToProfile(
+  db: Pick<typeof prisma, "profile">,
+  profile: Profile,
+  slugs: string[],
+) {
+  if (slugs.length === 0) {
+    return profile;
+  }
+
+  const merged = [...new Set([...getCompletedTaskSlugs(profile), ...slugs])];
+
+  if (merged.length === getCompletedTaskSlugs(profile).length) {
+    return profile;
+  }
+
+  return db.profile.update({
+    where: { id: profile.id },
+    data: {
+      completedTaskSlugsJson: JSON.stringify(merged),
+    },
+  });
+}
 
 function getItemPurchaseCountFromPurchases(
   purchases: Array<{
@@ -87,43 +195,15 @@ async function getActiveShopItemsWithUserState(userId: string) {
   return items.map((item) => toShopItemView(item as ShopItemRecord, userId));
 }
 
-async function hasCompletedTaskSlugBeforeDate(
-  db: TaskAccessClient,
-  userId: string,
-  slug: string,
-  beforeDate?: string,
-) {
-  const logs = await db.dailyLog.findMany({
-    where: {
-      userId,
-      ...(beforeDate ? { date: { lt: beforeDate } } : {}),
-    },
-    select: {
-      completedTaskIds: true,
-    },
-    orderBy: { date: "desc" },
-    take: 90,
-  });
-
-  return logs.some((log) => {
-    try {
-      const completedTaskIds = JSON.parse(log.completedTaskIds) as unknown;
-      return Array.isArray(completedTaskIds) && completedTaskIds.includes(slug);
-    } catch {
-      return false;
-    }
-  });
-}
-
-async function getAvailableTaskDefinitionsForUserFromDb(
+async function getTaskAvailabilityForUserFromDb(
   db: TaskAccessClient,
   userId: string,
   date = getShanghaiDateParts().today,
 ) {
-  const [profile, tasks] = await Promise.all([
+  const [profileRecord, tasks] = await Promise.all([
     db.profile.upsert({
       where: { userId },
-      create: { userId },
+      create: { userId, completedTaskSlugsJson: "[]" },
       update: {},
     }),
     db.taskDefinition.findMany({
@@ -132,23 +212,54 @@ async function getAvailableTaskDefinitionsForUserFromDb(
     }),
   ]);
 
-  const levelEligibleTasks = tasks.filter((task) => profile.level >= task.unlockLevel);
-  const prerequisiteSlugs = [...new Set(levelEligibleTasks.map((task) => task.unlockAfterTaskSlug).filter(Boolean))] as string[];
-  const prerequisiteMap = new Map<string, boolean>();
+  const { profile, completedTaskSlugs } = await getCompletionIndex(db, profileRecord, userId, date);
+  const completedTaskSlugSet = new Set(completedTaskSlugs);
+  const taskNameBySlug = new Map(tasks.map((task) => [task.slug, task.nameZh]));
+  const unlocked = tasks.filter((task) => {
+    if (profile.level < task.unlockLevel) {
+      return false;
+    }
 
-  await Promise.all(
-    prerequisiteSlugs.map(async (slug) => {
-      prerequisiteMap.set(slug, await hasCompletedTaskSlugBeforeDate(db, userId, slug, date));
-    }),
-  );
-
-  return levelEligibleTasks.filter((task) => {
     if (!task.unlockAfterTaskSlug) {
       return true;
     }
 
-    return prerequisiteMap.get(task.unlockAfterTaskSlug) === true;
+    return completedTaskSlugSet.has(task.unlockAfterTaskSlug);
   });
+
+  const unlockedSlugSet = new Set(unlocked.map((task) => task.slug));
+  const locked: LockedTaskView[] = tasks
+    .filter((task) => !unlockedSlugSet.has(task.slug))
+    .map((task) => {
+      const unlockHint =
+        profile.level < task.unlockLevel
+          ? formatText(zhCN.today.lockedByLevel, { level: task.unlockLevel })
+          : formatText(zhCN.today.lockedByTask, {
+              name: taskNameBySlug.get(task.unlockAfterTaskSlug ?? "") ?? task.unlockAfterTaskSlug ?? "",
+            });
+
+      return {
+        id: task.id,
+        slug: task.slug,
+        nameZh: task.nameZh,
+        unlockHint,
+      };
+    });
+
+  return {
+    profile,
+    unlocked,
+    locked,
+  };
+}
+
+async function getAvailableTaskDefinitionsForUserFromDb(
+  db: TaskAccessClient,
+  userId: string,
+  date = getShanghaiDateParts().today,
+) {
+  const availability = await getTaskAvailabilityForUserFromDb(db, userId, date);
+  return availability.unlocked;
 }
 
 export async function getAvailableTaskDefinitionsForUser(userId: string, date = getShanghaiDateParts().today) {
@@ -204,12 +315,12 @@ export async function resetStreakIfNeeded(profile: Profile) {
 }
 
 export async function getDashboardState(userId: string) {
-  const [user, log, recentLogs, recentLedger, recentPurchases, recentRedeemCodes] = await Promise.all([
+  const log = await ensureTodayLog(userId);
+  const [user, recentLogs, recentLedger, recentPurchases, recentRedeemCodes] = await Promise.all([
     prisma.user.findUniqueOrThrow({
       where: { id: userId },
       include: { profile: true },
     }),
-    ensureTodayLog(userId),
     prisma.dailyLog.findMany({
       where: { userId },
       orderBy: { date: "desc" },
@@ -235,6 +346,11 @@ export async function getDashboardState(userId: string) {
   ]);
 
   const profile = user.profile ? await resetStreakIfNeeded(user.profile) : await ensureProfile(userId);
+  const taskAvailability = await getTaskAvailabilityForUserFromDb(prisma, userId);
+  const currentProfile = {
+    ...profile,
+    completedTaskSlugsJson: taskAvailability.profile.completedTaskSlugsJson,
+  };
   const shopItems = await getActiveShopItemsWithUserState(userId);
   const makeupCardItem = shopItems.find((item) => item.kind === "MAKEUP_CARD");
   const todayTasks = parseTasksJson(log.tasksJson);
@@ -242,7 +358,7 @@ export async function getDashboardState(userId: string) {
   return {
     user: {
       ...user,
-      profile,
+      profile: currentProfile,
     },
     todayLog: log,
     recentLogs,
@@ -251,7 +367,8 @@ export async function getDashboardState(userId: string) {
     recentRedeemCodes,
     todayCompletedTaskIds: parseCompletedTaskIds(log),
     tasks: todayTasks,
-    nextShopPrice: makeupCardItem?.currentPrice ?? getNextMakeupCardPrice(profile.purchaseCount),
+    lockedTasks: taskAvailability.locked.filter((task) => !todayTasks.some((todayTask) => todayTask.slug === task.slug)),
+    nextShopPrice: makeupCardItem?.currentPrice ?? getNextMakeupCardPrice(currentProfile.purchaseCount),
     shopItems,
   };
 }
@@ -322,7 +439,7 @@ export async function settleToday(userId: string) {
     const nextPoints = profile.points + rewards.points;
     const nextLevel = getLevelFromExp(nextExp);
 
-    const updatedProfile = await tx.profile.update({
+    let updatedProfile = await tx.profile.update({
       where: { id: profile.id },
       data: {
         exp: nextExp,
@@ -333,6 +450,8 @@ export async function settleToday(userId: string) {
         lastCompletedDate: completedTaskIds.length > 0 ? today : profile.lastCompletedDate,
       },
     });
+
+    updatedProfile = await addCompletedTaskSlugsToProfile(tx, updatedProfile, getCompletedTaskSlugsFromLog(log));
 
     const updatedLog = await tx.dailyLog.update({
       where: { id: log.id },
@@ -565,6 +684,8 @@ export async function useYesterdayMakeupCard(userId: string) {
         lastSettledDate: yesterday,
       },
     });
+
+    profile = await addCompletedTaskSlugsToProfile(tx, profile, getCompletedTaskSlugsFromLog(yesterdayLog));
 
     await tx.pointsLedger.createMany({
       data: [
@@ -830,6 +951,7 @@ export async function resetUserData(userId: string) {
         streak: 0,
         makeupCards: 0,
         purchaseCount: 0,
+        completedTaskSlugsJson: "[]",
         lastSettledDate: null,
         lastCompletedDate: null,
       },

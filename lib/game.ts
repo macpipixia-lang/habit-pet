@@ -154,6 +154,15 @@ export function parseCompletedTaskIds(log: DailyLog) {
   }
 }
 
+export function parseStringArrayJson(value: string) {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return Array.isArray(parsed) ? [...new Set(parsed.filter((item): item is string => typeof item === "string"))] : [];
+  } catch {
+    return [];
+  }
+}
+
 export function toTodayViewModel(params: {
   user: User & { profile: Profile | null };
   log: DailyLog;

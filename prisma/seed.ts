@@ -46,6 +46,12 @@ const initialTaskDefinitions = [
 ] as const;
 
 async function main() {
+  await prisma.profile.updateMany({
+    data: {
+      completedTaskSlugsJson: "[]",
+    },
+  });
+
   for (const task of initialTaskDefinitions) {
     await prisma.taskDefinition.upsert({
       where: { slug: task.slug },
