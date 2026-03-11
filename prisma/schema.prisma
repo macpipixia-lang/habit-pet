@@ -16,6 +16,8 @@ model User {
   profile      Profile?
   dailyLogs    DailyLog[]
   pointsLedger PointsLedger[]
+  purchases    UserPurchase[]
+  redeemCodes  RedeemCode[]
 }
 
 model Profile {
@@ -61,4 +63,57 @@ model PointsLedger {
   metaJson    String?
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ShopItem {
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  nameZh        String
+  descriptionZh String
+  kind          ShopItemKind
+  priceBase     Int
+  priceStep     Int
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  purchases     UserPurchase[]
+  redeemCodes   RedeemCode[]
+}
+
+model UserPurchase {
+  id        String   @id @default(cuid())
+  userId    String
+  itemId    String
+  quantity  Int
+  totalCost Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item      ShopItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([userId, itemId])
+}
+
+model RedeemCode {
+  id         String           @id @default(uuid())
+  userId     String
+  itemId     String
+  status     RedeemCodeStatus @default(ISSUED)
+  issuedAt   DateTime         @default(now())
+  redeemedAt DateTime?
+  adminNote  String?
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item       ShopItem         @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([status, issuedAt])
+  @@index([userId, issuedAt])
+}
+
+enum ShopItemKind {
+  MAKEUP_CARD
+  COUPON
+}
+
+enum RedeemCodeStatus {
+  ISSUED
+  REDEEMED
+  VOID
 }

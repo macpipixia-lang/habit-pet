@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
-import { loginAction, registerAction } from "@/app/actions";
+import { type AuthActionState, loginAction, registerAction } from "@/app/actions";
+import { zhCN } from "@/lib/i18n/zhCN";
 
-const initialState = {};
+const initialState: AuthActionState = {};
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const action = mode === "login" ? loginAction : registerAction;
@@ -13,20 +14,20 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
         <label className="text-sm text-mist" htmlFor={`${mode}-username`}>
-          Username
+          {zhCN.auth.usernameLabel}
         </label>
         <input
           id={`${mode}-username`}
           name="username"
           autoComplete="username"
           className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
-          placeholder="habit_ranger"
+          placeholder={zhCN.auth.usernamePlaceholder}
           required
         />
       </div>
       <div className="space-y-2">
         <label className="text-sm text-mist" htmlFor={`${mode}-password`}>
-          Password
+          {zhCN.auth.passwordLabel}
         </label>
         <input
           id={`${mode}-password`}
@@ -34,7 +35,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           type="password"
           autoComplete={mode === "login" ? "current-password" : "new-password"}
           className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
-          placeholder="Minimum 6 characters"
+          placeholder={zhCN.auth.passwordPlaceholder}
           required
         />
       </div>
@@ -44,7 +45,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         disabled={pending}
         className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {pending ? "Working..." : mode === "login" ? "Login" : "Create account"}
+        {pending ? zhCN.auth.submitting : mode === "login" ? zhCN.auth.loginSubmit : zhCN.auth.registerSubmit}
       </button>
     </form>
   );

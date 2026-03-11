@@ -21,12 +21,16 @@ export function getNextMakeupCardPrice(purchaseCount: number) {
   return MAKEUP_CARD_BASE_PRICE + purchaseCount;
 }
 
+export function getShopItemPrice(priceBase: number, priceStep: number, purchaseCount: number) {
+  return priceBase + purchaseCount * priceStep;
+}
+
 export function getDailyTaskTemplate() {
   return TASK_TEMPLATE.map((task) => ({ ...task }));
 }
 
 export function normalizeTaskSelection(taskIds: string[]) {
-  const validIds = new Set(TASK_TEMPLATE.map((task) => task.id));
+  const validIds = new Set<string>(TASK_TEMPLATE.map((task) => task.id));
   return [...new Set(taskIds.filter((taskId) => validIds.has(taskId)))];
 }
 

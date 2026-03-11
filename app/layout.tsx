@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/app-shell";
+import { zhCN } from "@/lib/i18n/zhCN";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Habit Pet",
-  description: "Daily task check-ins that level up your pet.",
+  title: zhCN.app.name,
+  description: zhCN.app.description,
 };
 
 export default function RootLayout({
@@ -13,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="zh-CN" className="dark">
       <body>
         <AppShell>{children}</AppShell>
       </body>

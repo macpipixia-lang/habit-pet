@@ -1,37 +1,30 @@
 import Link from "next/link";
 import { Card, Pill } from "@/components/ui";
-
-const highlights = [
-  "One settlement per Shanghai day",
-  "Server-backed sync with SQLite + Prisma",
-  "Pet levels capped at 30, EXP keeps flowing",
-  "Makeup cards restore yesterday's streak",
-];
+import { zhCN } from "@/lib/i18n/zhCN";
 
 export default function LandingPage() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
       <Card className="overflow-hidden p-0">
         <div className="border-b border-line px-6 py-5">
-          <Pill className="text-accent">Milestone 1 MVP</Pill>
+          <Pill className="text-accent">{zhCN.landing.badge}</Pill>
           <h1 className="mt-4 max-w-2xl text-4xl font-semibold leading-tight text-white sm:text-5xl">
-            Check in daily. Feed EXP into a pet that reflects your streak.
+            {zhCN.landing.title}
           </h1>
           <p className="mt-4 max-w-xl text-base leading-7 text-mist">
-            Daily task completion turns into EXP and points. Points buy makeup cards that let you repair a missed day,
-            but only for yesterday.
+            {zhCN.landing.description}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/auth" className="rounded-full bg-accent px-5 py-3 font-medium text-slate-950">
-              Get started
+              {zhCN.landing.primaryCta}
             </Link>
             <Link href="/today" className="rounded-full border border-line px-5 py-3 text-mist">
-              View app
+              {zhCN.landing.secondaryCta}
             </Link>
           </div>
         </div>
         <div className="grid gap-3 px-6 py-5 sm:grid-cols-2">
-          {highlights.map((item) => (
+          {zhCN.landing.highlights.map((item) => (
             <div key={item} className="rounded-2xl border border-line bg-black/20 p-4 text-sm text-mist">
               {item}
             </div>
@@ -41,19 +34,16 @@ export default function LandingPage() {
 
       <Card className="flex flex-col justify-between">
         <div>
-          <Pill className="text-accentWarm">Loop</Pill>
+          <Pill className="text-accentWarm">{zhCN.landing.loopBadge}</Pill>
           <ol className="mt-4 space-y-4 text-sm text-mist">
-            <li>1. Tick today’s tasks.</li>
-            <li>2. Settle once to mint EXP and points.</li>
-            <li>3. Grow your pet through level 30.</li>
-            <li>4. Spend points in the shop on streak recovery.</li>
+            {zhCN.landing.loopSteps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
           </ol>
         </div>
         <div className="mt-8 rounded-3xl border border-accent/20 bg-accent/10 p-5">
-          <p className="text-sm uppercase tracking-[0.18em] text-accent">Design direction</p>
-          <p className="mt-3 text-sm leading-7 text-white/80">
-            Dark, mobile-first panels with soft glow, compact typography, and server-first interactions.
-          </p>
+          <p className="text-sm uppercase tracking-[0.18em] text-accent">{zhCN.landing.designBadge}</p>
+          <p className="mt-3 text-sm leading-7 text-white/80">{zhCN.landing.designDescription}</p>
         </div>
       </Card>
     </div>

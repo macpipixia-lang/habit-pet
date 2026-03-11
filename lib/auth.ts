@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 
 const SESSION_COOKIE = "habit_pet_session";
+const ADMIN_COOKIE = "habit_pet_admin";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 
 function getSessionSecret() {
@@ -11,6 +12,16 @@ function getSessionSecret() {
 
   if (!secret) {
     throw new Error("SESSION_SECRET is not set");
+  }
+
+  return secret;
+}
+
+function getAdminSecret() {
+  const secret = process.env.ADMIN_SECRET;
+
+  if (!secret) {
+    throw new Error("ADMIN_SECRET is not set");
   }
 
   return secret;
@@ -32,6 +43,10 @@ export function verifyPassword(password: string, passwordHash: string) {
 
 function sign(payload: string) {
   return crypto.createHmac("sha256", getSessionSecret()).update(payload).digest("hex");
+}
+
+function signAdmin(payload: string) {
+  return crypto.createHmac("sha256", getAdminSecret()).update(payload).digest("hex");
 }
 
 function encodeSession(userId: string) {
@@ -63,6 +78,39 @@ function decodeSession(value: string) {
   return { userId };
 }
 
+function encodeAdminSession() {
+  const expiresAt = Date.now() + SESSION_TTL_MS;
+  const payload = `admin.${expiresAt}`;
+  const signature = signAdmin(payload);
+
+  return `${payload}.${signature}`;
+}
+
+function decodeAdminSession(value: string) {
+  const parts = value.split(".");
+
+  if (parts.length !== 3) {
+    return null;
+  }
+
+  const [role, expiresAt, signature] = parts;
+  const payload = `${role}.${expiresAt}`;
+
+  if (role !== "admin") {
+    return null;
+  }
+
+  if (signAdmin(payload) !== signature) {
+    return null;
+  }
+
+  if (Number(expiresAt) < Date.now()) {
+    return null;
+  }
+
+  return { isAdmin: true };
+}
+
 export async function createSession(userId: string) {
   const store = await cookies();
 
@@ -78,6 +126,23 @@ export async function createSession(userId: string) {
 export async function clearSession() {
   const store = await cookies();
   store.delete(SESSION_COOKIE);
+}
+
+export async function createAdminSession() {
+  const store = await cookies();
+
+  store.set(ADMIN_COOKIE, encodeAdminSession(), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_TTL_MS / 1000,
+  });
+}
+
+export async function clearAdminSession() {
+  const store = await cookies();
+  store.delete(ADMIN_COOKIE);
 }
 
 export async function getCurrentUser() {
@@ -110,4 +175,33 @@ export async function requireUser() {
   }
 
   return user;
+}
+
+export async function isAdminAuthenticated() {
+  const store = await cookies();
+  const session = store.get(ADMIN_COOKIE)?.value;
+
+  if (!session) {
+    return false;
+  }
+
+  return Boolean(decodeAdminSession(session));
+}
+
+export async function requireAdmin() {
+  const isAdmin = await isAdminAuthenticated();
+
+  if (!isAdmin) {
+    redirect("/admin");
+  }
+}
+
+export function verifyAdminSecret(secret: string) {
+  const configuredSecret = getAdminSecret();
+
+  if (secret.length !== configuredSecret.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(Buffer.from(secret), Buffer.from(configuredSecret));
 }

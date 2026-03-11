@@ -3,6 +3,7 @@ import { Card, Pill } from "@/components/ui";
 import { getDashboardState } from "@/lib/data";
 import { requireUser } from "@/lib/auth";
 import { EXP_PER_LEVEL, MAX_LEVEL } from "@/lib/constants";
+import { formatText, zhCN } from "@/lib/i18n/zhCN";
 import { formatNumber } from "@/lib/utils";
 
 export default async function TodayPage({
@@ -27,20 +28,20 @@ export default async function TodayPage({
       ) : success ? (
         <Card className="border-success/40 bg-emerald-500/10 text-sm text-emerald-100">
           {success === "progress-saved"
-            ? "Progress saved."
+            ? zhCN.feedback.progressSaved
             : success === "settled"
-              ? "Today settled."
-              : "Makeup card applied."}
+              ? zhCN.feedback.todaySettled
+              : zhCN.feedback.makeupApplied}
         </Card>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
-          <p className="text-sm text-mist">Current streak</p>
+          <p className="text-sm text-mist">{zhCN.today.streak}</p>
           <p className="mt-3 text-3xl font-semibold text-white">{profile.streak}</p>
-          <p className="mt-2 text-sm text-mist">Miss a day and it resets. Makeup cards restore yesterday only.</p>
+          <p className="mt-2 text-sm text-mist">{zhCN.today.streakHint}</p>
         </Card>
         <Card>
-          <p className="text-sm text-mist">Level</p>
+          <p className="text-sm text-mist">{zhCN.today.level}</p>
           <p className="mt-3 text-3xl font-semibold text-white">
             {profile.level} / {MAX_LEVEL}
           </p>
@@ -48,18 +49,21 @@ export default async function TodayPage({
             <div className="h-2 rounded-full bg-accent" style={{ width: `${progressPercent}%` }} />
           </div>
           <p className="mt-2 text-sm text-mist">
-            {formatNumber(profile.exp)} total EXP. Level cap reached at {MAX_LEVEL}, EXP keeps accumulating.
+            {formatText(zhCN.today.levelHint, {
+              exp: formatNumber(profile.exp),
+              maxLevel: MAX_LEVEL,
+            })}
           </p>
         </Card>
         <Card>
-          <p className="text-sm text-mist">Points</p>
+          <p className="text-sm text-mist">{zhCN.today.points}</p>
           <p className="mt-3 text-3xl font-semibold text-white">{formatNumber(profile.points)}</p>
-          <p className="mt-2 text-sm text-mist">Next makeup card costs {state.nextShopPrice} points.</p>
+          <p className="mt-2 text-sm text-mist">{formatText(zhCN.today.pointsHint, { price: state.nextShopPrice })}</p>
         </Card>
         <Card>
-          <p className="text-sm text-mist">Makeup cards</p>
+          <p className="text-sm text-mist">{zhCN.today.makeupCards}</p>
           <p className="mt-3 text-3xl font-semibold text-white">{profile.makeupCards}</p>
-          <p className="mt-2 text-sm text-mist">Use before settling today to repair yesterday.</p>
+          <p className="mt-2 text-sm text-mist">{zhCN.today.makeupCardsHint}</p>
         </Card>
       </div>
 
@@ -67,13 +71,15 @@ export default async function TodayPage({
         <Card>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <Pill className="text-accent">Today</Pill>
-              <h1 className="mt-4 text-3xl font-semibold text-white">Daily checklist</h1>
-              <p className="mt-2 text-sm leading-7 text-mist">
-                Tick any completed tasks, save progress freely, then settle once for the day.
-              </p>
+              <Pill className="text-accent">{zhCN.today.badge}</Pill>
+              <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.today.title}</h1>
+              <p className="mt-2 text-sm leading-7 text-mist">{zhCN.today.description}</p>
             </div>
-            {isSettled ? <Pill className="text-success">Settled</Pill> : <Pill className="text-accentWarm">Open</Pill>}
+            {isSettled ? (
+              <Pill className="text-success">{zhCN.today.statusSettled}</Pill>
+            ) : (
+              <Pill className="text-accentWarm">{zhCN.today.statusOpen}</Pill>
+            )}
           </div>
 
           <form className="mt-6 space-y-4">
@@ -97,7 +103,7 @@ export default async function TodayPage({
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium text-white">{task.title}</span>
                       <Pill>+{task.exp} EXP</Pill>
-                      <Pill>+{task.points} pts</Pill>
+                      <Pill>{formatText(zhCN.today.taskPoints, { points: task.points })}</Pill>
                     </div>
                     <p className="mt-2 text-sm text-mist">{task.description}</p>
                   </div>
@@ -110,14 +116,14 @@ export default async function TodayPage({
                 disabled={isSettled}
                 className="rounded-2xl border border-line px-4 py-3 text-sm text-white transition hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Save progress
+                {zhCN.today.save}
               </button>
               <button
                 formAction={settleTodayAction}
                 disabled={isSettled}
                 className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Settle today
+                {zhCN.today.settle}
               </button>
             </div>
           </form>
@@ -125,33 +131,39 @@ export default async function TodayPage({
 
         <div className="space-y-6">
           <Card>
-            <Pill className="text-accentWarm">Projected reward</Pill>
-            <p className="mt-4 text-3xl font-semibold text-white">+{state.tasks.filter((task) => state.todayCompletedTaskIds.includes(task.id)).reduce((sum, task) => sum + task.exp, 0)} EXP</p>
-            <p className="mt-2 text-sm text-mist">+{state.tasks.filter((task) => state.todayCompletedTaskIds.includes(task.id)).reduce((sum, task) => sum + task.points, 0)} points if you settle now.</p>
+            <Pill className="text-accentWarm">{zhCN.today.rewardBadge}</Pill>
+            <p className="mt-4 text-3xl font-semibold text-white">
+              {formatText(zhCN.today.rewardExp, {
+                exp: state.tasks.filter((task) => state.todayCompletedTaskIds.includes(task.id)).reduce((sum, task) => sum + task.exp, 0),
+              })}
+            </p>
+            <p className="mt-2 text-sm text-mist">
+              {formatText(zhCN.today.rewardPoints, {
+                points: state.tasks.filter((task) => state.todayCompletedTaskIds.includes(task.id)).reduce((sum, task) => sum + task.points, 0),
+              })}
+            </p>
           </Card>
 
           <Card>
-            <Pill className="text-accent">Recovery</Pill>
-            <h2 className="mt-4 text-xl font-semibold text-white">Use a makeup card</h2>
-            <p className="mt-2 text-sm leading-7 text-mist">
-              Yesterday only. This settles yesterday using its saved checklist and restores the streak if eligible.
-            </p>
+            <Pill className="text-accent">{zhCN.today.recoveryBadge}</Pill>
+            <h2 className="mt-4 text-xl font-semibold text-white">{zhCN.today.recoveryTitle}</h2>
+            <p className="mt-2 text-sm leading-7 text-mist">{zhCN.today.recoveryDescription}</p>
             <form action={useMakeupCardAction} className="mt-4">
               <button className="w-full rounded-2xl border border-line px-4 py-3 text-sm text-white transition hover:border-white/20">
-                Use 1 makeup card
+                {zhCN.today.recoveryButton}
               </button>
             </form>
           </Card>
 
           <Card>
-            <Pill className="text-accentWarm">Quick shop</Pill>
-            <h2 className="mt-4 text-xl font-semibold text-white">Buy makeup card</h2>
+            <Pill className="text-accentWarm">{zhCN.today.quickShopBadge}</Pill>
+            <h2 className="mt-4 text-xl font-semibold text-white">{zhCN.today.quickShopTitle}</h2>
             <p className="mt-2 text-sm leading-7 text-mist">
-              Price grows linearly: base 50 + purchase count. Current price is {state.nextShopPrice} points.
+              {formatText(zhCN.today.quickShopDescription, { price: state.nextShopPrice })}
             </p>
             <form action={buyMakeupCardAction} className="mt-4">
               <button className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-110">
-                Redeem for {state.nextShopPrice} points
+                {formatText(zhCN.today.quickShopButton, { price: state.nextShopPrice })}
               </button>
             </form>
           </Card>

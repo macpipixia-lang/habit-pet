@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { APP_NAME } from "@/lib/constants";
+import { zhCN } from "@/lib/i18n/zhCN";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/today", label: "Today" },
-  { href: "/pet", label: "Pet" },
-  { href: "/shop", label: "Shop" },
-  { href: "/history", label: "History" },
-  { href: "/settings", label: "Settings" },
+  { href: "/today", label: zhCN.nav.today },
+  { href: "/pet", label: zhCN.nav.pet },
+  { href: "/shop", label: zhCN.nav.shop },
+  { href: "/history", label: zhCN.nav.history },
+  { href: "/settings", label: zhCN.nav.settings },
 ];
 
 export async function AppShell({
@@ -28,7 +29,7 @@ export async function AppShell({
             <Link href="/" className="text-lg font-semibold tracking-[0.18em] text-white uppercase">
               {APP_NAME}
             </Link>
-            <p className="mt-1 text-sm text-mist">Daily tasks, streak recovery, and a pet that grows with discipline.</p>
+            <p className="mt-1 text-sm text-mist">{zhCN.app.headerDescription}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {user ? (
@@ -49,10 +50,10 @@ export async function AppShell({
             ) : (
               <>
                 <Link className="rounded-full border border-line px-4 py-2 text-sm text-mist transition hover:text-white" href="/auth">
-                  Login
+                  {zhCN.nav.login}
                 </Link>
                 <Link className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-slate-950" href="/auth">
-                  Start
+                  {zhCN.nav.start}
                 </Link>
               </>
             )}

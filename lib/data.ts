@@ -1,4 +1,11 @@
-import { DailyLog, Profile, User } from "@prisma/client";
+import {
+  DailyLog,
+  Prisma,
+  Profile,
+  RedeemCodeStatus,
+  ShopItemKind,
+  User,
+} from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { addDaysToDateKey, getShanghaiDateParts } from "@/lib/time";
 import {
@@ -7,11 +14,75 @@ import {
   getDailyTaskTemplate,
   getLevelFromExp,
   getNextMakeupCardPrice,
+  getShopItemPrice,
   normalizeTaskSelection,
   parseCompletedTaskIds,
   serializeTaskTemplate,
   shouldResetStreakForMissedDay,
 } from "@/lib/game";
+import { formatText, zhCN } from "@/lib/i18n/zhCN";
+
+const SHOP_ITEM_INCLUDE = {
+  purchases: true,
+  redeemCodes: true,
+} satisfies Prisma.ShopItemInclude;
+
+type ShopItemRecord = Prisma.ShopItemGetPayload<{
+  include: typeof SHOP_ITEM_INCLUDE;
+}>;
+
+function getItemPurchaseCountFromPurchases(
+  purchases: Array<{
+    quantity: number;
+    userId: string;
+  }>,
+  userId: string,
+) {
+  return purchases.reduce((total, purchase) => {
+    if (purchase.userId !== userId) {
+      return total;
+    }
+
+    return total + purchase.quantity;
+  }, 0);
+}
+
+function toShopItemView(item: ShopItemRecord, userId: string) {
+  const purchaseCount = getItemPurchaseCountFromPurchases(item.purchases, userId);
+
+  return {
+    id: item.id,
+    slug: item.slug,
+    nameZh: item.nameZh,
+    descriptionZh: item.descriptionZh,
+    kind: item.kind,
+    priceBase: item.priceBase,
+    priceStep: item.priceStep,
+    isActive: item.isActive,
+    createdAt: item.createdAt,
+    purchaseCount,
+    currentPrice: getShopItemPrice(item.priceBase, item.priceStep, purchaseCount),
+  };
+}
+
+async function getActiveShopItemsWithUserState(userId: string) {
+  const items = await prisma.shopItem.findMany({
+    where: { isActive: true },
+    include: {
+      purchases: {
+        where: { userId },
+        select: {
+          quantity: true,
+          userId: true,
+        },
+      },
+      redeemCodes: false,
+    },
+    orderBy: [{ kind: "asc" }, { createdAt: "asc" }],
+  });
+
+  return items.map((item) => toShopItemView(item as ShopItemRecord, userId));
+}
 
 export async function ensureProfile(userId: string) {
   return prisma.profile.upsert({
@@ -54,7 +125,7 @@ export async function resetStreakIfNeeded(profile: Profile) {
 }
 
 export async function getDashboardState(userId: string) {
-  const [user, log, recentLogs, recentLedger] = await Promise.all([
+  const [user, log, recentLogs, recentLedger, recentPurchases, recentRedeemCodes] = await Promise.all([
     prisma.user.findUniqueOrThrow({
       where: { id: userId },
       include: { profile: true },
@@ -70,9 +141,23 @@ export async function getDashboardState(userId: string) {
       orderBy: { createdAt: "desc" },
       take: 20,
     }),
+    prisma.userPurchase.findMany({
+      where: { userId },
+      include: { item: true },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    prisma.redeemCode.findMany({
+      where: { userId },
+      include: { item: true },
+      orderBy: { issuedAt: "desc" },
+      take: 20,
+    }),
   ]);
 
   const profile = user.profile ? await resetStreakIfNeeded(user.profile) : await ensureProfile(userId);
+  const shopItems = await getActiveShopItemsWithUserState(userId);
+  const makeupCardItem = shopItems.find((item) => item.kind === "MAKEUP_CARD");
 
   return {
     user: {
@@ -82,9 +167,12 @@ export async function getDashboardState(userId: string) {
     todayLog: log,
     recentLogs,
     recentLedger,
+    recentPurchases,
+    recentRedeemCodes,
     todayCompletedTaskIds: parseCompletedTaskIds(log),
     tasks: getDailyTaskTemplate(),
-    nextShopPrice: getNextMakeupCardPrice(profile.purchaseCount),
+    nextShopPrice: makeupCardItem?.currentPrice ?? getNextMakeupCardPrice(profile.purchaseCount),
+    shopItems,
   };
 }
 
@@ -93,7 +181,7 @@ export async function updateTodayTaskSelection(userId: string, taskIds: string[]
   const log = await ensureTodayLog(userId, today);
 
   if (log.settledAt) {
-    throw new Error("Today has already been settled.");
+    throw new Error(zhCN.actions.alreadySettledToday);
   }
 
   const normalized = normalizeTaskSelection(taskIds);
@@ -139,7 +227,7 @@ export async function settleToday(userId: string) {
     });
 
     if (log.settledAt) {
-      throw new Error("Today has already been settled.");
+      throw new Error(zhCN.actions.alreadySettledToday);
     }
 
     const completedTaskIds = parseCompletedTaskIds(log);
@@ -177,7 +265,7 @@ export async function settleToday(userId: string) {
           userId,
           delta: rewards.points,
           reason: "daily_settlement",
-          description: `Daily settlement for ${today}`,
+          description: formatText(zhCN.ledger.dailySettlement, { date: today }),
           metaJson: JSON.stringify({
             date: today,
             completedTaskIds,
@@ -194,40 +282,115 @@ export async function settleToday(userId: string) {
   });
 }
 
-export async function purchaseMakeupCard(userId: string) {
+export async function purchaseShopItem(userId: string, itemId: string) {
   return prisma.$transaction(async (tx) => {
-    const profile = await tx.profile.upsert({
-      where: { userId },
-      create: { userId },
-      update: {},
+    const [profile, item] = await Promise.all([
+      tx.profile.upsert({
+        where: { userId },
+        create: { userId },
+        update: {},
+      }),
+      tx.shopItem.findUnique({
+        where: { id: itemId },
+      }),
+    ]);
+
+    if (!item) {
+      throw new Error(zhCN.actions.itemNotFound);
+    }
+
+    if (!item.isActive) {
+      throw new Error(zhCN.actions.itemInactive);
+    }
+
+    const aggregate = await tx.userPurchase.aggregate({
+      where: {
+        userId,
+        itemId,
+      },
+      _sum: {
+        quantity: true,
+      },
     });
-    const cost = getNextMakeupCardPrice(profile.purchaseCount);
+    const purchaseCount = aggregate._sum.quantity ?? 0;
+    const cost = getShopItemPrice(item.priceBase, item.priceStep, purchaseCount);
 
     if (profile.points < cost) {
-      throw new Error("Not enough points for a makeup card.");
+      throw new Error(item.kind === "MAKEUP_CARD" ? zhCN.actions.pointsNotEnough : zhCN.actions.pointsNotEnoughItem);
     }
 
     const updatedProfile = await tx.profile.update({
       where: { id: profile.id },
       data: {
         points: profile.points - cost,
-        makeupCards: profile.makeupCards + 1,
-        purchaseCount: profile.purchaseCount + 1,
+        makeupCards: item.kind === "MAKEUP_CARD" ? profile.makeupCards + 1 : profile.makeupCards,
+        purchaseCount: item.kind === "MAKEUP_CARD" ? purchaseCount + 1 : profile.purchaseCount,
       },
     });
 
+    const purchase = await tx.userPurchase.create({
+      data: {
+        userId,
+        itemId,
+        quantity: 1,
+        totalCost: cost,
+      },
+      include: {
+        item: true,
+      },
+    });
+
+    const ledgerReason = item.kind === "MAKEUP_CARD" ? "shop_makeup_card" : "shop_coupon";
     await tx.pointsLedger.create({
       data: {
         userId,
         delta: -cost,
-        reason: "shop_makeup_card",
-        description: "Purchased 1 makeup card",
-        metaJson: JSON.stringify({ cost }),
+        reason: ledgerReason,
+        description:
+          item.kind === "MAKEUP_CARD"
+            ? zhCN.ledger.purchasedMakeupCard
+            : formatText(zhCN.ledger.purchasedItem, { name: item.nameZh }),
+        metaJson: JSON.stringify({
+          itemId: item.id,
+          itemSlug: item.slug,
+          cost,
+        }),
       },
     });
 
-    return updatedProfile;
+    const redeemCode =
+      item.kind === "COUPON"
+        ? await tx.redeemCode.create({
+            data: {
+              userId,
+              itemId,
+              status: "ISSUED",
+            },
+          })
+        : null;
+
+    return {
+      profile: updatedProfile,
+      purchase,
+      redeemCode,
+    };
   });
+}
+
+export async function purchaseMakeupCard(userId: string) {
+  const item = await prisma.shopItem.findFirst({
+    where: {
+      kind: "MAKEUP_CARD",
+      isActive: true,
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  if (!item) {
+    throw new Error(zhCN.actions.itemNotFound);
+  }
+
+  return purchaseShopItem(userId, item.id);
 }
 
 export async function useYesterdayMakeupCard(userId: string) {
@@ -242,7 +405,7 @@ export async function useYesterdayMakeupCard(userId: string) {
     });
 
     if (profile.makeupCards < 1) {
-      throw new Error("You do not have any makeup cards.");
+      throw new Error(zhCN.actions.noMakeupCards);
     }
 
     const yesterdayLog = await tx.dailyLog.findUnique({
@@ -255,11 +418,11 @@ export async function useYesterdayMakeupCard(userId: string) {
     });
 
     if (!yesterdayLog) {
-      throw new Error("No log exists for yesterday.");
+      throw new Error(zhCN.actions.noYesterdayLog);
     }
 
     if (yesterdayLog.settledAt) {
-      throw new Error("Yesterday is already settled.");
+      throw new Error(zhCN.actions.yesterdayAlreadySettled);
     }
 
     const todayLog = await tx.dailyLog.findUnique({
@@ -272,13 +435,13 @@ export async function useYesterdayMakeupCard(userId: string) {
     });
 
     if (todayLog?.settledAt) {
-      throw new Error("Use the makeup card before settling today.");
+      throw new Error(zhCN.actions.useBeforeSettlingToday);
     }
 
     const completedTaskIds = parseCompletedTaskIds(yesterdayLog);
 
     if (completedTaskIds.length === 0) {
-      throw new Error("Yesterday has no completed tasks to restore.");
+      throw new Error(zhCN.actions.noCompletedTasksYesterday);
     }
 
     const previousSettledLog = await tx.dailyLog.findUnique({
@@ -324,7 +487,7 @@ export async function useYesterdayMakeupCard(userId: string) {
           userId,
           delta: rewards.points,
           reason: "makeup_settlement",
-          description: `Makeup settlement for ${yesterday}`,
+          description: formatText(zhCN.ledger.makeupSettlement, { date: yesterday }),
           metaJson: JSON.stringify({
             date: yesterday,
             completedTaskIds,
@@ -335,7 +498,7 @@ export async function useYesterdayMakeupCard(userId: string) {
           userId,
           delta: 0,
           reason: "makeup_card_used",
-          description: `Used 1 makeup card for ${yesterday}`,
+          description: formatText(zhCN.ledger.usedMakeupCard, { date: yesterday }),
           metaJson: JSON.stringify({ date: yesterday }),
         },
       ],
@@ -348,8 +511,122 @@ export async function useYesterdayMakeupCard(userId: string) {
   });
 }
 
+export async function getAdminState(status?: RedeemCodeStatus) {
+  const [items, redeemCodes] = await Promise.all([
+    prisma.shopItem.findMany({
+      orderBy: [{ isActive: "desc" }, { createdAt: "asc" }],
+    }),
+    prisma.redeemCode.findMany({
+      where: status ? { status } : undefined,
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+        item: true,
+      },
+      orderBy: { issuedAt: "desc" },
+      take: 100,
+    }),
+  ]);
+
+  return {
+    items,
+    redeemCodes,
+  };
+}
+
+export async function saveShopItem(input: {
+  id?: string;
+  slug: string;
+  nameZh: string;
+  descriptionZh: string;
+  kind: ShopItemKind;
+  priceBase: number;
+  priceStep: number;
+}) {
+  if (input.id) {
+    return prisma.shopItem.update({
+      where: { id: input.id },
+      data: {
+        slug: input.slug,
+        nameZh: input.nameZh,
+        descriptionZh: input.descriptionZh,
+        kind: input.kind,
+        priceBase: input.priceBase,
+        priceStep: input.priceStep,
+      },
+    });
+  }
+
+  return prisma.shopItem.create({
+    data: {
+      slug: input.slug,
+      nameZh: input.nameZh,
+      descriptionZh: input.descriptionZh,
+      kind: input.kind,
+      priceBase: input.priceBase,
+      priceStep: input.priceStep,
+      isActive: true,
+    },
+  });
+}
+
+export async function toggleShopItemActive(itemId: string) {
+  const item = await prisma.shopItem.findUnique({
+    where: { id: itemId },
+  });
+
+  if (!item) {
+    throw new Error(zhCN.actions.itemNotFound);
+  }
+
+  return prisma.shopItem.update({
+    where: { id: itemId },
+    data: {
+      isActive: !item.isActive,
+    },
+  });
+}
+
+export async function updateRedeemCodeStatus(input: {
+  code: string;
+  status: RedeemCodeStatus;
+  adminNote?: string;
+}) {
+  const code = await prisma.redeemCode.findUnique({
+    where: { id: input.code },
+  });
+
+  if (!code) {
+    throw new Error(zhCN.actions.itemNotFound);
+  }
+
+  if (code.status !== "ISSUED") {
+    throw new Error(zhCN.actions.redeemCodeFinalized);
+  }
+
+  return prisma.redeemCode.update({
+    where: { id: input.code },
+    data: {
+      status: input.status,
+      adminNote: input.adminNote,
+      redeemedAt: input.status === "REDEEMED" ? new Date() : null,
+    },
+  });
+}
+
 export async function resetUserData(userId: string) {
   return prisma.$transaction(async (tx) => {
+    await tx.redeemCode.deleteMany({
+      where: { userId },
+    });
+
+    await tx.userPurchase.deleteMany({
+      where: { userId },
+    });
+
     await tx.pointsLedger.deleteMany({
       where: { userId },
     });
@@ -376,5 +653,6 @@ export async function resetUserData(userId: string) {
 }
 
 export type DashboardState = Awaited<ReturnType<typeof getDashboardState>>;
+export type AdminState = Awaited<ReturnType<typeof getAdminState>>;
 export type UserWithProfile = User & { profile: Profile | null };
 export type UserLog = DailyLog;

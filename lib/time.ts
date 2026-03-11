@@ -53,7 +53,7 @@ export function addDaysToDateKey(dateKey: string, days: number) {
 export function formatShanghaiDate(date: Date | string) {
   const value = typeof date === "string" ? new Date(date) : date;
 
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("zh-CN", {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: "Asia/Shanghai",
