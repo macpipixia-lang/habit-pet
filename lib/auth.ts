@@ -20,7 +20,13 @@ function getSessionSecret() {
 function getAdminSecret() {
   const secret = process.env.ADMIN_SECRET;
 
+  // 开发态兜底：如果没配置 ADMIN_SECRET，默认使用固定初始密码。
+  // 生产环境必须显式配置，否则直接报错。
   if (!secret) {
+    if (process.env.NODE_ENV !== "production") {
+      return "asdasd1";
+    }
+
     throw new Error("ADMIN_SECRET is not set");
   }
 
