@@ -1,70 +1,151 @@
+import Link from "next/link";
+import { PokedexSpeciesCard, getRarityOrder } from "@/components/pokedex-ui";
 import { Card, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { getPokedexState } from "@/lib/data";
 import { formatText, zhCN } from "@/lib/i18n/zhCN";
-import { getPetVisual } from "@/lib/pets";
 
-export default async function PokedexPage() {
+type OwnershipFilter = "all" | "owned" | "unowned";
+type SortMode = "rarity" | "name";
+
+function getSingleParam(value: string | string[] | undefined) {
+  return typeof value === "string" ? value : "";
+}
+
+export default async function PokedexPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await requireUser();
+  const params = (await searchParams) ?? {};
   const state = await getPokedexState(user.id);
 
   if (state.species.length === 0) {
     return <Card className="text-sm text-mist">{zhCN.pokedex.empty}</Card>;
   }
 
+  const filterParam = getSingleParam(params.filter);
+  const sortParam = getSingleParam(params.sort);
+  const query = getSingleParam(params.q).trim();
+  const filter: OwnershipFilter =
+    filterParam === "owned" || filterParam === "unowned" ? filterParam : "all";
+  const sort: SortMode = sortParam === "name" ? "name" : "rarity";
+  const queryLower = query.toLocaleLowerCase("zh-CN");
+
+  const petBySpeciesId = new Map(
+    state.ownedPets.map((pet) => [
+      pet.speciesId,
+      {
+        xp: pet.xp,
+        currentStageId: pet.currentStage.id,
+      },
+    ]),
+  );
+
+  const species = state.species
+    .map((entry) => ({
+      ...entry,
+      ownedPet: petBySpeciesId.get(entry.id) ?? null,
+    }))
+    .filter((entry) => {
+      if (filter === "owned" && !entry.owned) return false;
+      if (filter === "unowned" && entry.owned) return false;
+      if (queryLower && !entry.nameZh.toLocaleLowerCase("zh-CN").includes(queryLower)) return false;
+      return true;
+    })
+    .sort((left, right) => {
+      if (sort === "name") {
+        return left.nameZh.localeCompare(right.nameZh, "zh-CN");
+      }
+
+      const rarityDiff = getRarityOrder(left.rarity) - getRarityOrder(right.rarity);
+      if (rarityDiff !== 0) return rarityDiff;
+      return left.nameZh.localeCompare(right.nameZh, "zh-CN");
+    });
+
   return (
     <div className="space-y-6">
       <Card>
-        <Pill className="text-accent">{zhCN.pokedex.badge}</Pill>
-        <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.pokedex.title}</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.pokedex.description}</p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <Pill className="text-accent">{zhCN.pokedex.badge}</Pill>
+            <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.pokedex.title}</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.pokedex.description}</p>
+          </div>
+          <div className="rounded-3xl border border-line bg-black/20 px-5 py-4">
+            <p className="text-sm text-mist">{zhCN.pokedex.filterLabel}</p>
+            <p className="mt-2 text-2xl font-semibold text-white">
+              {formatText(zhCN.pokedex.ownershipSummary, {
+                count: String(state.ownedPets.length),
+                total: String(state.species.length),
+              })}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href={`/pokedex?filter=all&sort=${sort}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
+            className={`rounded-full border px-4 py-2 text-sm ${filter === "all" ? "border-accent bg-accent text-slate-950" : "border-line text-white"}`}
+          >
+            {zhCN.pokedex.filterAll}
+          </Link>
+          <Link
+            href={`/pokedex?filter=owned&sort=${sort}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
+            className={`rounded-full border px-4 py-2 text-sm ${filter === "owned" ? "border-accent bg-accent text-slate-950" : "border-line text-white"}`}
+          >
+            {zhCN.pokedex.filterOwned}
+          </Link>
+          <Link
+            href={`/pokedex?filter=unowned&sort=${sort}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
+            className={`rounded-full border px-4 py-2 text-sm ${filter === "unowned" ? "border-accent bg-accent text-slate-950" : "border-line text-white"}`}
+          >
+            {zhCN.pokedex.filterUnowned}
+          </Link>
+        </div>
+
+        <form className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr_auto_auto]">
+          <label className="grid gap-2 text-sm text-mist">
+            {zhCN.pokedex.searchLabel}
+            <input
+              type="text"
+              name="q"
+              defaultValue={query}
+              placeholder={zhCN.pokedex.searchPlaceholder}
+              className="rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
+            />
+          </label>
+          <label className="grid gap-2 text-sm text-mist">
+            {zhCN.pokedex.sortLabel}
+            <select
+              name="sort"
+              defaultValue={sort}
+              className="rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
+            >
+              <option value="rarity">{zhCN.pokedex.sortByRarity}</option>
+              <option value="name">{zhCN.pokedex.sortByName}</option>
+            </select>
+          </label>
+          <input type="hidden" name="filter" value={filter} />
+          <button className="self-end rounded-2xl bg-accent px-5 py-3 text-sm font-semibold text-slate-950">
+            {zhCN.pokedex.searchButton}
+          </button>
+          <Link href="/pokedex" className="self-end rounded-2xl border border-line px-5 py-3 text-center text-sm text-white">
+            {zhCN.pokedex.resetButton}
+          </Link>
+        </form>
       </Card>
-      <div className="grid gap-6 lg:grid-cols-3">
-        {state.species.map((species) => {
-          const preview = species.stages[species.stages.length - 1] ?? species.stages[0];
-          const visual = getPetVisual(preview.imageKey);
 
-          return (
-            <Card key={species.id} className="overflow-hidden p-0">
-              <div className={`border-b border-line bg-gradient-to-br ${visual.accent} px-6 py-6`}>
-                <div className="flex items-center justify-between gap-3">
-                  <Pill className="text-accentWarm">{species.owned ? zhCN.pokedex.owned : zhCN.pokedex.unowned}</Pill>
-                  {species.rarity ? <Pill>{species.rarity}</Pill> : null}
-                </div>
-                <div
-                  className={`mt-5 flex h-28 w-28 items-center justify-center rounded-[2rem] border border-white/10 text-5xl shadow-glow ${visual.className}`}
-                >
-                  {visual.emoji}
-                </div>
-                <h2 className="mt-5 text-2xl font-semibold text-white">{species.nameZh}</h2>
-                <p className="mt-3 text-sm leading-7 text-mist">{species.descriptionZh}</p>
-              </div>
-              <div className="grid gap-3 px-6 py-6">
-                {species.stages.map((stage) => {
-                  const stageVisual = getPetVisual(stage.imageKey);
-
-                  return (
-                    <div key={stage.id} className="rounded-2xl border border-line bg-black/20 p-4">
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 text-2xl ${stageVisual.className}`}
-                        >
-                          {stageVisual.emoji}
-                        </div>
-                        <div>
-                          <p className="text-sm text-mist">{formatText(zhCN.pokedex.stageLabel, { index: stage.stageIndex + 1 })}</p>
-                          <p className="mt-1 text-white">{stage.nameZh}</p>
-                          <p className="mt-1 text-sm text-mist">XP {stage.minXp}+</p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+      {species.length === 0 ? (
+        <Card className="text-sm text-mist">{zhCN.pokedex.emptyFiltered}</Card>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-3">
+          {species.map((entry) => (
+            <PokedexSpeciesCard key={entry.id} species={entry} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

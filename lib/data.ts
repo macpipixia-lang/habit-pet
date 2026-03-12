@@ -513,6 +513,47 @@ export async function getPokedexState(userId: string) {
   };
 }
 
+export async function getPokedexSpeciesState(userId: string, slug: string) {
+  const [species, pet] = await Promise.all([
+    prisma.petSpecies.findFirst({
+      where: {
+        slug,
+        isActive: true,
+      },
+      include: PET_SPECIES_INCLUDE,
+    }),
+    prisma.userPet.findFirst({
+      where: {
+        userId,
+        species: {
+          slug,
+          isActive: true,
+        },
+      },
+      include: {
+        species: {
+          include: PET_SPECIES_INCLUDE,
+        },
+      },
+    }),
+  ]);
+
+  if (!species) {
+    return null;
+  }
+
+  const normalizedSpecies = {
+    ...species,
+    stages: sortStages(species.stages),
+  };
+
+  return {
+    species: normalizedSpecies,
+    owned: pet != null,
+    ownedPet: pet ? toOwnedPetView(pet as UserPetRecord) : null,
+  };
+}
+
 export async function getPetEggShopState(userId: string) {
   const [profile, item, species, pets] = await Promise.all([
     ensureProfile(userId),
