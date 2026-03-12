@@ -1,0 +1,95 @@
+import Link from "next/link";
+import { purchasePetEggAction } from "@/app/actions";
+import { Card, Pill } from "@/components/ui";
+import { requireUser } from "@/lib/auth";
+import { getPetEggShopState } from "@/lib/data";
+import { formatText, zhCN } from "@/lib/i18n/zhCN";
+import { getPetVisual } from "@/lib/pets";
+
+export default async function PetEggPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const user = await requireUser();
+  const params = (await searchParams) ?? {};
+  const state = await getPetEggShopState(user.id);
+  const error = typeof params.error === "string" ? params.error : null;
+
+  if (!state.item) {
+    return <Card className="text-sm text-mist">{zhCN.shop.activeItemsEmpty}</Card>;
+  }
+
+  const item = state.item;
+
+  return (
+    <div className="space-y-6">
+      {error ? <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card> : null}
+      <Card>
+        <Pill className="text-accent">{zhCN.shop.kindPetEgg}</Pill>
+        <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.shop.petEggTitle}</h1>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.shop.petEggDescription}</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <div className="rounded-2xl border border-line bg-black/20 p-4">
+            <p className="text-sm text-mist">{zhCN.shop.yourPoints}</p>
+            <p className="mt-2 text-2xl text-white">{state.profile.points}</p>
+          </div>
+          <div className="rounded-2xl border border-line bg-black/20 p-4">
+            <p className="text-sm text-mist">{zhCN.shop.currentPrice}</p>
+            <p className="mt-2 text-2xl text-white">{item.currentPrice}</p>
+          </div>
+          <Link href="/pokedex" className="inline-flex items-center rounded-2xl border border-line px-5 py-3 text-sm text-white">
+            {zhCN.shop.viewPokedex}
+          </Link>
+        </div>
+        <p className="mt-4 text-sm text-mist">{zhCN.shop.petEggHint}</p>
+      </Card>
+
+      {state.availableSpecies.length === 0 ? (
+        <Card className="text-sm text-mist">{zhCN.shop.petEggEmpty}</Card>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-3">
+          {state.availableSpecies.map((species) => {
+            const preview = species.stages[species.stages.length - 1] ?? species.stages[0];
+            const visual = getPetVisual(preview.imageKey);
+
+            return (
+              <Card key={species.id} className="overflow-hidden p-0">
+                <div className={`border-b border-line bg-gradient-to-br ${visual.accent} px-6 py-6`}>
+                  <Pill className="text-accentWarm">{species.rarity ?? zhCN.shop.petEggAvailable}</Pill>
+                  <div
+                    className={`mt-5 flex h-28 w-28 items-center justify-center rounded-[2rem] border border-white/10 text-5xl shadow-glow ${visual.className}`}
+                  >
+                    {visual.emoji}
+                  </div>
+                  <h2 className="mt-5 text-2xl font-semibold text-white">{species.nameZh}</h2>
+                  <p className="mt-3 text-sm leading-7 text-mist">{species.descriptionZh}</p>
+                </div>
+                <div className="px-6 py-6">
+                  <div className="grid gap-3">
+                    {species.stages.map((stage) => (
+                      <div key={stage.id} className="rounded-2xl border border-line bg-black/20 p-4">
+                        <p className="text-sm text-mist">
+                          {formatText(zhCN.pokedex.stageLabel, { index: stage.stageIndex + 1 })}
+                        </p>
+                        <p className="mt-2 text-white">{stage.nameZh}</p>
+                        <p className="mt-1 text-sm text-mist">XP {stage.minXp}+</p>
+                      </div>
+                    ))}
+                  </div>
+                  <form action={purchasePetEggAction} className="mt-6">
+                    <input type="hidden" name="itemId" value={item.id} />
+                    <input type="hidden" name="speciesId" value={species.id} />
+                    <button className="w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950">
+                      {formatText(zhCN.shop.petEggConfirm, { points: item.currentPrice })}
+                    </button>
+                  </form>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

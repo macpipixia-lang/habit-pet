@@ -45,6 +45,42 @@ const initialTaskDefinitions = [
   },
 ] as const;
 
+const petSpeciesSeeds = [
+  {
+    slug: "moss-fox",
+    nameZh: "苔尾狐",
+    descriptionZh: "喜欢在清晨收集露珠，尾巴像刚醒来的小森林。",
+    rarity: "COMMON",
+    stages: [
+      { stageIndex: 0, nameZh: "露珠幼团", minXp: 0, imageKey: "moss-fox-0" },
+      { stageIndex: 1, nameZh: "苔尾幼狐", minXp: 60, imageKey: "moss-fox-1" },
+      { stageIndex: 2, nameZh: "林风守望者", minXp: 180, imageKey: "moss-fox-2" },
+    ],
+  },
+  {
+    slug: "sun-seal",
+    nameZh: "晴团海豹",
+    descriptionZh: "圆滚滚地晒太阳，越成长越像一颗会发光的午后。",
+    rarity: "RARE",
+    stages: [
+      { stageIndex: 0, nameZh: "暖光团子", minXp: 0, imageKey: "sun-seal-0" },
+      { stageIndex: 1, nameZh: "晴团海豹", minXp: 60, imageKey: "sun-seal-1" },
+      { stageIndex: 2, nameZh: "潮汐领航员", minXp: 180, imageKey: "sun-seal-2" },
+    ],
+  },
+  {
+    slug: "plum-owl",
+    nameZh: "梅影枭",
+    descriptionZh: "夜里会安静盘旋，羽毛边缘像晚风里的花瓣。",
+    rarity: "EPIC",
+    stages: [
+      { stageIndex: 0, nameZh: "花瓣雏影", minXp: 0, imageKey: "plum-owl-0" },
+      { stageIndex: 1, nameZh: "梅影幼枭", minXp: 60, imageKey: "plum-owl-1" },
+      { stageIndex: 2, nameZh: "夜庭巡羽", minXp: 180, imageKey: "plum-owl-2" },
+    ],
+  },
+] as const;
+
 async function main() {
   await prisma.profile.updateMany({
     data: {
@@ -119,7 +155,70 @@ async function main() {
     },
   });
 
-  console.log("初始化完成。默认任务与商店商品已写入。");
+  await prisma.shopItem.upsert({
+    where: { slug: "pet-egg" },
+    update: {
+      nameZh: "宠物蛋",
+      descriptionZh: "购买后可从当前可选物种中挑选一只，并立即获得该宠物。",
+      kind: "PET_EGG",
+      priceBase: 200,
+      priceStep: 0,
+      isActive: true,
+    },
+    create: {
+      slug: "pet-egg",
+      nameZh: "宠物蛋",
+      descriptionZh: "购买后可从当前可选物种中挑选一只，并立即获得该宠物。",
+      kind: "PET_EGG",
+      priceBase: 200,
+      priceStep: 0,
+      isActive: true,
+    },
+  });
+
+  for (const species of petSpeciesSeeds) {
+    const savedSpecies = await prisma.petSpecies.upsert({
+      where: { slug: species.slug },
+      update: {
+        nameZh: species.nameZh,
+        descriptionZh: species.descriptionZh,
+        rarity: species.rarity,
+        isActive: true,
+      },
+      create: {
+        slug: species.slug,
+        nameZh: species.nameZh,
+        descriptionZh: species.descriptionZh,
+        rarity: species.rarity,
+        isActive: true,
+      },
+    });
+
+    for (const stage of species.stages) {
+      await prisma.petStage.upsert({
+        where: {
+          speciesId_stageIndex: {
+            speciesId: savedSpecies.id,
+            stageIndex: stage.stageIndex,
+          },
+        },
+        update: {
+          nameZh: stage.nameZh,
+          minXp: stage.minXp,
+          imageKey: stage.imageKey,
+        },
+        create: {
+          speciesId: savedSpecies.id,
+          stageIndex: stage.stageIndex,
+          nameZh: stage.nameZh,
+          minXp: stage.minXp,
+          imageKey: stage.imageKey,
+        },
+      });
+    }
+  }
+
+  console.log("初始化完成。默认任务、商店商品和宠物图鉴已写入。");
 }
 
 main()

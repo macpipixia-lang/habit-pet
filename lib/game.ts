@@ -1,5 +1,6 @@
+import assert from "node:assert/strict";
 import { DailyLog, Profile, TaskDefinition, User } from "@prisma/client";
-import { EXP_PER_LEVEL, MAKEUP_CARD_BASE_PRICE, MAX_LEVEL } from "@/lib/constants";
+import { LEVEL_EXP_THRESHOLDS, MAKEUP_CARD_BASE_PRICE, MAX_LEVEL } from "@/lib/constants";
 import { addDaysToDateKey, compareDateKeys } from "@/lib/time";
 
 export type DailyTaskSnapshot = {
@@ -22,17 +23,58 @@ type StoredTaskSnapshot = {
   description?: unknown;
 };
 
+export function getExpRequiredForLevel(level: number) {
+  if (level < 1 || level > MAX_LEVEL) {
+    throw new RangeError(`level must be between 1 and ${MAX_LEVEL}`);
+  }
+
+  if (level === MAX_LEVEL) {
+    return 0;
+  }
+
+  return LEVEL_EXP_THRESHOLDS[level] - LEVEL_EXP_THRESHOLDS[level - 1];
+}
+
 export function getLevelFromExp(exp: number) {
-  const computedLevel = Math.floor(exp / EXP_PER_LEVEL) + 1;
-  return Math.min(computedLevel, MAX_LEVEL);
+  const safeExp = Math.max(0, exp);
+
+  for (let index = LEVEL_EXP_THRESHOLDS.length - 1; index >= 0; index -= 1) {
+    if (safeExp >= LEVEL_EXP_THRESHOLDS[index]) {
+      return index + 1;
+    }
+  }
+
+  return 1;
+}
+
+export function getDisplayLevel(exp: number, cachedLevel?: number | null) {
+  const derivedLevel = getLevelFromExp(exp);
+
+  if (typeof cachedLevel !== "number") {
+    return derivedLevel;
+  }
+
+  return Math.max(derivedLevel, Math.min(cachedLevel, MAX_LEVEL));
 }
 
 export function getExpIntoCurrentLevel(exp: number) {
-  if (getLevelFromExp(exp) >= MAX_LEVEL) {
-    return EXP_PER_LEVEL;
+  const level = getLevelFromExp(exp);
+
+  if (level >= MAX_LEVEL) {
+    return getExpRequiredForLevel(MAX_LEVEL - 1);
   }
 
-  return exp % EXP_PER_LEVEL;
+  return Math.max(0, exp) - LEVEL_EXP_THRESHOLDS[level - 1];
+}
+
+export function getExpToNextLevel(exp: number) {
+  const level = getLevelFromExp(exp);
+
+  if (level >= MAX_LEVEL) {
+    return 0;
+  }
+
+  return LEVEL_EXP_THRESHOLDS[level] - Math.max(0, exp);
 }
 
 export function getNextMakeupCardPrice(purchaseCount: number) {
@@ -182,4 +224,24 @@ export function toTodayViewModel(params: {
     levelProgress: getExpIntoCurrentLevel(user.profile?.exp ?? 0),
     nextShopPrice: getNextMakeupCardPrice(user.profile?.purchaseCount ?? 0),
   };
+}
+
+export function runLevelCurveSelfCheck() {
+  let previousLevel = 1;
+
+  for (let exp = 0; exp <= LEVEL_EXP_THRESHOLDS[MAX_LEVEL - 1] + 500; exp += 1) {
+    const level = getLevelFromExp(exp);
+    assert.ok(level >= previousLevel, `level regressed at exp=${exp}: ${level} < ${previousLevel}`);
+    previousLevel = level;
+  }
+
+  assert.equal(getLevelFromExp(0), 1);
+  assert.equal(getLevelFromExp(LEVEL_EXP_THRESHOLDS[1]), 2);
+  assert.equal(getExpIntoCurrentLevel(LEVEL_EXP_THRESHOLDS[1]), 0);
+  assert.equal(getExpToNextLevel(LEVEL_EXP_THRESHOLDS[1]), getExpRequiredForLevel(2));
+  assert.equal(getExpToNextLevel(LEVEL_EXP_THRESHOLDS[MAX_LEVEL - 1]), 0);
+}
+
+if (process.env.NODE_ENV !== "production") {
+  runLevelCurveSelfCheck();
 }

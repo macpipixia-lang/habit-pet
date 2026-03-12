@@ -6,11 +6,13 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { getAdminRedirectTarget } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import {
+  activePetSchema,
   adminCodeUpdateSchema,
   adminLoginSchema,
   adminShopItemSchema,
   adminTaskDefinitionSchema,
   authSchema,
+  petEggPurchaseSchema,
   shopPurchaseSchema,
 } from "@/lib/validation";
 import {
@@ -26,10 +28,12 @@ import {
 } from "@/lib/auth";
 import {
   ensureProfile,
+  purchasePetEgg,
   purchaseMakeupCard,
   purchaseShopItem,
   saveShopItem,
   saveTaskDefinition,
+  setActivePet,
   settleToday,
   toggleShopItemActive,
   updateRedeemCodeStatus,
@@ -228,6 +232,52 @@ export async function buyMakeupCardAction(_formData: FormData) {
   } catch (error) {
     rethrowIfRedirect(error);
     redirect(`/shop?error=${encodeURIComponent(toMessage(error))}`);
+  }
+}
+
+export async function purchasePetEggAction(formData: FormData) {
+  try {
+    const user = await requireUser();
+    const parsed = petEggPurchaseSchema.safeParse({
+      itemId: formData.get("itemId"),
+      speciesId: formData.get("speciesId"),
+    });
+
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? zhCN.feedback.invalidInput);
+    }
+
+    await purchasePetEgg(user.id, parsed.data.itemId, parsed.data.speciesId);
+    revalidatePath("/shop");
+    revalidatePath("/shop/pet-egg");
+    revalidatePath("/pet");
+    revalidatePath("/pokedex");
+    revalidatePath("/history");
+    redirect("/pet?success=pet-unlocked");
+  } catch (error) {
+    rethrowIfRedirect(error);
+    redirect(`/shop/pet-egg?error=${encodeURIComponent(toMessage(error))}`);
+  }
+}
+
+export async function setActivePetAction(formData: FormData) {
+  try {
+    const user = await requireUser();
+    const parsed = activePetSchema.safeParse({
+      userPetId: formData.get("userPetId"),
+    });
+
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? zhCN.feedback.invalidInput);
+    }
+
+    await setActivePet(user.id, parsed.data.userPetId);
+    revalidatePath("/pet");
+    revalidatePath("/today");
+    redirect("/pet?success=active-pet-updated");
+  } catch (error) {
+    rethrowIfRedirect(error);
+    redirect(`/pet?error=${encodeURIComponent(toMessage(error))}`);
   }
 }
 

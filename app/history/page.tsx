@@ -18,6 +18,8 @@ function getLedgerReason(reason: string) {
       return zhCN.ledger.shopMakeupCardReason;
     case "shop_coupon":
       return zhCN.ledger.shopCouponReason;
+    case "shop_pet_egg":
+      return zhCN.ledger.shopPetEggReason;
     default:
       return reason;
   }

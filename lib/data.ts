@@ -1,9 +1,12 @@
 import {
   DailyLog,
+  PetSpecies,
+  PetStage,
   Prisma,
   Profile,
   RedeemCodeStatus,
   ShopItemKind,
+  UserPet,
   User,
 } from "@prisma/client";
 import assert from "node:assert/strict";
@@ -12,7 +15,7 @@ import { addDaysToDateKey, getShanghaiDateParts } from "@/lib/time";
 import {
   calculateNextStreak,
   calculateRewards,
-  getLevelFromExp,
+  getDisplayLevel,
   getNextMakeupCardPrice,
   getShopItemPrice,
   mapTaskDefinitionToDailyTaskSnapshot,
@@ -24,17 +27,37 @@ import {
   shouldResetStreakForMissedDay,
 } from "@/lib/game";
 import { formatText, zhCN } from "@/lib/i18n/zhCN";
+import { getPetProgress } from "@/lib/pets";
 
 const SHOP_ITEM_INCLUDE = {
   purchases: true,
   redeemCodes: true,
 } satisfies Prisma.ShopItemInclude;
 
+const PET_SPECIES_INCLUDE = {
+  stages: {
+    orderBy: { stageIndex: "asc" },
+  },
+} satisfies Prisma.PetSpeciesInclude;
+
 type ShopItemRecord = Prisma.ShopItemGetPayload<{
   include: typeof SHOP_ITEM_INCLUDE;
 }>;
 
+type PetSpeciesRecord = Prisma.PetSpeciesGetPayload<{
+  include: typeof PET_SPECIES_INCLUDE;
+}>;
+
+type UserPetRecord = Prisma.UserPetGetPayload<{
+  include: {
+    species: {
+      include: typeof PET_SPECIES_INCLUDE;
+    };
+  };
+}>;
+
 type TaskAccessClient = Pick<typeof prisma, "profile" | "taskDefinition" | "dailyLog">;
+type PetAccessClient = Pick<typeof prisma, "petSpecies" | "userPet">;
 
 type LockedTaskView = {
   id: string;
@@ -42,6 +65,13 @@ type LockedTaskView = {
   nameZh: string;
   unlockHint: string;
 };
+
+function withDerivedProfileLevel<T extends Pick<Profile, "exp" | "level">>(profile: T): T {
+  return {
+    ...profile,
+    level: getDisplayLevel(profile.exp, profile.level),
+  };
+}
 
 function getCompletedTaskSlugs(profile: Pick<Profile, "completedTaskSlugsJson">) {
   return parseStringArrayJson(profile.completedTaskSlugsJson);
@@ -179,6 +209,86 @@ function toShopItemView(item: ShopItemRecord, userId: string) {
   };
 }
 
+function sortStages(stages: PetStage[]) {
+  return [...stages].sort((left, right) => left.stageIndex - right.stageIndex);
+}
+
+function getCurrentStage(stages: PetStage[], xp: number) {
+  return sortStages(stages).reduce((current, stage) => (xp >= stage.minXp ? stage : current), stages[0]);
+}
+
+function toOwnedPetView(userPet: UserPetRecord) {
+  const stages = sortStages(userPet.species.stages);
+  const progress = getPetProgress(stages, userPet.xp);
+
+  return {
+    ...userPet,
+    species: {
+      ...userPet.species,
+      stages,
+    },
+    currentStage: progress.currentStage,
+    nextStage: progress.nextStage,
+    progress,
+    displayName: userPet.nickname?.trim() || userPet.species.nameZh,
+  };
+}
+
+async function getOwnedPetsWithStages(db: PetAccessClient, userId: string) {
+  const pets = await db.userPet.findMany({
+    where: { userId },
+    include: {
+      species: {
+        include: PET_SPECIES_INCLUDE,
+      },
+    },
+    orderBy: [{ isActive: "desc" }, { obtainedAt: "asc" }],
+  });
+
+  return pets.map((pet) => toOwnedPetView(pet as UserPetRecord));
+}
+
+async function getAllPetSpecies(db: Pick<typeof prisma, "petSpecies">) {
+  const species = await db.petSpecies.findMany({
+    where: { isActive: true },
+    include: PET_SPECIES_INCLUDE,
+    orderBy: { createdAt: "asc" },
+  });
+
+  return species.map((entry) => ({
+    ...entry,
+    stages: sortStages(entry.stages),
+  })) as PetSpeciesRecord[];
+}
+
+async function grantPetXpToActivePet(
+  db: Pick<typeof prisma, "userPet">,
+  userId: string,
+  xp: number,
+) {
+  if (xp <= 0) {
+    return null;
+  }
+
+  const activePet = await db.userPet.findFirst({
+    where: {
+      userId,
+      isActive: true,
+    },
+  });
+
+  if (!activePet) {
+    return null;
+  }
+
+  return db.userPet.update({
+    where: { id: activePet.id },
+    data: {
+      xp: activePet.xp + xp,
+    },
+  });
+}
+
 async function getActiveShopItemsWithUserState(userId: string) {
   const items = await prisma.shopItem.findMany({
     where: { isActive: true },
@@ -216,10 +326,11 @@ async function getTaskAvailabilityForUserFromDb(
   ]);
 
   const { profile, completedTaskSlugs } = await getCompletionIndex(db, profileRecord, userId, date);
+  const currentProfile = withDerivedProfileLevel(profile);
   const completedTaskSlugSet = new Set(completedTaskSlugs);
   const taskNameBySlug = new Map(tasks.map((task) => [task.slug, task.nameZh]));
   const unlocked = tasks.filter((task) => {
-    if (profile.level < task.unlockLevel) {
+    if (currentProfile.level < task.unlockLevel) {
       return false;
     }
 
@@ -235,7 +346,7 @@ async function getTaskAvailabilityForUserFromDb(
     .filter((task) => !unlockedSlugSet.has(task.slug))
     .map((task) => {
       const unlockHint =
-        profile.level < task.unlockLevel
+        currentProfile.level < task.unlockLevel
           ? formatText(zhCN.today.lockedByLevel, { level: task.unlockLevel })
           : formatText(zhCN.today.lockedByTask, {
               name: taskNameBySlug.get(task.unlockAfterTaskSlug ?? "") ?? task.unlockAfterTaskSlug ?? "",
@@ -250,7 +361,7 @@ async function getTaskAvailabilityForUserFromDb(
     });
 
   return {
-    profile,
+    profile: currentProfile,
     unlocked,
     locked,
   };
@@ -270,11 +381,13 @@ export async function getAvailableTaskDefinitionsForUser(userId: string, date = 
 }
 
 export async function ensureProfile(userId: string) {
-  return prisma.profile.upsert({
+  const profile = await prisma.profile.upsert({
     where: { userId },
     create: { userId },
     update: {},
   });
+
+  return withDerivedProfileLevel(profile);
 }
 
 export async function ensureTodayLog(userId: string, date = getShanghaiDateParts().today) {
@@ -306,15 +419,17 @@ export async function resetStreakIfNeeded(profile: Profile) {
   const { today } = getShanghaiDateParts();
 
   if (!shouldResetStreakForMissedDay(profile, today)) {
-    return profile;
+    return withDerivedProfileLevel(profile);
   }
 
-  return prisma.profile.update({
+  const updatedProfile = await prisma.profile.update({
     where: { id: profile.id },
     data: {
       streak: 0,
     },
   });
+
+  return withDerivedProfileLevel(updatedProfile);
 }
 
 export async function getDashboardState(userId: string) {
@@ -351,7 +466,7 @@ export async function getDashboardState(userId: string) {
   const profile = user.profile ? await resetStreakIfNeeded(user.profile) : await ensureProfile(userId);
   const taskAvailability = await getTaskAvailabilityForUserFromDb(prisma, userId);
   const currentProfile = {
-    ...profile,
+    ...withDerivedProfileLevel(profile),
     completedTaskSlugsJson: taskAvailability.profile.completedTaskSlugsJson,
   };
   const shopItems = await getActiveShopItemsWithUserState(userId);
@@ -376,6 +491,71 @@ export async function getDashboardState(userId: string) {
   };
 }
 
+export async function getPetPageState(userId: string) {
+  const pets = await getOwnedPetsWithStages(prisma, userId);
+
+  return {
+    pets,
+    activePet: pets.find((pet) => pet.isActive) ?? pets[0] ?? null,
+  };
+}
+
+export async function getPokedexState(userId: string) {
+  const [species, pets] = await Promise.all([getAllPetSpecies(prisma), getOwnedPetsWithStages(prisma, userId)]);
+  const ownedSpeciesIds = new Set(pets.map((pet) => pet.speciesId));
+
+  return {
+    species: species.map((entry) => ({
+      ...entry,
+      owned: ownedSpeciesIds.has(entry.id),
+    })),
+    ownedPets: pets,
+  };
+}
+
+export async function getPetEggShopState(userId: string) {
+  const [profile, item, species, pets] = await Promise.all([
+    ensureProfile(userId),
+    prisma.shopItem.findFirst({
+      where: {
+        slug: "pet-egg",
+        kind: "PET_EGG",
+        isActive: true,
+      },
+    }),
+    getAllPetSpecies(prisma),
+    getOwnedPetsWithStages(prisma, userId),
+  ]);
+
+  const ownedSpeciesIds = new Set(pets.map((pet) => pet.speciesId));
+  const availableSpecies = species.filter((entry) => !ownedSpeciesIds.has(entry.id));
+
+  const purchaseCount =
+    item == null
+      ? 0
+      : await prisma.userPurchase.aggregate({
+          where: {
+            userId,
+            itemId: item.id,
+          },
+          _sum: {
+            quantity: true,
+          },
+        }).then((result) => result._sum.quantity ?? 0);
+
+  return {
+    profile,
+    item: item
+      ? {
+          ...item,
+          currentPrice: getShopItemPrice(item.priceBase, item.priceStep, purchaseCount),
+        }
+      : null,
+    availableSpecies,
+    ownedPets: pets,
+  };
+}
+
 export async function updateTodayTaskSelection(userId: string, taskIds: string[]) {
   const { today } = getShanghaiDateParts();
   const log = await ensureTodayLog(userId, today);
@@ -391,6 +571,33 @@ export async function updateTodayTaskSelection(userId: string, taskIds: string[]
     data: {
       completedTaskIds: JSON.stringify(normalized),
     },
+  });
+}
+
+export async function setActivePet(userId: string, userPetId: string) {
+  return prisma.$transaction(async (tx) => {
+    const pet = await tx.userPet.findUnique({
+      where: { id: userPetId },
+    });
+
+    if (!pet || pet.userId !== userId) {
+      throw new Error(zhCN.actions.petNotOwned);
+    }
+
+    await tx.userPet.updateMany({
+      where: { userId },
+      data: { isActive: false },
+    });
+
+    return tx.userPet.update({
+      where: { id: userPetId },
+      data: { isActive: true },
+      include: {
+        species: {
+          include: PET_SPECIES_INCLUDE,
+        },
+      },
+    });
   });
 }
 
@@ -440,7 +647,7 @@ export async function settleToday(userId: string) {
     const streak = calculateNextStreak(profile, today, completedTaskIds.length > 0);
     const nextExp = profile.exp + rewards.exp;
     const nextPoints = profile.points + rewards.points;
-    const nextLevel = getLevelFromExp(nextExp);
+    const nextLevel = getDisplayLevel(nextExp, profile.level);
 
     let updatedProfile = await tx.profile.update({
       where: { id: profile.id },
@@ -453,8 +660,10 @@ export async function settleToday(userId: string) {
         lastCompletedDate: completedTaskIds.length > 0 ? today : profile.lastCompletedDate,
       },
     });
+    updatedProfile = withDerivedProfileLevel(updatedProfile);
 
     updatedProfile = await addCompletedTaskSlugsToProfile(tx, updatedProfile, getCompletedTaskSlugsFromLog(log));
+    updatedProfile = withDerivedProfileLevel(updatedProfile);
 
     const updatedLog = await tx.dailyLog.update({
       where: { id: log.id },
@@ -465,6 +674,8 @@ export async function settleToday(userId: string) {
         streakAfter: streak,
       },
     });
+
+    await grantPetXpToActivePet(tx, userId, rewards.exp);
 
     if (rewards.points !== 0) {
       await tx.pointsLedger.create({
@@ -508,6 +719,10 @@ export async function purchaseShopItem(userId: string, itemId: string) {
 
     if (!item.isActive) {
       throw new Error(zhCN.actions.itemInactive);
+    }
+
+    if (item.kind === "PET_EGG") {
+      throw new Error(zhCN.actions.petEggItemInvalid);
     }
 
     const aggregate = await tx.userPurchase.aggregate({
@@ -580,6 +795,131 @@ export async function purchaseShopItem(userId: string, itemId: string) {
       profile: updatedProfile,
       purchase,
       redeemCode,
+    };
+  });
+}
+
+export async function purchasePetEgg(userId: string, itemId: string, speciesId: string) {
+  return prisma.$transaction(async (tx) => {
+    const [profile, item, species, existingPet, activePet] = await Promise.all([
+      tx.profile.upsert({
+        where: { userId },
+        create: { userId },
+        update: {},
+      }),
+      tx.shopItem.findUnique({
+        where: { id: itemId },
+      }),
+      tx.petSpecies.findFirst({
+        where: {
+          id: speciesId,
+          isActive: true,
+        },
+      }),
+      tx.userPet.findUnique({
+        where: {
+          userId_speciesId: {
+            userId,
+            speciesId,
+          },
+        },
+      }),
+      tx.userPet.findFirst({
+        where: {
+          userId,
+          isActive: true,
+        },
+      }),
+    ]);
+
+    if (!item) {
+      throw new Error(zhCN.actions.itemNotFound);
+    }
+
+    if (!item.isActive) {
+      throw new Error(zhCN.actions.itemInactive);
+    }
+
+    if (item.kind !== "PET_EGG") {
+      throw new Error(zhCN.actions.petEggItemInvalid);
+    }
+
+    if (!species) {
+      throw new Error(zhCN.actions.petSpeciesNotFound);
+    }
+
+    if (existingPet) {
+      throw new Error(zhCN.actions.petAlreadyOwned);
+    }
+
+    const aggregate = await tx.userPurchase.aggregate({
+      where: {
+        userId,
+        itemId,
+      },
+      _sum: {
+        quantity: true,
+      },
+    });
+    const purchaseCount = aggregate._sum.quantity ?? 0;
+    const cost = getShopItemPrice(item.priceBase, item.priceStep, purchaseCount);
+
+    if (profile.points < cost) {
+      throw new Error(zhCN.actions.pointsNotEnoughItem);
+    }
+
+    const updatedProfile = await tx.profile.update({
+      where: { id: profile.id },
+      data: {
+        points: profile.points - cost,
+      },
+    });
+
+    const purchase = await tx.userPurchase.create({
+      data: {
+        userId,
+        itemId,
+        quantity: 1,
+        totalCost: cost,
+      },
+      include: {
+        item: true,
+      },
+    });
+
+    await tx.pointsLedger.create({
+      data: {
+        userId,
+        delta: -cost,
+        reason: "shop_pet_egg",
+        description: formatText(zhCN.ledger.purchasedItem, { name: item.nameZh }),
+        metaJson: JSON.stringify({
+          itemId: item.id,
+          itemSlug: item.slug,
+          speciesId: species.id,
+          speciesSlug: species.slug,
+          cost,
+        }),
+      },
+    });
+
+    const userPet = await tx.userPet.create({
+      data: {
+        userId,
+        speciesId,
+        isActive: activePet ? false : true,
+      },
+      include: {
+        species: {
+          include: PET_SPECIES_INCLUDE,
+        },
+      },
+    });
+
+    return {
+      profile: updatedProfile,
+      purchase,
+      userPet: toOwnedPetView(userPet as UserPetRecord),
     };
   });
 }
@@ -680,15 +1020,19 @@ export async function useYesterdayMakeupCard(userId: string) {
       data: {
         exp: nextExp,
         points: nextPoints,
-        level: getLevelFromExp(nextExp),
+        level: getDisplayLevel(nextExp, profile.level),
         streak: restoredStreak,
         makeupCards: profile.makeupCards - 1,
         lastCompletedDate: yesterday,
         lastSettledDate: yesterday,
       },
     });
+    profile = withDerivedProfileLevel(profile);
 
     profile = await addCompletedTaskSlugsToProfile(tx, profile, getCompletedTaskSlugsFromLog(yesterdayLog));
+    profile = withDerivedProfileLevel(profile);
+
+    await grantPetXpToActivePet(tx, userId, rewards.exp);
 
     await tx.pointsLedger.createMany({
       data: [
@@ -977,6 +1321,10 @@ export async function updateRedeemCodeStatus(input: {
 
 export async function resetUserData(userId: string) {
   return prisma.$transaction(async (tx) => {
+    await tx.userPet.deleteMany({
+      where: { userId },
+    });
+
     await tx.redeemCode.deleteMany({
       where: { userId },
     });

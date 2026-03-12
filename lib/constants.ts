@@ -1,6 +1,15 @@
 export const APP_NAME = "习惯宠物";
 export const MAX_LEVEL = 30;
-export const EXP_PER_LEVEL = 100;
+export const EXP_CURVE_BASE = 80;
+export const EXP_CURVE_GROWTH = 1.08;
+const levelExpThresholds: number[] = [0];
+
+for (let index = 1; index < MAX_LEVEL; index += 1) {
+  const previousRequirement = Math.round(EXP_CURVE_BASE * EXP_CURVE_GROWTH ** (index - 1));
+  levelExpThresholds.push(levelExpThresholds[index - 1] + previousRequirement);
+}
+
+export const LEVEL_EXP_THRESHOLDS = levelExpThresholds;
 export const MAKEUP_CARD_BASE_PRICE = 50;
 export const SHANGHAI_OFFSET_HOURS = 8;
 export const INITIAL_TASK_DEFINITIONS = [

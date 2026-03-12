@@ -2,7 +2,8 @@ import { buyMakeupCardAction, saveTasksAction, settleTodayAction, useMakeupCardA
 import { Card, Pill } from "@/components/ui";
 import { getDashboardState } from "@/lib/data";
 import { requireUser } from "@/lib/auth";
-import { EXP_PER_LEVEL, MAX_LEVEL } from "@/lib/constants";
+import { MAX_LEVEL } from "@/lib/constants";
+import { getExpIntoCurrentLevel, getExpRequiredForLevel } from "@/lib/game";
 import { formatText, zhCN } from "@/lib/i18n/zhCN";
 import { formatNumber } from "@/lib/utils";
 
@@ -16,8 +17,9 @@ export default async function TodayPage({
   const state = await getDashboardState(user.id);
   const profile = state.user.profile!;
   const isSettled = Boolean(state.todayLog.settledAt);
-  const expIntoLevel = profile.level >= MAX_LEVEL ? EXP_PER_LEVEL : profile.exp % EXP_PER_LEVEL;
-  const progressPercent = Math.min(100, Math.round((expIntoLevel / EXP_PER_LEVEL) * 100));
+  const expIntoLevel = getExpIntoCurrentLevel(profile.exp);
+  const levelSpan = profile.level >= MAX_LEVEL ? expIntoLevel : getExpRequiredForLevel(profile.level);
+  const progressPercent = Math.min(100, Math.round((expIntoLevel / Math.max(levelSpan, 1)) * 100));
   const error = typeof params.error === "string" ? params.error : null;
   const success = typeof params.success === "string" ? params.success : null;
 

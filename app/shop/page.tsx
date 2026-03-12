@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { purchaseShopItemAction } from "@/app/actions";
 import { CouponCodeModal } from "@/components/coupon-code-modal";
 import { Card, Pill } from "@/components/ui";
@@ -6,7 +7,9 @@ import { getDashboardState } from "@/lib/data";
 import { formatText, zhCN } from "@/lib/i18n/zhCN";
 
 function getKindLabel(kind: string) {
-  return kind === "MAKEUP_CARD" ? zhCN.shop.kindMakeupCard : zhCN.shop.kindCoupon;
+  if (kind === "MAKEUP_CARD") return zhCN.shop.kindMakeupCard;
+  if (kind === "PET_EGG") return zhCN.shop.kindPetEgg;
+  return zhCN.shop.kindCoupon;
 }
 
 export default async function ShopPage({
@@ -37,9 +40,14 @@ export default async function ShopPage({
         <Pill className="text-accent">{zhCN.shop.badge}</Pill>
         <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.shop.title}</h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.shop.description}</p>
-        <div className="mt-6 rounded-2xl border border-line bg-black/20 p-4">
-          <p className="text-sm text-mist">{zhCN.shop.yourPoints}</p>
-          <p className="mt-2 text-2xl text-white">{profile.points}</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <div className="min-w-48 rounded-2xl border border-line bg-black/20 p-4">
+            <p className="text-sm text-mist">{zhCN.shop.yourPoints}</p>
+            <p className="mt-2 text-2xl text-white">{profile.points}</p>
+          </div>
+          <Link href="/pokedex" className="inline-flex items-center rounded-2xl border border-line px-5 py-3 text-sm text-white">
+            {zhCN.shop.viewPokedex}
+          </Link>
         </div>
       </Card>
 
@@ -71,12 +79,21 @@ export default async function ShopPage({
                   <p className="mt-2 text-sm text-white">{item.slug}</p>
                 </div>
               </div>
-              <form action={purchaseShopItemAction} className="mt-6">
-                <input type="hidden" name="itemId" value={item.id} />
-                <button className="rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950">
-                  {item.kind === "MAKEUP_CARD" ? zhCN.shop.buyButton : zhCN.shop.buyButtonGeneric}
-                </button>
-              </form>
+              {item.kind === "PET_EGG" ? (
+                <Link
+                  href="/shop/pet-egg"
+                  className="mt-6 inline-flex rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950"
+                >
+                  {zhCN.shop.choosePetButton}
+                </Link>
+              ) : (
+                <form action={purchaseShopItemAction} className="mt-6">
+                  <input type="hidden" name="itemId" value={item.id} />
+                  <button className="rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950">
+                    {item.kind === "MAKEUP_CARD" ? zhCN.shop.buyButton : zhCN.shop.buyButtonGeneric}
+                  </button>
+                </form>
+              )}
             </Card>
           ))}
         </div>

@@ -18,6 +18,7 @@ model User {
   pointsLedger PointsLedger[]
   purchases    UserPurchase[]
   redeemCodes  RedeemCode[]
+  pets         UserPet[]
 }
 
 model Profile {
@@ -95,6 +96,47 @@ model ShopItem {
   redeemCodes   RedeemCode[]
 }
 
+model PetSpecies {
+  id            String     @id @default(cuid())
+  slug          String     @unique
+  nameZh        String
+  descriptionZh String
+  rarity        String?
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  stages        PetStage[]
+  userPets      UserPet[]
+}
+
+model PetStage {
+  id         String     @id @default(cuid())
+  speciesId  String
+  stageIndex Int
+  nameZh     String
+  minXp      Int
+  imageKey   String
+  species    PetSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+
+  @@unique([speciesId, stageIndex])
+  @@index([speciesId, minXp])
+}
+
+model UserPet {
+  id         String     @id @default(cuid())
+  userId     String
+  speciesId  String
+  xp         Int        @default(0)
+  nickname   String?
+  isActive   Boolean    @default(false)
+  obtainedAt DateTime   @default(now())
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  species    PetSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, speciesId])
+  @@index([userId, isActive])
+}
+
 model UserPurchase {
   id        String   @id @default(cuid())
   userId    String
@@ -126,6 +168,7 @@ model RedeemCode {
 enum ShopItemKind {
   MAKEUP_CARD
   COUPON
+  PET_EGG
 }
 
 enum RedeemCodeStatus {

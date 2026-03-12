@@ -28,6 +28,15 @@ export const shopPurchaseSchema = z.object({
   itemId: z.string().min(1, zhCN.feedback.invalidInput),
 });
 
+export const petEggPurchaseSchema = z.object({
+  itemId: z.string().min(1, zhCN.feedback.invalidInput),
+  speciesId: z.string().min(1, zhCN.feedback.invalidInput),
+});
+
+export const activePetSchema = z.object({
+  userPetId: z.string().min(1, zhCN.feedback.invalidInput),
+});
+
 export const adminLoginSchema = z.object({
   secret: z.string().min(1, zhCN.feedback.invalidInput),
 });
@@ -41,7 +50,7 @@ export const adminShopItemSchema = z.object({
     .regex(/^[a-z0-9-]+$/, zhCN.validation.shopSlugPattern),
   nameZh: z.string().min(1, zhCN.validation.shopNameRequired),
   descriptionZh: z.string().min(1, zhCN.validation.shopDescriptionRequired),
-  kind: z.enum(["MAKEUP_CARD", "COUPON"], { message: zhCN.feedback.invalidInput }),
+  kind: z.enum(["MAKEUP_CARD", "COUPON", "PET_EGG"], { message: zhCN.feedback.invalidInput }),
   priceBase: z.coerce.number().int().min(0, zhCN.validation.priceMin),
   priceStep: z.coerce.number().int().min(0, zhCN.validation.priceMin),
   isActive: adminBooleanFieldSchema,

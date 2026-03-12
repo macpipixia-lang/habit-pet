@@ -62,6 +62,7 @@ export default async function AdminItemsPage({
                 <select id="kind" name="kind" className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white">
                   <option value="MAKEUP_CARD">{zhCN.shop.kindMakeupCard}</option>
                   <option value="COUPON">{zhCN.shop.kindCoupon}</option>
+                  <option value="PET_EGG">{zhCN.shop.kindPetEgg}</option>
                 </select>
               </div>
               <div className="space-y-2">
@@ -168,6 +169,7 @@ export default async function AdminItemsPage({
                         >
                           <option value="MAKEUP_CARD">{zhCN.shop.kindMakeupCard}</option>
                           <option value="COUPON">{zhCN.shop.kindCoupon}</option>
+                          <option value="PET_EGG">{zhCN.shop.kindPetEgg}</option>
                         </select>
                       </div>
                       <div className="space-y-2">
@@ -233,4 +235,3 @@ export default async function AdminItemsPage({
     </AdminShell>
   );
 }
-
