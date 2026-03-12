@@ -127,11 +127,10 @@ const petSkinSeeds = [
 ] as const;
 
 async function main() {
-  await prisma.profile.updateMany({
-    data: {
-      completedTaskSlugsJson: "[]",
-    },
-  });
+  if (process.env.SEED_DISABLE === "true") {
+    console.log("Seed skipped because SEED_DISABLE=true.");
+    return;
+  }
 
   for (const task of initialTaskDefinitions) {
     await prisma.taskDefinition.upsert({
