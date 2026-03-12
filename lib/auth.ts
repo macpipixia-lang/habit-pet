@@ -173,10 +173,18 @@ export async function getCurrentUser() {
   });
 }
 
-export async function requireUser() {
+type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>;
+
+export async function requireUser(): Promise<NonNullable<CurrentUser>>;
+export async function requireUser(options: { unauthorized: "return-null" }): Promise<CurrentUser>;
+export async function requireUser(options?: { unauthorized: "return-null" }) {
   const user = await getCurrentUser();
 
   if (!user) {
+    if (options?.unauthorized === "return-null") {
+      return null;
+    }
+
     redirect("/auth");
   }
 

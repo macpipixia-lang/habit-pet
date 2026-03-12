@@ -6,6 +6,7 @@ import {
   ShopItemKind,
   User,
 } from "@prisma/client";
+import assert from "node:assert/strict";
 import { prisma } from "@/lib/prisma";
 import { addDaysToDateKey, getShanghaiDateParts } from "@/lib/time";
 import {
@@ -46,18 +47,20 @@ function getCompletedTaskSlugs(profile: Pick<Profile, "completedTaskSlugsJson">)
   return parseStringArrayJson(profile.completedTaskSlugsJson);
 }
 
+function toSortedUniqueSlugs(slugs: string[]) {
+  return [...new Set(slugs)].sort((left, right) => left.localeCompare(right));
+}
+
 function getCompletedTaskSlugsFromLog(log: Pick<DailyLog, "completedTaskIds" | "tasksJson">) {
   const completedIds = new Set(parseCompletedTaskIds(log as DailyLog));
   const tasks = parseTasksJson(log.tasksJson);
-  const matchedSlugs = tasks.filter((task) => completedIds.has(task.id)).map((task) => task.slug);
+  return toSortedUniqueSlugs(tasks.filter((task) => completedIds.has(task.id)).map((task) => task.slug));
+}
 
-  if (matchedSlugs.length === 0) {
-    return [...completedIds];
-  }
-
-  const matchedSet = new Set(tasks.filter((task) => completedIds.has(task.id)).map((task) => task.id));
-  const unmatchedIds = [...completedIds].filter((id) => !matchedSet.has(id));
-  return [...new Set([...matchedSlugs, ...unmatchedIds])];
+function shouldRunCompletionIndexBackfill(
+  profile: Pick<Profile, "completedTaskSlugsJson" | "completedTaskSlugsBackfilledAt">,
+) {
+  return getCompletedTaskSlugs(profile).length === 0 && profile.completedTaskSlugsBackfilledAt === null;
 }
 
 async function backfillCompletedTaskSlugs(
@@ -86,12 +89,13 @@ async function backfillCompletedTaskSlugs(
     take: 90,
   });
 
-  const completedTaskSlugs = [...new Set(logs.flatMap((log) => getCompletedTaskSlugsFromLog(log)))];
+  const completedTaskSlugs = toSortedUniqueSlugs(logs.flatMap((log) => getCompletedTaskSlugsFromLog(log)));
 
   const updatedProfile = await db.profile.update({
     where: { id: profile.id },
     data: {
       completedTaskSlugsJson: JSON.stringify(completedTaskSlugs),
+      completedTaskSlugsBackfilledAt: new Date(),
     },
   });
 
@@ -107,12 +111,10 @@ async function getCompletionIndex(
   userId: string,
   beforeDate?: string,
 ) {
-  const completedTaskSlugs = getCompletedTaskSlugs(profile);
-
-  if (completedTaskSlugs.length > 0) {
+  if (!shouldRunCompletionIndexBackfill(profile)) {
     return {
       profile,
-      completedTaskSlugs,
+      completedTaskSlugs: getCompletedTaskSlugs(profile),
     };
   }
 
@@ -128,9 +130,10 @@ async function addCompletedTaskSlugsToProfile(
     return profile;
   }
 
-  const merged = [...new Set([...getCompletedTaskSlugs(profile), ...slugs])];
+  const current = getCompletedTaskSlugs(profile);
+  const merged = toSortedUniqueSlugs([...current, ...slugs]);
 
-  if (merged.length === getCompletedTaskSlugs(profile).length) {
+  if (JSON.stringify(merged) === JSON.stringify(current)) {
     return profile;
   }
 
@@ -203,7 +206,7 @@ async function getTaskAvailabilityForUserFromDb(
   const [profileRecord, tasks] = await Promise.all([
     db.profile.upsert({
       where: { userId },
-      create: { userId, completedTaskSlugsJson: "[]" },
+      create: { userId, completedTaskSlugsJson: "[]", completedTaskSlugsBackfilledAt: null },
       update: {},
     }),
     db.taskDefinition.findMany({
@@ -952,11 +955,78 @@ export async function resetUserData(userId: string) {
         makeupCards: 0,
         purchaseCount: 0,
         completedTaskSlugsJson: "[]",
+        completedTaskSlugsBackfilledAt: null,
         lastSettledDate: null,
         lastCompletedDate: null,
       },
     });
   });
+}
+
+export function runCompletedTaskSlugIndexSelfCheck() {
+  const log = {
+    completedTaskIds: JSON.stringify(["sleep-early", "missing-task", "sleep-early", "drink-water"]),
+    tasksJson: serializeTaskSnapshots([
+      {
+        slug: "sleep-early",
+        nameZh: "早睡",
+        descriptionZh: "",
+        exp: 1,
+        points: 1,
+      },
+      {
+        slug: "drink-water",
+        nameZh: "喝水",
+        descriptionZh: "",
+        exp: 1,
+        points: 1,
+      },
+      {
+        slug: "stretch",
+        nameZh: "拉伸",
+        descriptionZh: "",
+        exp: 1,
+        points: 1,
+      },
+    ]),
+  } satisfies Pick<DailyLog, "completedTaskIds" | "tasksJson">;
+
+  assert.deepStrictEqual(getCompletedTaskSlugsFromLog(log), ["drink-water", "sleep-early"]);
+  assert.deepStrictEqual(
+    toSortedUniqueSlugs(["sleep-early", "drink-water", "sleep-early"]),
+    ["drink-water", "sleep-early"],
+  );
+  assert.equal(
+    shouldRunCompletionIndexBackfill({
+      completedTaskSlugsJson: "[]",
+      completedTaskSlugsBackfilledAt: null,
+    } satisfies Pick<Profile, "completedTaskSlugsJson" | "completedTaskSlugsBackfilledAt">),
+    true,
+  );
+  assert.equal(
+    shouldRunCompletionIndexBackfill({
+      completedTaskSlugsJson: "[]",
+      completedTaskSlugsBackfilledAt: new Date(),
+    } satisfies Pick<Profile, "completedTaskSlugsJson" | "completedTaskSlugsBackfilledAt">),
+    false,
+  );
+}
+
+export async function getDebugHealthState(userId: string) {
+  runCompletedTaskSlugIndexSelfCheck();
+
+  const availability = await getTaskAvailabilityForUserFromDb(prisma, userId);
+
+  return {
+    userId,
+    profile: {
+      level: availability.profile.level,
+      points: availability.profile.points,
+      completedTaskSlugsCount: getCompletedTaskSlugs(availability.profile).length,
+    },
+    tasksAvailableCount: availability.unlocked.length,
+    lockedCount: availability.locked.length,
+  };
 }
 
 export type DashboardState = Awaited<ReturnType<typeof getDashboardState>>;

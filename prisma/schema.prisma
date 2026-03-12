@@ -31,6 +31,7 @@ model Profile {
   makeupCards       Int      @default(0)
   purchaseCount     Int      @default(0)
   completedTaskSlugsJson String @default("[]")
+  completedTaskSlugsBackfilledAt DateTime?
   lastSettledDate   String?
   lastCompletedDate String?
   createdAt         DateTime @default(now())
