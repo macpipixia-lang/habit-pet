@@ -1,4 +1,5 @@
 import { buyMakeupCardAction, saveTasksAction, settleTodayAction, useMakeupCardAction } from "@/app/actions";
+import { PetOnboardingGuard } from "@/components/pet-onboarding-guard";
 import { Card, Pill } from "@/components/ui";
 import { getDashboardState } from "@/lib/data";
 import { requireUser } from "@/lib/auth";
@@ -24,7 +25,8 @@ export default async function TodayPage({
   const success = typeof params.success === "string" ? params.success : null;
 
   return (
-    <div className="space-y-6">
+    <PetOnboardingGuard>
+      <div className="space-y-6">
       {error ? (
         <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card>
       ) : success ? (
@@ -192,6 +194,7 @@ export default async function TodayPage({
           </Card>
         </div>
       </div>
-    </div>
+      </div>
+    </PetOnboardingGuard>
   );
 }

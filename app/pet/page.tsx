@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { applyPetSkinAction, setActivePetAction, updatePetNicknameAction } from "@/app/actions";
+import { PetOnboardingGuard } from "@/components/pet-onboarding-guard";
 import { Card, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { getPetPageState } from "@/lib/data";
@@ -21,6 +22,10 @@ export default async function PetPage({
   const successMessage =
     success === "pet-unlocked"
       ? zhCN.feedback.petUnlocked
+      : success === "starter-pet-granted"
+        ? zhCN.feedback.starterPetGranted
+        : success === "starter-pet-exists"
+          ? zhCN.feedback.starterPetExists
       : success === "active-pet-updated"
         ? zhCN.feedback.activePetUpdated
         : success === "pet-nickname-updated"
@@ -31,28 +36,31 @@ export default async function PetPage({
 
   if (!state.activePet) {
     return (
-      <div className="space-y-6">
-        {error ? (
-          <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card>
-        ) : successMessage ? (
-          <Card className="border-success/40 bg-emerald-500/10 text-sm text-emerald-100">{successMessage}</Card>
-        ) : null}
-        <Card>
-          <Pill className="text-accent">{zhCN.pet.panelBadge}</Pill>
-          <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.pet.emptyTitle}</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.pet.emptyDescription}</p>
-          <Link href="/shop/pet-egg" className="mt-6 inline-flex rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950">
-            {zhCN.pet.emptyAction}
-          </Link>
-        </Card>
-      </div>
+      <PetOnboardingGuard>
+        <div className="space-y-6">
+          {error ? (
+            <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card>
+          ) : successMessage ? (
+            <Card className="border-success/40 bg-emerald-500/10 text-sm text-emerald-100">{successMessage}</Card>
+          ) : null}
+          <Card>
+            <Pill className="text-accent">{zhCN.pet.panelBadge}</Pill>
+            <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.pet.emptyTitle}</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.pet.emptyDescription}</p>
+            <Link href="/shop/pet-egg" className="mt-6 inline-flex rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950">
+              {zhCN.pet.emptyAction}
+            </Link>
+          </Card>
+        </div>
+      </PetOnboardingGuard>
     );
   }
 
   const activeVisual = getPetVisual(state.activePet.currentImageKey);
 
   return (
-    <div className="space-y-6">
+    <PetOnboardingGuard>
+      <div className="space-y-6">
       {error ? (
         <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card>
       ) : successMessage ? (
@@ -242,6 +250,7 @@ export default async function PetPage({
           </Card>
         </div>
       </div>
-    </div>
+      </div>
+    </PetOnboardingGuard>
   );
 }

@@ -33,6 +33,10 @@ export const petEggPurchaseSchema = z.object({
   speciesId: z.string().min(1, zhCN.feedback.invalidInput),
 });
 
+export const starterPetGrantSchema = z.object({
+  speciesId: z.string().min(1, zhCN.feedback.invalidInput),
+});
+
 export const activePetSchema = z.object({
   userPetId: z.string().min(1, zhCN.feedback.invalidInput),
 });

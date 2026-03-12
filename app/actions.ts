@@ -17,6 +17,7 @@ import {
   petNicknameSchema,
   petSkinApplySchema,
   shopPurchaseSchema,
+  starterPetGrantSchema,
 } from "@/lib/validation";
 import {
   clearAdminSession,
@@ -32,6 +33,8 @@ import {
 import {
   applyPetSkin,
   ensureProfile,
+  grantStarterPet,
+  hasAnyUserPet,
   purchasePetEgg,
   purchaseMakeupCard,
   purchaseShopItem,
@@ -104,7 +107,7 @@ export async function registerAction(
 
   await ensureProfile(user.id);
   await createSession(user.id);
-  redirect("/today");
+  redirect("/onboarding/pet-egg");
 }
 
 export async function loginAction(
@@ -130,7 +133,8 @@ export async function loginAction(
   }
 
   await createSession(user.id);
-  redirect("/today");
+  const hasPets = await hasAnyUserPet(user.id);
+  redirect(hasPets ? "/today" : "/onboarding/pet-egg");
 }
 
 export async function adminLoginAction(
@@ -268,6 +272,37 @@ export async function purchasePetEggAction(formData: FormData) {
   } catch (error) {
     rethrowIfRedirect(error);
     redirect(`/shop/pet-egg?error=${encodeURIComponent(toMessage(error))}`);
+  }
+}
+
+export async function grantStarterPetAction(formData: FormData) {
+  try {
+    const user = await requireUser();
+    const parsed = starterPetGrantSchema.safeParse({
+      speciesId: formData.get("speciesId"),
+    });
+
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? zhCN.feedback.invalidInput);
+    }
+
+    const result = await grantStarterPet(user.id, parsed.data.speciesId);
+    revalidatePath("/onboarding/pet-egg");
+    revalidatePath("/pet");
+    revalidatePath("/today");
+    revalidatePath("/shop");
+    revalidatePath("/backpack");
+    revalidatePath("/pokedex");
+    revalidatePath("/history");
+
+    if (result.status === "already-has-pet") {
+      redirect("/pet?success=starter-pet-exists");
+    }
+
+    redirect("/pet?success=starter-pet-granted");
+  } catch (error) {
+    rethrowIfRedirect(error);
+    redirect(`/onboarding/pet-egg?error=${encodeURIComponent(toMessage(error))}`);
   }
 }
 

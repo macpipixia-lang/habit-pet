@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RedeemCodeStatus } from "@prisma/client";
 import { applyPetSkinAction, setActivePetAction, updatePetNicknameAction } from "@/app/actions";
+import { PetOnboardingGuard } from "@/components/pet-onboarding-guard";
 import { CopyCodeButton } from "@/components/copy-code-button";
 import { Card, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
@@ -41,7 +42,8 @@ export default async function BackpackPage({
           : null;
 
   return (
-    <div className="space-y-6">
+    <PetOnboardingGuard>
+      <div className="space-y-6">
       {error ? (
         <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card>
       ) : successMessage ? (
@@ -358,6 +360,7 @@ export default async function BackpackPage({
           </Card>
         </div>
       </details>
-    </div>
+      </div>
+    </PetOnboardingGuard>
   );
 }

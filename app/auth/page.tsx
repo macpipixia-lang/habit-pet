@@ -2,13 +2,15 @@ import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/auth-form";
 import { Card, Pill } from "@/components/ui";
 import { getCurrentUser } from "@/lib/auth";
+import { hasAnyUserPet } from "@/lib/data";
 import { zhCN } from "@/lib/i18n/zhCN";
 
 export default async function AuthPage() {
   const user = await getCurrentUser();
 
   if (user) {
-    redirect("/today");
+    const hasPets = await hasAnyUserPet(user.id);
+    redirect(hasPets ? "/today" : "/onboarding/pet-egg");
   }
 
   return (

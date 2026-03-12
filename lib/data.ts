@@ -362,6 +362,74 @@ async function getAllPetSpecies(db: Pick<typeof prisma, "petSpecies">) {
   })) as PetSpeciesRecord[];
 }
 
+export async function hasAnyUserPet(userId: string) {
+  const pet = await prisma.userPet.findFirst({
+    where: { userId },
+    select: { id: true },
+  });
+
+  return pet != null;
+}
+
+export async function getStarterPetOnboardingState(userId: string) {
+  const [hasPets, species] = await Promise.all([hasAnyUserPet(userId), getAllPetSpecies(prisma)]);
+
+  return {
+    hasPets,
+    species,
+  };
+}
+
+export async function grantStarterPet(userId: string, speciesId: string) {
+  return prisma.$transaction(async (tx) => {
+    const [existingPet, species, activePet] = await Promise.all([
+      tx.userPet.findFirst({
+        where: { userId },
+        select: { id: true },
+      }),
+      tx.petSpecies.findFirst({
+        where: {
+          id: speciesId,
+          isActive: true,
+        },
+      }),
+      tx.userPet.findFirst({
+        where: {
+          userId,
+          isActive: true,
+        },
+        select: { id: true },
+      }),
+    ]);
+
+    if (existingPet) {
+      return {
+        status: "already-has-pet" as const,
+      };
+    }
+
+    if (!species) {
+      throw new Error(zhCN.actions.petSpeciesNotFound);
+    }
+
+    const userPet = await tx.userPet.create({
+      data: {
+        userId,
+        speciesId: species.id,
+        xp: 0,
+        obtainedAt: new Date(),
+        isActive: activePet == null,
+      },
+      include: USER_PET_INCLUDE,
+    });
+
+    return {
+      status: "granted" as const,
+      userPet: toOwnedPetView(userPet as UserPetRecord),
+    };
+  });
+}
+
 async function grantPetXpToActivePet(
   db: Pick<typeof prisma, "userPet">,
   userId: string,

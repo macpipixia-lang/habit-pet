@@ -1,4 +1,5 @@
 import { PointsLedger, RedeemCodeStatus } from "@prisma/client";
+import { PetOnboardingGuard } from "@/components/pet-onboarding-guard";
 import { CopyCodeButton } from "@/components/copy-code-button";
 import { Card, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
@@ -64,7 +65,8 @@ export default async function HistoryPage() {
   const state = await getDashboardState(user.id);
 
   return (
-    <div className="grid gap-6 xl:grid-cols-2">
+    <PetOnboardingGuard>
+      <div className="grid gap-6 xl:grid-cols-2">
       <Card>
         <Pill className="text-accent">{zhCN.history.logsBadge}</Pill>
         <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.history.logsTitle}</h1>
@@ -183,6 +185,7 @@ export default async function HistoryPage() {
           )}
         </div>
       </Card>
-    </div>
+      </div>
+    </PetOnboardingGuard>
   );
 }
