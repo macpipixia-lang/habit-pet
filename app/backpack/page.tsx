@@ -126,22 +126,36 @@ export default async function BackpackPage({
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-2 lg:w-[26rem]">
-                      <form action={updatePetNicknameAction} className="space-y-3 rounded-2xl border border-line bg-black/20 p-4 sm:col-span-2">
-                        <input type="hidden" name="userPetId" value={pet.id} />
-                        <input type="hidden" name="redirectTo" value="/backpack" />
+                      <div className="space-y-3 rounded-2xl border border-line bg-black/20 p-4 sm:col-span-2">
                         <label className="block text-sm text-mist">{zhCN.pet.nicknameLabel}</label>
-                        <input
-                          type="text"
-                          name="nickname"
-                          defaultValue={pet.nickname ?? ""}
-                          maxLength={12}
-                          placeholder={zhCN.pet.nicknamePlaceholder}
-                          className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
-                        />
-                        <button className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-slate-950">
-                          {zhCN.pet.nicknameSaveButton}
-                        </button>
-                      </form>
+                        {pet.nicknameUpdatedAt ? (
+                          <div className="space-y-2">
+                            <p className="text-white">{pet.nickname?.trim() || zhCN.pet.nicknameEmpty}</p>
+                            <p className="text-xs text-mist">{zhCN.pet.nicknameLocked}</p>
+                          </div>
+                        ) : (
+                          <details>
+                            <summary className="inline-flex cursor-pointer list-none rounded-2xl border border-line px-4 py-2 text-sm text-white">
+                              {zhCN.pet.nicknameSetButton}
+                            </summary>
+                            <form action={updatePetNicknameAction} className="mt-3 space-y-3">
+                              <input type="hidden" name="userPetId" value={pet.id} />
+                              <input type="hidden" name="redirectTo" value="/backpack" />
+                              <input
+                                type="text"
+                                name="nickname"
+                                defaultValue={pet.nickname ?? ""}
+                                maxLength={12}
+                                placeholder={zhCN.pet.nicknamePlaceholder}
+                                className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
+                              />
+                              <button className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-slate-950">
+                                {zhCN.pet.nicknameSaveButton}
+                              </button>
+                            </form>
+                          </details>
+                        )}
+                      </div>
 
                       <form action={applyPetSkinAction} className="rounded-2xl border border-line bg-black/20 p-4">
                         <input type="hidden" name="userPetId" value={pet.id} />

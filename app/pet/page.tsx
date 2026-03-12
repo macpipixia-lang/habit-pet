@@ -105,20 +105,32 @@ export default async function PetPage({
               </div>
               <div>
                 <p className="text-sm text-mist">{zhCN.pet.nicknameLabel}</p>
-                <form action={updatePetNicknameAction} className="mt-2 space-y-3">
-                  <input type="hidden" name="userPetId" value={state.activePet.id} />
-                  <input
-                    type="text"
-                    name="nickname"
-                    defaultValue={state.activePet.nickname ?? ""}
-                    maxLength={12}
-                    placeholder={zhCN.pet.nicknamePlaceholder}
-                    className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
-                  />
-                  <button className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-slate-950">
-                    {zhCN.pet.nicknameSaveButton}
-                  </button>
-                </form>
+                {state.activePet.nicknameUpdatedAt ? (
+                  <div className="mt-2 space-y-2">
+                    <p className="text-lg text-white">{state.activePet.nickname?.trim() || zhCN.pet.nicknameEmpty}</p>
+                    <p className="text-xs text-mist">{zhCN.pet.nicknameLocked}</p>
+                  </div>
+                ) : (
+                  <details className="mt-2">
+                    <summary className="inline-flex cursor-pointer list-none rounded-2xl border border-line px-4 py-2 text-sm text-white">
+                      {zhCN.pet.nicknameSetButton}
+                    </summary>
+                    <form action={updatePetNicknameAction} className="mt-3 space-y-3">
+                      <input type="hidden" name="userPetId" value={state.activePet.id} />
+                      <input
+                        type="text"
+                        name="nickname"
+                        defaultValue={state.activePet.nickname ?? ""}
+                        maxLength={12}
+                        placeholder={zhCN.pet.nicknamePlaceholder}
+                        className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
+                      />
+                      <button className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-slate-950">
+                        {zhCN.pet.nicknameSaveButton}
+                      </button>
+                    </form>
+                  </details>
+                )}
               </div>
             </div>
             <div className="mt-6 h-3 rounded-full bg-white/10">

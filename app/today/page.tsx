@@ -1,4 +1,4 @@
-import { buyMakeupCardAction, saveTasksAction, settleTodayAction, useMakeupCardAction } from "@/app/actions";
+import { saveTasksAction, settleTodayAction, useMakeupCardAction } from "@/app/actions";
 import { PetOnboardingGuard } from "@/components/pet-onboarding-guard";
 import { Card, Pill } from "@/components/ui";
 import { getDashboardState } from "@/lib/data";
@@ -23,6 +23,7 @@ export default async function TodayPage({
   const progressPercent = Math.min(100, Math.round((expIntoLevel / Math.max(levelSpan, 1)) * 100));
   const error = typeof params.error === "string" ? params.error : null;
   const success = typeof params.success === "string" ? params.success : null;
+  const showMakeupPrompt = state.makeupPromptVisible;
 
   return (
     <PetOnboardingGuard>
@@ -38,7 +39,7 @@ export default async function TodayPage({
               : zhCN.feedback.makeupApplied}
         </Card>
       ) : null}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Card>
           <p className="text-sm text-mist">{zhCN.today.streak}</p>
           <p className="mt-3 text-3xl font-semibold text-white">{profile.streak}</p>
@@ -63,11 +64,6 @@ export default async function TodayPage({
           <p className="text-sm text-mist">{zhCN.today.points}</p>
           <p className="mt-3 text-3xl font-semibold text-white">{formatNumber(profile.points)}</p>
           <p className="mt-2 text-sm text-mist">{formatText(zhCN.today.pointsHint, { price: state.nextShopPrice })}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-mist">{zhCN.today.makeupCards}</p>
-          <p className="mt-3 text-3xl font-semibold text-white">{profile.makeupCards}</p>
-          <p className="mt-2 text-sm text-mist">{zhCN.today.makeupCardsHint}</p>
         </Card>
       </div>
 
@@ -169,29 +165,18 @@ export default async function TodayPage({
             </p>
           </Card>
 
-          <Card>
-            <Pill className="text-accent">{zhCN.today.recoveryBadge}</Pill>
-            <h2 className="mt-4 text-xl font-semibold text-white">{zhCN.today.recoveryTitle}</h2>
-            <p className="mt-2 text-sm leading-7 text-mist">{zhCN.today.recoveryDescription}</p>
-            <form action={useMakeupCardAction} className="mt-4">
-              <button className="w-full rounded-2xl border border-line px-4 py-3 text-sm text-white transition hover:border-white/20">
-                {zhCN.today.recoveryButton}
-              </button>
-            </form>
-          </Card>
-
-          <Card>
-            <Pill className="text-accentWarm">{zhCN.today.quickShopBadge}</Pill>
-            <h2 className="mt-4 text-xl font-semibold text-white">{zhCN.today.quickShopTitle}</h2>
-            <p className="mt-2 text-sm leading-7 text-mist">
-              {formatText(zhCN.today.quickShopDescription, { price: state.nextShopPrice })}
-            </p>
-            <form action={buyMakeupCardAction} className="mt-4">
-              <button className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-110">
-                {formatText(zhCN.today.quickShopButton, { price: state.nextShopPrice })}
-              </button>
-            </form>
-          </Card>
+          {showMakeupPrompt ? (
+            <Card>
+              <Pill className="text-accentWarm">{zhCN.today.recoveryBadge}</Pill>
+              <h2 className="mt-4 text-xl font-semibold text-white">{zhCN.today.makeupPromptTitle}</h2>
+              <p className="mt-2 text-sm leading-7 text-mist">{zhCN.today.makeupPromptDescription}</p>
+              <form action={useMakeupCardAction} className="mt-4">
+                <button className="w-full rounded-2xl border border-line px-4 py-3 text-sm text-white transition hover:border-white/20">
+                  {zhCN.today.recoveryButton}
+                </button>
+              </form>
+            </Card>
+          ) : null}
         </div>
       </div>
       </div>

@@ -153,6 +153,7 @@ model UserPet {
   activeSkinId String?
   xp         Int        @default(0)
   nickname   String?
+  nicknameUpdatedAt DateTime?
   isActive   Boolean    @default(false)
   obtainedAt DateTime   @default(now())
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)

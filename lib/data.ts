@@ -623,6 +623,7 @@ export async function resetStreakIfNeeded(profile: Profile) {
 }
 
 export async function getDashboardState(userId: string) {
+  const { today } = getShanghaiDateParts();
   const log = await ensureTodayLog(userId);
   const [user, recentLogs, recentLedger, recentPurchases, recentRedeemCodes] = await Promise.all([
     prisma.user.findUniqueOrThrow({
@@ -653,6 +654,7 @@ export async function getDashboardState(userId: string) {
     }),
   ]);
 
+  const streakBroken = user.profile ? shouldResetStreakForMissedDay(user.profile, today) : false;
   const profile = user.profile ? await resetStreakIfNeeded(user.profile) : await ensureProfile(userId);
   const taskAvailability = await getTaskAvailabilityForUserFromDb(prisma, userId);
   const currentProfile = {
@@ -678,6 +680,7 @@ export async function getDashboardState(userId: string) {
     lockedTasks: taskAvailability.locked.filter((task) => !todayTasks.some((todayTask) => todayTask.slug === task.slug)),
     nextShopPrice: makeupCardItem?.currentPrice ?? getNextMakeupCardPrice(currentProfile.purchaseCount),
     shopItems,
+    makeupPromptVisible: streakBroken && currentProfile.makeupCards > 0,
   };
 }
 
@@ -860,20 +863,41 @@ export async function setActivePet(userId: string, userPetId: string) {
 }
 
 export async function updatePetNickname(userId: string, userPetId: string, nickname?: string) {
-  const pet = await prisma.userPet.findUnique({
-    where: { id: userPetId },
-  });
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.userPet.updateMany({
+      where: {
+        id: userPetId,
+        userId,
+        nicknameUpdatedAt: null,
+      },
+      data: {
+        nickname: nickname || null,
+        nicknameUpdatedAt: new Date(),
+      },
+    });
 
-  if (!pet || pet.userId !== userId) {
-    throw new Error(zhCN.actions.petNotOwned);
-  }
+    if (updated.count === 0) {
+      const pet = await tx.userPet.findFirst({
+        where: {
+          id: userPetId,
+          userId,
+        },
+        select: {
+          id: true,
+        },
+      });
 
-  return prisma.userPet.update({
-    where: { id: userPetId },
-    data: {
-      nickname: nickname || null,
-    },
-    include: USER_PET_INCLUDE,
+      if (!pet) {
+        throw new Error(zhCN.actions.petNotOwned);
+      }
+
+      throw new Error(zhCN.actions.petNicknameLocked);
+    }
+
+    return tx.userPet.findUniqueOrThrow({
+      where: { id: userPetId },
+      include: USER_PET_INCLUDE,
+    });
   });
 }
 
