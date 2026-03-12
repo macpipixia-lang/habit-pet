@@ -50,6 +50,12 @@ npm run prisma:push
 npm run dev
 ```
 
+如果你刚改过 Prisma schema / 路由 / Server Actions，出现了类似 `Cannot find module './xxx.js'`、`routes-manifest.json` 丢失、`prisma.xxx is undefined`、或页面 500（常见于 `.next` 缓存与 Prisma Client 不一致），用下面这个“强制干净启动”命令：
+
+```bash
+npm run dev:clean
+```
+
 5. 打开 `http://localhost:3000`。
 
 ## 说明
@@ -63,8 +69,29 @@ npm run dev
 
 ```bash
 npm run dev
+npm run dev:clean
 npm run build
 npm run prisma:generate
 npm run prisma:push
 npm run prisma:seed
 ```
+
+## 故障排查（开发环境）
+
+如果遇到以下症状之一：
+- 页面突然 500
+- `Cannot find module './xxx.js'`
+- `ENOENT: ... .next/routes-manifest.json`
+- `prisma.xxx is undefined`（新增/修改 Prisma Model 后常见）
+- `Failed to find Server Action ...`
+
+优先按下面顺序处理：
+
+1) **停掉 dev server**（Ctrl+C）
+2) 运行：
+
+```bash
+npm run dev:clean
+```
+
+这会自动：清理 `.next` → 重新生成 Prisma Client → 同步 SQLite schema → 再启动 Next dev。
