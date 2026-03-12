@@ -1,63 +1,22 @@
-import { RedeemCodeStatus } from "@prisma/client";
-import {
-  adminLogoutAction,
-  saveShopItemAction,
-  saveTaskDefinitionAction,
-  toggleShopItemActiveAction,
-  updateRedeemCodeStatusAction,
-} from "@/app/actions";
-import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import Link from "next/link";
 import { AdminLoginForm } from "@/components/admin-login-form";
+import { AdminShell } from "@/components/admin-shell";
 import { Card, Pill } from "@/components/ui";
-import { getAdminState } from "@/lib/data";
+import { AdminFeedback } from "@/app/admin/_components/admin-feedback";
+import { getAdminPageParams } from "@/app/admin/_lib";
+import { getAdminSuccessMessage } from "@/lib/admin";
 import { isAdminAuthenticated } from "@/lib/auth";
+import { getAdminOverview } from "@/lib/data";
 import { zhCN } from "@/lib/i18n/zhCN";
-
-function getSuccessMessage(success: string | null) {
-  switch (success) {
-    case "login":
-      return zhCN.feedback.adminLoginSuccess;
-    case "logout":
-      return zhCN.feedback.adminLogoutSuccess;
-    case "item-saved":
-      return zhCN.feedback.itemSaved;
-    case "task-saved":
-      return zhCN.feedback.taskSaved;
-    case "item-status-updated":
-      return zhCN.feedback.itemStatusUpdated;
-    case "code-updated":
-      return zhCN.feedback.codeUpdated;
-    default:
-      return null;
-  }
-}
-
-function getStatusLabel(status: RedeemCodeStatus) {
-  switch (status) {
-    case "ISSUED":
-      return zhCN.admin.statusFilterIssued;
-    case "REDEEMED":
-      return zhCN.admin.statusFilterRedeemed;
-    case "VOID":
-      return zhCN.admin.statusFilterVoid;
-  }
-}
 
 export default async function AdminPage({
   searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const params = (await searchParams) ?? {};
+  const { error, success } = await getAdminPageParams(searchParams);
+  const successMessage = getAdminSuccessMessage(success);
   const isAdmin = await isAdminAuthenticated();
-  const error = typeof params.error === "string" ? params.error : null;
-  const success = typeof params.success === "string" ? params.success : null;
-  const statusParam =
-    typeof params.status === "string" && ["ISSUED", "REDEEMED", "VOID"].includes(params.status)
-      ? (params.status as RedeemCodeStatus)
-      : undefined;
-  const codeParam = typeof params.code === "string" ? params.code.trim() : "";
-  const successMessage = getSuccessMessage(success);
 
   if (!isAdmin) {
     return (
@@ -66,8 +25,7 @@ export default async function AdminPage({
           <Pill className="text-accent">{zhCN.admin.title}</Pill>
           <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.admin.loginTitle}</h1>
           <p className="mt-3 text-sm leading-7 text-mist">{zhCN.admin.loginDescription}</p>
-          {error ? <p className="mt-4 text-sm text-danger">{error}</p> : null}
-          {successMessage ? <p className="mt-4 text-sm text-success">{successMessage}</p> : null}
+          <AdminFeedback error={error} successMessage={successMessage} />
           <div className="mt-6">
             <AdminLoginForm />
           </div>
@@ -76,538 +34,65 @@ export default async function AdminPage({
     );
   }
 
-  const adminState = await getAdminState(statusParam, codeParam || undefined);
-  const taskOptions = adminState.tasks.map((task) => ({
-    value: task.slug,
-    label: `${task.slug} · ${task.nameZh}`,
-  }));
+  const overview = await getAdminOverview();
+  const summaryCards = [
+    { label: zhCN.admin.summaryItems, value: overview.itemsCount },
+    { label: zhCN.admin.summaryActiveItems, value: overview.activeItemsCount },
+    { label: zhCN.admin.summaryTasks, value: overview.tasksCount },
+    { label: zhCN.admin.summaryActiveTasks, value: overview.activeTasksCount },
+    { label: zhCN.admin.summaryIssuedCodes, value: overview.issuedCodesCount },
+  ];
+  const moduleCards = [
+    {
+      href: "/admin/items",
+      badge: zhCN.admin.itemsBadge,
+      title: zhCN.admin.overviewItemsTitle,
+      description: zhCN.admin.overviewItemsDescription,
+    },
+    {
+      href: "/admin/codes",
+      badge: zhCN.admin.codesBadge,
+      title: zhCN.admin.overviewCodesTitle,
+      description: zhCN.admin.overviewCodesDescription,
+    },
+    {
+      href: "/admin/tasks",
+      badge: zhCN.admin.tasksBadge,
+      title: zhCN.admin.overviewTasksTitle,
+      description: zhCN.admin.overviewTasksDescription,
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      {error ? (
-        <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card>
-      ) : successMessage ? (
-        <Card className="border-success/40 bg-emerald-500/10 text-sm text-emerald-100">{successMessage}</Card>
-      ) : null}
-
-      <Card>
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <Pill className="text-accent">{zhCN.admin.title}</Pill>
-            <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.admin.title}</h1>
-            <p className="mt-3 text-sm leading-7 text-mist">{zhCN.admin.description}</p>
-          </div>
-          <form action={adminLogoutAction}>
-            <button className="rounded-2xl border border-line px-4 py-3 text-white">
-              {zhCN.admin.logoutButton}
-            </button>
-          </form>
-        </div>
-      </Card>
-
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <div className="space-y-6">
-          <Card>
-            <Pill className="text-accent">{zhCN.admin.createTaskTitle}</Pill>
-            <h2 className="mt-4 text-2xl font-semibold text-white">{zhCN.admin.tasksTitle}</h2>
-            <p className="mt-3 text-sm leading-7 text-mist">{zhCN.admin.tasksDescription}</p>
-            <form action={saveTaskDefinitionAction} className="mt-6 space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm text-mist" htmlFor="task-slug">
-                  {zhCN.admin.slugLabel}
-                </label>
-                <input id="task-slug" name="slug" className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white" required />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm text-mist" htmlFor="task-nameZh">
-                  {zhCN.admin.nameLabel}
-                </label>
-                <input id="task-nameZh" name="nameZh" className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white" required />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm text-mist" htmlFor="task-descriptionZh">
-                  {zhCN.admin.descriptionLabel}
-                </label>
-                <textarea
-                  id="task-descriptionZh"
-                  name="descriptionZh"
-                  className="min-h-28 w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                  required
-                />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm text-mist" htmlFor="task-exp">
-                    {zhCN.admin.expLabel}
-                  </label>
-                  <input id="task-exp" name="exp" type="number" min="0" className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white" required />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm text-mist" htmlFor="task-points">
-                    {zhCN.admin.pointsLabel}
-                  </label>
-                  <input id="task-points" name="points" type="number" min="0" className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white" required />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm text-mist" htmlFor="task-unlockLevel">
-                    {zhCN.admin.unlockLevelLabel}
-                  </label>
-                  <input id="task-unlockLevel" name="unlockLevel" type="number" min="1" defaultValue={1} className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white" required />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm text-mist" htmlFor="task-unlockAfterTaskSlug">
-                    {zhCN.admin.unlockAfterTaskSlugLabel}
-                  </label>
-                  <select
-                    id="task-unlockAfterTaskSlug"
-                    name="unlockAfterTaskSlug"
-                    className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                    defaultValue=""
-                  >
-                    <option value="">{zhCN.admin.unlockAfterTaskSlugHint}</option>
-                    {taskOptions.map((task) => (
-                      <option key={task.value} value={task.value}>
-                        {task.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <button className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950">
-                {zhCN.admin.saveTaskButton}
-              </button>
-            </form>
+    <AdminShell
+      activePath="/admin"
+      title={zhCN.admin.overviewTitle}
+      description={zhCN.admin.overviewDescription}
+    >
+      <AdminFeedback error={error} successMessage={successMessage} />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        {summaryCards.map((card) => (
+          <Card key={card.label}>
+            <p className="text-sm text-mist">{card.label}</p>
+            <p className="mt-3 text-3xl font-semibold text-white">{card.value}</p>
           </Card>
-
-          <Card>
-            <Pill className="text-accent">{zhCN.admin.createItemTitle}</Pill>
-            <h2 className="mt-4 text-2xl font-semibold text-white">{zhCN.admin.itemsTitle}</h2>
-            <p className="mt-3 text-sm leading-7 text-mist">{zhCN.admin.itemsDescription}</p>
-            <form action={saveShopItemAction} className="mt-6 space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm text-mist" htmlFor="slug">
-                  {zhCN.admin.slugLabel}
-                </label>
-                <input id="slug" name="slug" className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white" required />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm text-mist" htmlFor="nameZh">
-                  {zhCN.admin.nameLabel}
-                </label>
-                <input id="nameZh" name="nameZh" className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white" required />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm text-mist" htmlFor="descriptionZh">
-                  {zhCN.admin.descriptionLabel}
-                </label>
-                <textarea
-                  id="descriptionZh"
-                  name="descriptionZh"
-                  className="min-h-28 w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                  required
-                />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="space-y-2">
-                  <label className="text-sm text-mist" htmlFor="kind">
-                    {zhCN.admin.kindLabel}
-                  </label>
-                  <select id="kind" name="kind" className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white">
-                    <option value="MAKEUP_CARD">{zhCN.shop.kindMakeupCard}</option>
-                    <option value="COUPON">{zhCN.shop.kindCoupon}</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm text-mist" htmlFor="priceBase">
-                    {zhCN.admin.priceBaseLabel}
-                  </label>
-                  <input id="priceBase" name="priceBase" type="number" min="0" className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white" required />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm text-mist" htmlFor="priceStep">
-                    {zhCN.admin.priceStepLabel}
-                  </label>
-                  <input id="priceStep" name="priceStep" type="number" min="0" className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white" required />
-                </div>
-              </div>
-              <button className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950">
-                {zhCN.admin.saveItemButton}
-              </button>
-            </form>
-          </Card>
-
-          <Card>
-            <Pill className="text-accentWarm">{zhCN.admin.tasksBadge}</Pill>
-            <h2 className="mt-4 text-2xl font-semibold text-white">{zhCN.admin.tasksTitle}</h2>
-            <div className="mt-6 space-y-3">
-              {adminState.tasks.length === 0 ? (
-                <p className="text-sm text-mist">{zhCN.admin.emptyTasks}</p>
-              ) : (
-                adminState.tasks.map((task) => (
-                  <div key={task.id} className="rounded-2xl border border-line bg-black/20 p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-medium text-white">{task.nameZh}</p>
-                        <p className="mt-1 text-sm text-mist">{task.slug}</p>
-                      </div>
-                      <Pill>{task.isActive ? zhCN.admin.activeOption : zhCN.admin.inactiveOption}</Pill>
-                    </div>
-                    <p className="mt-3 text-sm text-mist">{task.descriptionZh}</p>
-                    <form action={saveTaskDefinitionAction} className="mt-4 space-y-4">
-                      <input type="hidden" name="id" value={task.id} />
-                      <div className="space-y-2">
-                        <label className="text-sm text-mist" htmlFor={`task-slug-${task.id}`}>
-                          {zhCN.admin.slugLabel}
-                        </label>
-                        <input
-                          id={`task-slug-${task.id}`}
-                          name="slug"
-                          defaultValue={task.slug}
-                          className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-mist" htmlFor={`task-nameZh-${task.id}`}>
-                          {zhCN.admin.nameLabel}
-                        </label>
-                        <input
-                          id={`task-nameZh-${task.id}`}
-                          name="nameZh"
-                          defaultValue={task.nameZh}
-                          className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-mist" htmlFor={`task-descriptionZh-${task.id}`}>
-                          {zhCN.admin.descriptionLabel}
-                        </label>
-                        <textarea
-                          id={`task-descriptionZh-${task.id}`}
-                          name="descriptionZh"
-                          defaultValue={task.descriptionZh}
-                          className="min-h-24 w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                          required
-                        />
-                      </div>
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                          <label className="text-sm text-mist" htmlFor={`task-exp-${task.id}`}>
-                            {zhCN.admin.expLabel}
-                          </label>
-                          <input
-                            id={`task-exp-${task.id}`}
-                            name="exp"
-                            type="number"
-                            min="0"
-                            defaultValue={task.exp}
-                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm text-mist" htmlFor={`task-points-${task.id}`}>
-                            {zhCN.admin.pointsLabel}
-                          </label>
-                          <input
-                            id={`task-points-${task.id}`}
-                            name="points"
-                            type="number"
-                            min="0"
-                            defaultValue={task.points}
-                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="grid gap-4 sm:grid-cols-3">
-                        <div className="space-y-2">
-                          <label className="text-sm text-mist" htmlFor={`task-unlockLevel-${task.id}`}>
-                            {zhCN.admin.unlockLevelLabel}
-                          </label>
-                          <input
-                            id={`task-unlockLevel-${task.id}`}
-                            name="unlockLevel"
-                            type="number"
-                            min="1"
-                            defaultValue={task.unlockLevel}
-                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2 sm:col-span-2">
-                          <label className="text-sm text-mist" htmlFor={`task-unlockAfterTaskSlug-${task.id}`}>
-                            {zhCN.admin.unlockAfterTaskSlugLabel}
-                          </label>
-                          <select
-                            id={`task-unlockAfterTaskSlug-${task.id}`}
-                            name="unlockAfterTaskSlug"
-                            defaultValue={task.unlockAfterTaskSlug ?? ""}
-                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                          >
-                            <option value="">{zhCN.admin.unlockAfterTaskSlugHint}</option>
-                            {taskOptions
-                              .filter((option) => option.value !== task.slug)
-                              .map((option) => (
-                                <option key={`${task.id}-${option.value}`} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-mist" htmlFor={`task-isActive-${task.id}`}>
-                          {zhCN.admin.activeLabel}
-                        </label>
-                        <select
-                          id={`task-isActive-${task.id}`}
-                          name="isActive"
-                          defaultValue={String(task.isActive)}
-                          className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                        >
-                          <option value="true">{zhCN.admin.activeOption}</option>
-                          <option value="false">{zhCN.admin.inactiveOption}</option>
-                        </select>
-                      </div>
-                      <button className="rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950">
-                        {zhCN.admin.updateTaskButton}
-                      </button>
-                    </form>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
-
-          <Card>
-            <Pill className="text-accentWarm">{zhCN.admin.itemsBadge}</Pill>
-            <h2 className="mt-4 text-2xl font-semibold text-white">{zhCN.admin.itemsTitle}</h2>
-            <div className="mt-6 space-y-3">
-              {adminState.items.length === 0 ? (
-                <p className="text-sm text-mist">{zhCN.admin.emptyItems}</p>
-              ) : (
-                adminState.items.map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-line bg-black/20 p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-medium text-white">{item.nameZh}</p>
-                        <p className="mt-1 text-sm text-mist">{item.slug}</p>
-                      </div>
-                      <Pill>{item.isActive ? zhCN.admin.activeOption : zhCN.admin.inactiveOption}</Pill>
-                    </div>
-                    <p className="mt-3 text-sm text-mist">{item.descriptionZh}</p>
-                    <p className="mt-3 text-sm text-mist">{item.kind}</p>
-                    <form action={saveShopItemAction} className="mt-4 space-y-4">
-                      <input type="hidden" name="id" value={item.id} />
-                      <input type="hidden" name="kind" value={item.kind} />
-                      <div className="space-y-2">
-                        <label className="text-sm text-mist" htmlFor={`slug-${item.id}`}>
-                          {zhCN.admin.slugLabel}
-                        </label>
-                        <input
-                          id={`slug-${item.id}`}
-                          name="slug"
-                          defaultValue={item.slug}
-                          className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-mist" htmlFor={`nameZh-${item.id}`}>
-                          {zhCN.admin.nameLabel}
-                        </label>
-                        <input
-                          id={`nameZh-${item.id}`}
-                          name="nameZh"
-                          defaultValue={item.nameZh}
-                          className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm text-mist" htmlFor={`descriptionZh-${item.id}`}>
-                          {zhCN.admin.descriptionLabel}
-                        </label>
-                        <textarea
-                          id={`descriptionZh-${item.id}`}
-                          name="descriptionZh"
-                          defaultValue={item.descriptionZh}
-                          className="min-h-24 w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                          required
-                        />
-                      </div>
-                      <div className="grid gap-4 sm:grid-cols-4">
-                        <div className="space-y-2">
-                          <label className="text-sm text-mist" htmlFor={`kind-${item.id}`}>
-                            {zhCN.admin.kindLabel}
-                          </label>
-                          <select
-                            id={`kind-${item.id}`}
-                            defaultValue={item.kind}
-                            disabled
-                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white disabled:cursor-not-allowed disabled:opacity-70"
-                          >
-                            <option value="MAKEUP_CARD">{zhCN.shop.kindMakeupCard}</option>
-                            <option value="COUPON">{zhCN.shop.kindCoupon}</option>
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm text-mist" htmlFor={`priceBase-${item.id}`}>
-                            {zhCN.admin.priceBaseLabel}
-                          </label>
-                          <input
-                            id={`priceBase-${item.id}`}
-                            name="priceBase"
-                            type="number"
-                            min="0"
-                            defaultValue={item.priceBase}
-                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm text-mist" htmlFor={`priceStep-${item.id}`}>
-                            {zhCN.admin.priceStepLabel}
-                          </label>
-                          <input
-                            id={`priceStep-${item.id}`}
-                            name="priceStep"
-                            type="number"
-                            min="0"
-                            defaultValue={item.priceStep}
-                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm text-mist" htmlFor={`isActive-${item.id}`}>
-                            {zhCN.admin.activeLabel}
-                          </label>
-                          <select
-                            id={`isActive-${item.id}`}
-                            name="isActive"
-                            defaultValue={String(item.isActive)}
-                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                          >
-                            <option value="true">{zhCN.admin.activeOption}</option>
-                            <option value="false">{zhCN.admin.inactiveOption}</option>
-                          </select>
-                        </div>
-                      </div>
-                      <button className="rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950">
-                        {zhCN.admin.updateItemButton}
-                      </button>
-                    </form>
-                    <form action={toggleShopItemActiveAction} className="mt-3">
-                      <input type="hidden" name="itemId" value={item.id} />
-                      <button className="rounded-2xl border border-line px-4 py-2 text-white">
-                        {item.isActive ? zhCN.admin.deactivateButton : zhCN.admin.activateButton}
-                      </button>
-                    </form>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
-        </div>
-
-        <Card>
-          <Pill className="text-accent">{zhCN.admin.codesBadge}</Pill>
-          <h2 className="mt-4 text-2xl font-semibold text-white">{zhCN.admin.codesTitle}</h2>
-          <p className="mt-3 text-sm leading-7 text-mist">{zhCN.admin.codesDescription}</p>
-          <form className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <select
-              name="status"
-              defaultValue={statusParam ?? ""}
-              className="rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-            >
-              <option value="">{zhCN.admin.statusFilterAll}</option>
-              <option value="ISSUED">{zhCN.admin.statusFilterIssued}</option>
-              <option value="REDEEMED">{zhCN.admin.statusFilterRedeemed}</option>
-              <option value="VOID">{zhCN.admin.statusFilterVoid}</option>
-            </select>
-            <input
-              name="code"
-              defaultValue={codeParam}
-              placeholder={zhCN.admin.codeSearchPlaceholder}
-              className="min-w-0 flex-1 rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-            />
-            <button className="rounded-2xl border border-line px-4 py-3 text-white">{zhCN.admin.filterButton}</button>
-          </form>
-          <div className="mt-6 space-y-3">
-            {adminState.redeemCodes.length === 0 ? (
-              <p className="text-sm text-mist">{zhCN.admin.emptyCodes}</p>
-            ) : (
-              adminState.redeemCodes.map((code) => (
-                <div key={code.id} className="rounded-2xl border border-line bg-black/20 p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="font-medium text-white">{code.item.nameZh}</p>
-                      <p className="mt-1 break-all text-sm text-mist">{code.id}</p>
-                    </div>
-                    <Pill>{getStatusLabel(code.status)}</Pill>
-                  </div>
-                  <p className="mt-3 text-sm text-mist">用户：{code.user.username}</p>
-                  <p className="mt-1 text-sm text-mist">发放时间：{code.issuedAt.toLocaleString("zh-CN", { hour12: false })}</p>
-                  {code.redeemedAt ? (
-                    <p className="mt-1 text-sm text-mist">处理时间：{code.redeemedAt.toLocaleString("zh-CN", { hour12: false })}</p>
-                  ) : null}
-                  {code.status === "ISSUED" ? (
-                    <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                      <form action={updateRedeemCodeStatusAction} className="space-y-3">
-                        <input type="hidden" name="code" value={code.id} />
-                        <input type="hidden" name="status" value="REDEEMED" />
-                        <label className="block text-sm text-mist">
-                          {zhCN.admin.noteLabel}
-                          <input
-                            name="adminNote"
-                            defaultValue={code.adminNote ?? ""}
-                            className="mt-2 w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                          />
-                        </label>
-                        <ConfirmSubmitButton
-                          confirmMessage={zhCN.admin.redeemConfirm}
-                          pendingLabel={zhCN.auth.submitting}
-                          className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950 disabled:opacity-70"
-                        >
-                          {zhCN.admin.redeemButton}
-                        </ConfirmSubmitButton>
-                      </form>
-                      <form action={updateRedeemCodeStatusAction} className="space-y-3">
-                        <input type="hidden" name="code" value={code.id} />
-                        <input type="hidden" name="status" value="VOID" />
-                        <label className="block text-sm text-mist">
-                          {zhCN.admin.noteLabel}
-                          <input
-                            name="adminNote"
-                            defaultValue={code.adminNote ?? ""}
-                            className="mt-2 w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
-                          />
-                        </label>
-                        <ConfirmSubmitButton
-                          confirmMessage={zhCN.admin.voidConfirm}
-                          pendingLabel={zhCN.auth.submitting}
-                          className="w-full rounded-2xl border border-line px-4 py-3 text-white disabled:opacity-70"
-                        >
-                          {zhCN.admin.voidButton}
-                        </ConfirmSubmitButton>
-                      </form>
-                    </div>
-                  ) : code.adminNote ? (
-                    <p className="mt-3 text-sm text-mist">
-                      {zhCN.admin.noteLabel}：{code.adminNote}
-                    </p>
-                  ) : null}
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
+        ))}
       </div>
-    </div>
+      <div className="grid gap-6 xl:grid-cols-3">
+        {moduleCards.map((card) => (
+          <Card key={card.href} className="flex h-full flex-col">
+            <Pill className="text-accent">{card.badge}</Pill>
+            <h2 className="mt-4 text-2xl font-semibold text-white">{card.title}</h2>
+            <p className="mt-3 flex-1 text-sm leading-7 text-mist">{card.description}</p>
+            <Link
+              href={card.href}
+              className="mt-6 inline-flex w-fit rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950"
+            >
+              {zhCN.admin.goToModule}
+            </Link>
+          </Card>
+        ))}
+      </div>
+    </AdminShell>
   );
 }

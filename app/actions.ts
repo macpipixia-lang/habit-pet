@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { getAdminRedirectTarget } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import {
   adminCodeUpdateSchema,
@@ -246,6 +247,8 @@ export async function useMakeupCardAction(_formData: FormData) {
 }
 
 export async function saveShopItemAction(formData: FormData) {
+  const redirectTo = getAdminRedirectTarget(formData.get("redirectTo"));
+
   try {
     await requireAdmin();
     const parsed = adminShopItemSchema.safeParse({
@@ -266,14 +269,17 @@ export async function saveShopItemAction(formData: FormData) {
     await saveShopItem(parsed.data);
     revalidatePath("/shop");
     revalidatePath("/admin");
-    redirect("/admin?success=item-saved");
+    revalidatePath("/admin/items");
+    redirect(`${redirectTo}?success=item-saved`);
   } catch (error) {
     rethrowIfRedirect(error);
-    redirect(`/admin?error=${encodeURIComponent(toMessage(error))}`);
+    redirect(`${redirectTo}?error=${encodeURIComponent(toMessage(error))}`);
   }
 }
 
 export async function saveTaskDefinitionAction(formData: FormData) {
+  const redirectTo = getAdminRedirectTarget(formData.get("redirectTo"));
+
   try {
     await requireAdmin();
     const parsed = adminTaskDefinitionSchema.safeParse({
@@ -294,15 +300,18 @@ export async function saveTaskDefinitionAction(formData: FormData) {
 
     await saveTaskDefinition(parsed.data);
     revalidatePath("/admin");
+    revalidatePath("/admin/tasks");
     revalidatePath("/today");
-    redirect("/admin?success=task-saved");
+    redirect(`${redirectTo}?success=task-saved`);
   } catch (error) {
     rethrowIfRedirect(error);
-    redirect(`/admin?error=${encodeURIComponent(toMessage(error))}`);
+    redirect(`${redirectTo}?error=${encodeURIComponent(toMessage(error))}`);
   }
 }
 
 export async function toggleShopItemActiveAction(formData: FormData) {
+  const redirectTo = getAdminRedirectTarget(formData.get("redirectTo"));
+
   try {
     await requireAdmin();
     const itemId = String(formData.get("itemId") ?? "");
@@ -314,14 +323,17 @@ export async function toggleShopItemActiveAction(formData: FormData) {
     await toggleShopItemActive(itemId);
     revalidatePath("/shop");
     revalidatePath("/admin");
-    redirect("/admin?success=item-status-updated");
+    revalidatePath("/admin/items");
+    redirect(`${redirectTo}?success=item-status-updated`);
   } catch (error) {
     rethrowIfRedirect(error);
-    redirect(`/admin?error=${encodeURIComponent(toMessage(error))}`);
+    redirect(`${redirectTo}?error=${encodeURIComponent(toMessage(error))}`);
   }
 }
 
 export async function updateRedeemCodeStatusAction(formData: FormData) {
+  const redirectTo = getAdminRedirectTarget(formData.get("redirectTo"));
+
   try {
     await requireAdmin();
     const parsed = adminCodeUpdateSchema.safeParse({
@@ -336,10 +348,11 @@ export async function updateRedeemCodeStatusAction(formData: FormData) {
 
     await updateRedeemCodeStatus(parsed.data);
     revalidatePath("/admin");
+    revalidatePath("/admin/codes");
     revalidatePath("/history");
-    redirect("/admin?success=code-updated");
+    redirect(`${redirectTo}?success=code-updated`);
   } catch (error) {
     rethrowIfRedirect(error);
-    redirect(`/admin?error=${encodeURIComponent(toMessage(error))}`);
+    redirect(`${redirectTo}?error=${encodeURIComponent(toMessage(error))}`);
   }
 }

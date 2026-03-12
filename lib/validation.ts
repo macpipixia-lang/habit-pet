@@ -1,6 +1,20 @@
 import { z } from "zod";
 import { zhCN } from "@/lib/i18n/zhCN";
 
+const adminBooleanFieldSchema = z.preprocess(
+  (value) => {
+    if (value == null || value === "") {
+      return undefined;
+    }
+
+    return value;
+  },
+  z
+    .enum(["true", "false"])
+    .optional()
+    .transform((value) => value !== "false"),
+);
+
 export const authSchema = z.object({
   username: z
     .string()
@@ -30,10 +44,7 @@ export const adminShopItemSchema = z.object({
   kind: z.enum(["MAKEUP_CARD", "COUPON"], { message: zhCN.feedback.invalidInput }),
   priceBase: z.coerce.number().int().min(0, zhCN.validation.priceMin),
   priceStep: z.coerce.number().int().min(0, zhCN.validation.priceMin),
-  isActive: z
-    .enum(["true", "false"])
-    .optional()
-    .transform((value) => value !== "false"),
+  isActive: adminBooleanFieldSchema,
 });
 
 export const adminTaskDefinitionSchema = z.object({
@@ -55,10 +66,7 @@ export const adminTaskDefinitionSchema = z.object({
     .regex(/^[a-z0-9-]*$/, zhCN.validation.taskSlugPattern)
     .optional()
     .transform((value) => value || undefined),
-  isActive: z
-    .enum(["true", "false"])
-    .optional()
-    .transform((value) => value !== "false"),
+  isActive: adminBooleanFieldSchema,
 });
 
 export const adminCodeUpdateSchema = z.object({

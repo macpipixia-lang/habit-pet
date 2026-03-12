@@ -753,6 +753,55 @@ export async function getAdminState(status?: RedeemCodeStatus, code?: string) {
   };
 }
 
+export async function getAdminOverview() {
+  const [itemsCount, activeItemsCount, tasksCount, activeTasksCount, issuedCodesCount] = await Promise.all([
+    prisma.shopItem.count(),
+    prisma.shopItem.count({ where: { isActive: true } }),
+    prisma.taskDefinition.count(),
+    prisma.taskDefinition.count({ where: { isActive: true } }),
+    prisma.redeemCode.count({ where: { status: "ISSUED" } }),
+  ]);
+
+  return {
+    itemsCount,
+    activeItemsCount,
+    tasksCount,
+    activeTasksCount,
+    issuedCodesCount,
+  };
+}
+
+export async function getAdminItems() {
+  return prisma.shopItem.findMany({
+    orderBy: [{ isActive: "desc" }, { createdAt: "asc" }],
+  });
+}
+
+export async function getAdminTasks() {
+  return prisma.taskDefinition.findMany({
+    orderBy: [{ isActive: "desc" }, { unlockLevel: "asc" }, { createdAt: "asc" }],
+  });
+}
+
+export async function getAdminRedeemCodes(status?: RedeemCodeStatus, code?: string) {
+  return prisma.redeemCode.findMany({
+    where: {
+      ...(status ? { status } : {}),
+      ...(code ? { id: code } : {}),
+    },
+    include: {
+      user: {
+        select: {
+          username: true,
+        },
+      },
+      item: true,
+    },
+    orderBy: { issuedAt: "desc" },
+    take: 100,
+  });
+}
+
 export async function saveTaskDefinition(input: {
   id?: string;
   slug: string;
