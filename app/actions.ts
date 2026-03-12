@@ -7,6 +7,7 @@ import { getAdminRedirectTarget } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import {
   activePetSchema,
+  appRedirectSchema,
   adminCodeUpdateSchema,
   adminLoginSchema,
   adminShopItemSchema,
@@ -66,6 +67,11 @@ function rethrowIfRedirect(error: unknown) {
   if (isRedirectError(error)) {
     throw error;
   }
+}
+
+function getAppRedirectTarget(value: FormDataEntryValue | null) {
+  const parsed = appRedirectSchema.safeParse(value ?? undefined);
+  return parsed.success ? parsed.data : "/pet";
 }
 
 export async function registerAction(
@@ -266,6 +272,8 @@ export async function purchasePetEggAction(formData: FormData) {
 }
 
 export async function setActivePetAction(formData: FormData) {
+  const redirectTo = getAppRedirectTarget(formData.get("redirectTo"));
+
   try {
     const user = await requireUser();
     const parsed = activePetSchema.safeParse({
@@ -278,15 +286,18 @@ export async function setActivePetAction(formData: FormData) {
 
     await setActivePet(user.id, parsed.data.userPetId);
     revalidatePath("/pet");
+    revalidatePath("/backpack");
     revalidatePath("/today");
-    redirect("/pet?success=active-pet-updated");
+    redirect(`${redirectTo}?success=active-pet-updated`);
   } catch (error) {
     rethrowIfRedirect(error);
-    redirect(`/pet?error=${encodeURIComponent(toMessage(error))}`);
+    redirect(`${redirectTo}?error=${encodeURIComponent(toMessage(error))}`);
   }
 }
 
 export async function updatePetNicknameAction(formData: FormData) {
+  const redirectTo = getAppRedirectTarget(formData.get("redirectTo"));
+
   try {
     const user = await requireUser();
     const parsed = petNicknameSchema.safeParse({
@@ -300,15 +311,18 @@ export async function updatePetNicknameAction(formData: FormData) {
 
     await updatePetNickname(user.id, parsed.data.userPetId, parsed.data.nickname || undefined);
     revalidatePath("/pet");
+    revalidatePath("/backpack");
     revalidatePath("/pokedex");
-    redirect("/pet?success=pet-nickname-updated");
+    redirect(`${redirectTo}?success=pet-nickname-updated`);
   } catch (error) {
     rethrowIfRedirect(error);
-    redirect(`/pet?error=${encodeURIComponent(toMessage(error))}`);
+    redirect(`${redirectTo}?error=${encodeURIComponent(toMessage(error))}`);
   }
 }
 
 export async function applyPetSkinAction(formData: FormData) {
+  const redirectTo = getAppRedirectTarget(formData.get("redirectTo"));
+
   try {
     const user = await requireUser();
     const parsed = petSkinApplySchema.safeParse({
@@ -322,11 +336,12 @@ export async function applyPetSkinAction(formData: FormData) {
 
     await applyPetSkin(user.id, parsed.data.userPetId, parsed.data.skinId);
     revalidatePath("/pet");
+    revalidatePath("/backpack");
     revalidatePath("/pokedex");
-    redirect("/pet?success=pet-skin-updated");
+    redirect(`${redirectTo}?success=pet-skin-updated`);
   } catch (error) {
     rethrowIfRedirect(error);
-    redirect(`/pet?error=${encodeURIComponent(toMessage(error))}`);
+    redirect(`${redirectTo}?error=${encodeURIComponent(toMessage(error))}`);
   }
 }
 

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/today", label: zhCN.nav.today },
   { href: "/pet", label: zhCN.nav.pet },
+  { href: "/backpack", label: zhCN.nav.backpack },
   { href: "/pokedex", label: zhCN.nav.pokedex },
   { href: "/shop", label: zhCN.nav.shop },
   { href: "/history", label: zhCN.nav.history },

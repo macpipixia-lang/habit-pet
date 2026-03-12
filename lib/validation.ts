@@ -54,6 +54,11 @@ export const petSkinApplySchema = z.object({
     .transform((value) => value || undefined),
 });
 
+export const appRedirectSchema = z
+  .enum(["/pet", "/backpack"])
+  .optional()
+  .transform((value) => value ?? "/pet");
+
 export const adminLoginSchema = z.object({
   secret: z.string().min(1, zhCN.feedback.invalidInput),
 });

@@ -283,6 +283,7 @@ function toOwnedSkinView(record: UserPetSkinRecord) {
     nameZh: record.skin.nameZh,
     descriptionZh: record.skin.descriptionZh,
     speciesId: record.skin.speciesId,
+    speciesNameZh: record.skin.species?.nameZh ?? null,
     stageIndex: record.skin.stageIndex,
     imageKey: record.skin.imageKey,
     rarity: record.skin.rarity,
@@ -618,6 +619,41 @@ export async function getPetPageState(userId: string) {
   return {
     pets,
     activePet: pets.find((pet) => pet.isActive) ?? pets[0] ?? null,
+  };
+}
+
+export async function getBackpackState(userId: string) {
+  const [profile, ownedPets, ownedSkins, redeemCodes] = await Promise.all([
+    ensureProfile(userId),
+    getOwnedPetsWithStages(prisma, userId),
+    prisma.userPetSkin.findMany({
+      where: {
+        userId,
+        skin: {
+          isActive: true,
+        },
+      },
+      include: USER_PET_SKIN_INCLUDE,
+      orderBy: [{ obtainedAt: "asc" }],
+    }),
+    prisma.redeemCode.findMany({
+      where: { userId },
+      include: {
+        item: true,
+      },
+      orderBy: [{ issuedAt: "desc" }],
+      take: 50,
+    }),
+  ]);
+
+  return {
+    profile: {
+      points: profile.points,
+      makeupCards: profile.makeupCards,
+    },
+    ownedPets,
+    ownedSkins: ownedSkins.map((record) => toOwnedSkinView(record as UserPetSkinRecord)),
+    redeemCodes,
   };
 }
 
