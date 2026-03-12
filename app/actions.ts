@@ -13,6 +13,8 @@ import {
   adminTaskDefinitionSchema,
   authSchema,
   petEggPurchaseSchema,
+  petNicknameSchema,
+  petSkinApplySchema,
   shopPurchaseSchema,
 } from "@/lib/validation";
 import {
@@ -27,6 +29,7 @@ import {
   verifyPassword,
 } from "@/lib/auth";
 import {
+  applyPetSkin,
   ensureProfile,
   purchasePetEgg,
   purchaseMakeupCard,
@@ -36,6 +39,7 @@ import {
   setActivePet,
   settleToday,
   toggleShopItemActive,
+  updatePetNickname,
   updateRedeemCodeStatus,
   updateTodayTaskSelection,
   useYesterdayMakeupCard,
@@ -203,6 +207,7 @@ export async function purchaseShopItemAction(formData: FormData) {
     revalidatePath("/shop");
     revalidatePath("/today");
     revalidatePath("/pet");
+    revalidatePath("/pokedex");
     revalidatePath("/history");
 
     if (result.redeemCode) {
@@ -275,6 +280,50 @@ export async function setActivePetAction(formData: FormData) {
     revalidatePath("/pet");
     revalidatePath("/today");
     redirect("/pet?success=active-pet-updated");
+  } catch (error) {
+    rethrowIfRedirect(error);
+    redirect(`/pet?error=${encodeURIComponent(toMessage(error))}`);
+  }
+}
+
+export async function updatePetNicknameAction(formData: FormData) {
+  try {
+    const user = await requireUser();
+    const parsed = petNicknameSchema.safeParse({
+      userPetId: formData.get("userPetId"),
+      nickname: formData.get("nickname"),
+    });
+
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? zhCN.feedback.invalidInput);
+    }
+
+    await updatePetNickname(user.id, parsed.data.userPetId, parsed.data.nickname || undefined);
+    revalidatePath("/pet");
+    revalidatePath("/pokedex");
+    redirect("/pet?success=pet-nickname-updated");
+  } catch (error) {
+    rethrowIfRedirect(error);
+    redirect(`/pet?error=${encodeURIComponent(toMessage(error))}`);
+  }
+}
+
+export async function applyPetSkinAction(formData: FormData) {
+  try {
+    const user = await requireUser();
+    const parsed = petSkinApplySchema.safeParse({
+      userPetId: formData.get("userPetId"),
+      skinId: formData.get("skinId") || undefined,
+    });
+
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? zhCN.feedback.invalidInput);
+    }
+
+    await applyPetSkin(user.id, parsed.data.userPetId, parsed.data.skinId);
+    revalidatePath("/pet");
+    revalidatePath("/pokedex");
+    redirect("/pet?success=pet-skin-updated");
   } catch (error) {
     rethrowIfRedirect(error);
     redirect(`/pet?error=${encodeURIComponent(toMessage(error))}`);

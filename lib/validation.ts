@@ -37,6 +37,23 @@ export const activePetSchema = z.object({
   userPetId: z.string().min(1, zhCN.feedback.invalidInput),
 });
 
+export const petNicknameSchema = z.object({
+  userPetId: z.string().min(1, zhCN.feedback.invalidInput),
+  nickname: z
+    .string()
+    .trim()
+    .max(12, zhCN.validation.petNicknameMax)
+    .regex(/^[\p{Script=Han}A-Za-z0-9 ]*$/u, zhCN.validation.petNicknamePattern),
+});
+
+export const petSkinApplySchema = z.object({
+  userPetId: z.string().min(1, zhCN.feedback.invalidInput),
+  skinId: z
+    .string()
+    .optional()
+    .transform((value) => value || undefined),
+});
+
 export const adminLoginSchema = z.object({
   secret: z.string().min(1, zhCN.feedback.invalidInput),
 });
@@ -50,7 +67,7 @@ export const adminShopItemSchema = z.object({
     .regex(/^[a-z0-9-]+$/, zhCN.validation.shopSlugPattern),
   nameZh: z.string().min(1, zhCN.validation.shopNameRequired),
   descriptionZh: z.string().min(1, zhCN.validation.shopDescriptionRequired),
-  kind: z.enum(["MAKEUP_CARD", "COUPON", "PET_EGG"], { message: zhCN.feedback.invalidInput }),
+  kind: z.enum(["MAKEUP_CARD", "COUPON", "PET_EGG", "PET_SKIN"], { message: zhCN.feedback.invalidInput }),
   priceBase: z.coerce.number().int().min(0, zhCN.validation.priceMin),
   priceStep: z.coerce.number().int().min(0, zhCN.validation.priceMin),
   isActive: adminBooleanFieldSchema,

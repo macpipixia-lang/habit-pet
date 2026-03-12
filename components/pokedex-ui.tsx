@@ -15,6 +15,7 @@ type SpeciesStage = {
 type OwnedPetSummary = {
   xp: number;
   currentStageId: string;
+  currentImageKey?: string;
 };
 
 type SpeciesSummary = {
@@ -52,18 +53,20 @@ function getRarityPillClass(rarity: string | null) {
 
 export function StageHero({
   stage,
+  imageKey,
   title,
   subtitle,
   concealed = false,
   highlighted = false,
 }: {
   stage: SpeciesStage;
+  imageKey?: string;
   title?: string;
   subtitle?: string;
   concealed?: boolean;
   highlighted?: boolean;
 }) {
-  const visual = getPetVisual(stage.imageKey);
+  const visual = getPetVisual(imageKey ?? stage.imageKey);
 
   return (
     <div
@@ -114,6 +117,7 @@ export function PokedexSpeciesCard({ species }: { species: SpeciesSummary }) {
         <div className="mt-5">
           <StageHero
             stage={preview}
+            imageKey={species.ownedPet?.currentImageKey}
             title={species.owned ? zhCN.pokedex.currentStagePreview : zhCN.pokedex.finalStagePreview}
             subtitle={species.owned ? zhCN.pokedex.heroOwnedHint : zhCN.pokedex.heroUnownedHint}
             concealed={!species.owned}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { setActivePetAction } from "@/app/actions";
+import { applyPetSkinAction, setActivePetAction, updatePetNicknameAction } from "@/app/actions";
 import { Card, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { getPetPageState } from "@/lib/data";
@@ -23,6 +23,10 @@ export default async function PetPage({
       ? zhCN.feedback.petUnlocked
       : success === "active-pet-updated"
         ? zhCN.feedback.activePetUpdated
+        : success === "pet-nickname-updated"
+          ? zhCN.feedback.petNicknameUpdated
+          : success === "pet-skin-updated"
+            ? zhCN.feedback.petSkinUpdated
         : null;
 
   if (!state.activePet) {
@@ -45,7 +49,7 @@ export default async function PetPage({
     );
   }
 
-  const activeVisual = getPetVisual(state.activePet.currentStage.imageKey);
+  const activeVisual = getPetVisual(state.activePet.currentImageKey);
 
   return (
     <div className="space-y-6">
@@ -72,6 +76,8 @@ export default async function PetPage({
               </div>
               <p className="mt-6 text-sm text-mist">{zhCN.pet.stageLabel}</p>
               <p className="mt-2 text-2xl text-white">{state.activePet.currentStage.nameZh}</p>
+              <p className="mt-3 text-sm text-mist">{zhCN.pet.skinLabel}</p>
+              <p className="mt-2 text-lg text-white">{state.activePet.activeSkin?.nameZh ?? zhCN.pet.skinDefault}</p>
               <p className="mt-3 text-sm text-mist">{formatText(zhCN.pet.obtainedAt, { date: formatShanghaiDate(state.activePet.obtainedAt) })}</p>
             </div>
           </div>
@@ -91,7 +97,20 @@ export default async function PetPage({
               </div>
               <div>
                 <p className="text-sm text-mist">{zhCN.pet.nicknameLabel}</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{state.activePet.nickname ?? "-"}</p>
+                <form action={updatePetNicknameAction} className="mt-2 space-y-3">
+                  <input type="hidden" name="userPetId" value={state.activePet.id} />
+                  <input
+                    type="text"
+                    name="nickname"
+                    defaultValue={state.activePet.nickname ?? ""}
+                    maxLength={12}
+                    placeholder={zhCN.pet.nicknamePlaceholder}
+                    className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
+                  />
+                  <button className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-slate-950">
+                    {zhCN.pet.nicknameSaveButton}
+                  </button>
+                </form>
               </div>
             </div>
             <div className="mt-6 h-3 rounded-full bg-white/10">
@@ -114,6 +133,57 @@ export default async function PetPage({
           </Card>
 
           <Card>
+            <Pill className="text-accentWarm">{zhCN.pet.skinOwnedLabel}</Pill>
+            <div className="mt-4 grid gap-3">
+              <form action={applyPetSkinAction} className="rounded-2xl border border-line bg-black/20 p-4">
+                <input type="hidden" name="userPetId" value={state.activePet.id} />
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-lg font-semibold text-white">{zhCN.pet.skinDefault}</p>
+                    <p className="mt-1 text-sm text-mist">{state.activePet.currentStage.nameZh}</p>
+                  </div>
+                  <button className="rounded-2xl border border-line px-4 py-2 text-sm text-white">
+                    {zhCN.pet.skinRemoveButton}
+                  </button>
+                </div>
+              </form>
+              {state.activePet.availableSkins.length === 0 ? (
+                <p className="text-sm text-mist">{zhCN.pet.skinEmpty}</p>
+              ) : (
+                state.activePet.availableSkins.map((skin) => {
+                  const visual = getPetVisual(skin.imageKey);
+                  const isActiveSkin = state.activePet.activeSkinId === skin.id;
+
+                  return (
+                    <form key={skin.id} action={applyPetSkinAction} className="rounded-2xl border border-line bg-black/20 p-4">
+                      <input type="hidden" name="userPetId" value={state.activePet.id} />
+                      <input type="hidden" name="skinId" value={skin.id} />
+                      <div className="flex items-center gap-4">
+                        <div className={`flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 text-3xl ${visual.className}`}>
+                          {visual.emoji}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-lg font-semibold text-white">{skin.nameZh}</p>
+                            {isActiveSkin ? <Pill>{zhCN.pet.activeTag}</Pill> : null}
+                          </div>
+                          <p className="mt-1 text-sm text-mist">{skin.descriptionZh}</p>
+                        </div>
+                        <button
+                          disabled={isActiveSkin}
+                          className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-slate-950 disabled:cursor-not-allowed disabled:bg-white/20 disabled:text-mist"
+                        >
+                          {isActiveSkin ? zhCN.pet.activatedButton : zhCN.pet.skinApplyButton}
+                        </button>
+                      </div>
+                    </form>
+                  );
+                })
+              )}
+            </div>
+          </Card>
+
+          <Card>
             <div className="flex items-center justify-between gap-3">
               <Pill className="text-accent">{zhCN.pet.collectionBadge}</Pill>
               <Link href="/pokedex" className="text-sm text-mist underline decoration-white/20 underline-offset-4">
@@ -122,7 +192,7 @@ export default async function PetPage({
             </div>
             <div className="mt-4 grid gap-3">
               {state.pets.map((pet) => {
-                const visual = getPetVisual(pet.currentStage.imageKey);
+                const visual = getPetVisual(pet.currentImageKey);
 
                 return (
                   <div key={pet.id} className="rounded-2xl border border-line bg-black/20 p-4">
@@ -139,6 +209,9 @@ export default async function PetPage({
                         </div>
                         <p className="mt-1 text-sm text-mist">
                           {pet.species.nameZh} · {pet.currentStage.nameZh} · XP {formatNumber(pet.xp)}
+                        </p>
+                        <p className="mt-1 text-sm text-mist">
+                          {zhCN.pet.skinLabel}：{pet.activeSkin?.nameZh ?? zhCN.pet.skinDefault}
                         </p>
                       </div>
                       {pet.isActive ? (

@@ -81,6 +81,48 @@ const petSpeciesSeeds = [
   },
 ] as const;
 
+const petSkinSeeds = [
+  {
+    slug: "moss-fox-spring-scarf",
+    speciesSlug: "moss-fox",
+    nameZh: "青芽围巾",
+    descriptionZh: "给苔尾狐披上一圈春天的嫩叶围巾。",
+    imageKey: "moss-fox-spring-scarf",
+    rarity: "RARE",
+    shop: {
+      slug: "skin-moss-fox-spring-scarf",
+      priceBase: 150,
+      priceStep: 0,
+    },
+  },
+  {
+    slug: "sun-seal-wave-float",
+    speciesSlug: "sun-seal",
+    nameZh: "晴波泳圈",
+    descriptionZh: "让晴团海豹像带着一圈发光海浪。",
+    imageKey: "sun-seal-wave-float",
+    rarity: "RARE",
+    shop: {
+      slug: "skin-sun-seal-wave-float",
+      priceBase: 150,
+      priceStep: 0,
+    },
+  },
+  {
+    slug: "plum-owl-night-cape",
+    speciesSlug: "plum-owl",
+    nameZh: "夜庭披风",
+    descriptionZh: "为梅影枭添上一层带月色纹理的披风。",
+    imageKey: "plum-owl-night-cape",
+    rarity: "EPIC",
+    shop: {
+      slug: "skin-plum-owl-night-cape",
+      priceBase: 150,
+      priceStep: 0,
+    },
+  },
+] as const;
+
 async function main() {
   await prisma.profile.updateMany({
     data: {
@@ -218,7 +260,64 @@ async function main() {
     }
   }
 
-  console.log("初始化完成。默认任务、商店商品和宠物图鉴已写入。");
+  for (const skin of petSkinSeeds) {
+    const species = await prisma.petSpecies.findUnique({
+      where: { slug: skin.speciesSlug },
+      select: { id: true },
+    });
+
+    if (!species) {
+      throw new Error(`Missing species for skin seed: ${skin.slug}`);
+    }
+
+    const savedSkin = await prisma.petSkin.upsert({
+      where: { slug: skin.slug },
+      update: {
+        nameZh: skin.nameZh,
+        descriptionZh: skin.descriptionZh,
+        speciesId: species.id,
+        stageIndex: null,
+        imageKey: skin.imageKey,
+        rarity: skin.rarity,
+        isActive: true,
+      },
+      create: {
+        slug: skin.slug,
+        nameZh: skin.nameZh,
+        descriptionZh: skin.descriptionZh,
+        speciesId: species.id,
+        stageIndex: null,
+        imageKey: skin.imageKey,
+        rarity: skin.rarity,
+        isActive: true,
+      },
+    });
+
+    await prisma.shopItem.upsert({
+      where: { slug: skin.shop.slug },
+      update: {
+        nameZh: skin.nameZh,
+        descriptionZh: skin.descriptionZh,
+        kind: "PET_SKIN",
+        petSkinId: savedSkin.id,
+        priceBase: skin.shop.priceBase,
+        priceStep: skin.shop.priceStep,
+        isActive: true,
+      },
+      create: {
+        slug: skin.shop.slug,
+        nameZh: skin.nameZh,
+        descriptionZh: skin.descriptionZh,
+        kind: "PET_SKIN",
+        petSkinId: savedSkin.id,
+        priceBase: skin.shop.priceBase,
+        priceStep: skin.shop.priceStep,
+        isActive: true,
+      },
+    });
+  }
+
+  console.log("初始化完成。默认任务、商店商品、宠物图鉴和皮肤已写入。");
 }
 
 main()

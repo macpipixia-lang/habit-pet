@@ -19,6 +19,7 @@ model User {
   purchases    UserPurchase[]
   redeemCodes  RedeemCode[]
   pets         UserPet[]
+  petSkins     UserPetSkin[]
 }
 
 model Profile {
@@ -88,12 +89,14 @@ model ShopItem {
   nameZh        String
   descriptionZh String
   kind          ShopItemKind
+  petSkinId     String?        @unique
   priceBase     Int
   priceStep     Int
   isActive      Boolean        @default(true)
   createdAt     DateTime       @default(now())
   purchases     UserPurchase[]
   redeemCodes   RedeemCode[]
+  petSkin       PetSkin?       @relation(fields: [petSkinId], references: [id], onDelete: SetNull)
 }
 
 model PetSpecies {
@@ -106,6 +109,7 @@ model PetSpecies {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   stages        PetStage[]
+  skins         PetSkin[]
   userPets      UserPet[]
 }
 
@@ -122,19 +126,53 @@ model PetStage {
   @@index([speciesId, minXp])
 }
 
+model PetSkin {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  nameZh        String
+  descriptionZh String
+  speciesId     String?
+  stageIndex    Int?
+  imageKey      String
+  rarity        String?
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  species       PetSpecies?   @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+  userOwners    UserPetSkin[]
+  activeOnPets  UserPet[]     @relation("UserPetActiveSkin")
+  shopItem      ShopItem?
+
+  @@index([speciesId, stageIndex, isActive])
+}
+
 model UserPet {
   id         String     @id @default(cuid())
   userId     String
   speciesId  String
+  activeSkinId String?
   xp         Int        @default(0)
   nickname   String?
   isActive   Boolean    @default(false)
   obtainedAt DateTime   @default(now())
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   species    PetSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+  activeSkin PetSkin?   @relation("UserPetActiveSkin", fields: [activeSkinId], references: [id], onDelete: SetNull)
 
   @@unique([userId, speciesId])
   @@index([userId, isActive])
+}
+
+model UserPetSkin {
+  id         String   @id @default(cuid())
+  userId     String
+  skinId     String
+  obtainedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skin       PetSkin  @relation(fields: [skinId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skinId])
+  @@index([userId, obtainedAt])
 }
 
 model UserPurchase {
@@ -169,6 +207,7 @@ enum ShopItemKind {
   MAKEUP_CARD
   COUPON
   PET_EGG
+  PET_SKIN
 }
 
 enum RedeemCodeStatus {

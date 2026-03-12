@@ -39,6 +39,7 @@ export default async function PokedexPage({
       {
         xp: pet.xp,
         currentStageId: pet.currentStage.id,
+        currentImageKey: pet.currentImageKey,
       },
     ]),
   );

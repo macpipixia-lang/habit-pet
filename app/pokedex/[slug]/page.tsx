@@ -34,6 +34,7 @@ export default async function PokedexSpeciesPage({
         <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
           <StageHero
             stage={preview}
+            imageKey={state.ownedPet?.currentImageKey}
             title={state.owned ? zhCN.pokedex.currentStagePreview : zhCN.pokedex.finalStagePreview}
             subtitle={state.owned ? zhCN.pokedex.heroOwnedHint : zhCN.pokedex.heroUnownedHint}
             concealed={!state.owned}
@@ -61,6 +62,12 @@ export default async function PokedexSpeciesPage({
                 <div className="rounded-2xl border border-line bg-black/20 p-4">
                   <p className="text-sm text-mist">{zhCN.pokedex.yourPetStage}</p>
                   <p className="mt-2 text-2xl font-semibold text-white">{state.ownedPet.currentStage.nameZh}</p>
+                </div>
+                <div className="rounded-2xl border border-line bg-black/20 p-4 sm:col-span-2">
+                  <p className="text-sm text-mist">{zhCN.pet.skinLabel}</p>
+                  <p className="mt-2 text-2xl font-semibold text-white">
+                    {state.ownedPet.activeSkin?.nameZh ?? zhCN.pet.skinDefault}
+                  </p>
                 </div>
               </div>
             ) : (

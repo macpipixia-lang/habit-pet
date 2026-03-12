@@ -5,10 +5,12 @@ import { Card, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { getDashboardState } from "@/lib/data";
 import { formatText, zhCN } from "@/lib/i18n/zhCN";
+import { getPetVisual } from "@/lib/pets";
 
 function getKindLabel(kind: string) {
   if (kind === "MAKEUP_CARD") return zhCN.shop.kindMakeupCard;
   if (kind === "PET_EGG") return zhCN.shop.kindPetEgg;
+  if (kind === "PET_SKIN") return zhCN.shop.kindPetSkin;
   return zhCN.shop.kindCoupon;
 }
 
@@ -57,6 +59,22 @@ export default async function ShopPage({
         <div className="grid gap-6 lg:grid-cols-2">
           {state.shopItems.map((item) => (
             <Card key={item.id}>
+              {item.kind === "PET_SKIN" && item.petSkin ? (
+                <div className={`mb-6 rounded-[2rem] border border-line bg-gradient-to-br ${getPetVisual(item.petSkin.imageKey).accent} p-5`}>
+                  <div
+                    className={`flex h-20 w-20 items-center justify-center rounded-[1.5rem] border border-white/10 text-4xl ${getPetVisual(
+                      item.petSkin.imageKey,
+                    ).className}`}
+                  >
+                    {getPetVisual(item.petSkin.imageKey).emoji}
+                  </div>
+                  <p className="mt-4 text-sm text-mist">
+                    {formatText(zhCN.shop.petSkinSpecies, {
+                      name: item.petSkin.species?.nameZh ?? zhCN.pet.skinDefault,
+                    })}
+                  </p>
+                </div>
+              ) : null}
               <div className="flex items-center justify-between gap-4">
                 <Pill className="text-accentWarm">{getKindLabel(item.kind)}</Pill>
                 <Pill>{formatText(zhCN.shop.priceRule, { base: item.priceBase, count: item.purchaseCount, step: item.priceStep })}</Pill>
@@ -71,7 +89,7 @@ export default async function ShopPage({
                 <div className="rounded-2xl border border-line bg-black/20 p-4">
                   <p className="text-sm text-mist">{zhCN.shop.owned}</p>
                   <p className="mt-2 text-xl text-white">
-                    {item.kind === "MAKEUP_CARD" ? profile.makeupCards : item.purchaseCount}
+                    {item.kind === "MAKEUP_CARD" ? profile.makeupCards : item.kind === "PET_SKIN" ? Number(item.ownsSkin) : item.purchaseCount}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-line bg-black/20 p-4">
@@ -89,8 +107,15 @@ export default async function ShopPage({
               ) : (
                 <form action={purchaseShopItemAction} className="mt-6">
                   <input type="hidden" name="itemId" value={item.id} />
-                  <button className="rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950">
-                    {item.kind === "MAKEUP_CARD" ? zhCN.shop.buyButton : zhCN.shop.buyButtonGeneric}
+                  <button
+                    disabled={item.kind === "PET_SKIN" && item.ownsSkin}
+                    className="rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950 disabled:cursor-not-allowed disabled:bg-white/20 disabled:text-mist"
+                  >
+                    {item.kind === "PET_SKIN" && item.ownsSkin
+                      ? zhCN.shop.petSkinOwned
+                      : item.kind === "MAKEUP_CARD"
+                        ? zhCN.shop.buyButton
+                        : zhCN.shop.buyButtonGeneric}
                   </button>
                 </form>
               )}

@@ -1,4 +1,4 @@
-import type { PetSpecies, PetStage, UserPet } from "@prisma/client";
+import type { PetSkin, PetSpecies, PetStage, UserPet } from "@prisma/client";
 
 export type PetSpeciesWithStages = PetSpecies & {
   stages: PetStage[];
@@ -6,6 +6,10 @@ export type PetSpeciesWithStages = PetSpecies & {
 
 export type OwnedPetRecord = UserPet & {
   species: PetSpeciesWithStages;
+};
+
+export type PetSkinRecord = PetSkin & {
+  species?: PetSpecies | null;
 };
 
 export function getCurrentPetStage(stages: PetStage[], xp: number) {
@@ -58,6 +62,12 @@ const PET_VISUALS: Record<string, { emoji: string; className: string; accent: st
       "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(74,222,128,0.98),rgba(21,94,117,0.72))]",
     accent: "from-green-300/35 via-teal-300/10 to-transparent",
   },
+  "moss-fox-spring-scarf": {
+    emoji: "🧣",
+    className:
+      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(167,243,208,0.98),rgba(34,197,94,0.6))]",
+    accent: "from-lime-200/35 via-emerald-300/10 to-transparent",
+  },
   "sun-seal-0": {
     emoji: "🥚",
     className:
@@ -75,6 +85,12 @@ const PET_VISUALS: Record<string, { emoji: string; className: string; accent: st
     className:
       "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(251,191,36,0.98),rgba(14,165,233,0.6))]",
     accent: "from-amber-300/35 via-sky-300/10 to-transparent",
+  },
+  "sun-seal-wave-float": {
+    emoji: "🛟",
+    className:
+      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.26),transparent_28%),linear-gradient(135deg,rgba(125,211,252,0.96),rgba(251,191,36,0.65))]",
+    accent: "from-sky-200/35 via-cyan-300/10 to-transparent",
   },
   "plum-owl-0": {
     emoji: "🥚",
@@ -94,6 +110,12 @@ const PET_VISUALS: Record<string, { emoji: string; className: string; accent: st
       "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(192,132,252,0.95),rgba(30,41,59,0.85))]",
     accent: "from-fuchsia-300/35 via-slate-300/10 to-transparent",
   },
+  "plum-owl-night-cape": {
+    emoji: "🎐",
+    className:
+      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(216,180,254,0.96),rgba(51,65,85,0.88))]",
+    accent: "from-violet-300/35 via-slate-400/10 to-transparent",
+  },
 };
 
 export function getPetVisual(imageKey: string) {
@@ -105,4 +127,8 @@ export function getPetVisual(imageKey: string) {
       accent: "from-sky-300/30 via-cyan-300/10 to-transparent",
     }
   );
+}
+
+export function getPetImageKey(stageImageKey: string, activeSkin?: Pick<PetSkin, "imageKey"> | null) {
+  return activeSkin?.imageKey ?? stageImageKey;
 }
