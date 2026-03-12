@@ -216,9 +216,15 @@ function getItemPurchaseCountFromPurchases(
   }, 0);
 }
 
-function toShopItemView(item: ShopItemRecord, userId: string, ownedSkinIds = new Set<string>()) {
+function toShopItemView(
+  item: ShopItemRecord,
+  userId: string,
+  ownedSkinIds = new Set<string>(),
+  ownedSpeciesIds = new Set<string>(),
+) {
   const purchaseCount = getItemPurchaseCountFromPurchases(item.purchases, userId);
   const ownsSkin = item.petSkinId ? ownedSkinIds.has(item.petSkinId) : false;
+  const ownsRequiredSpecies = item.petSkin?.speciesId ? ownedSpeciesIds.has(item.petSkin.speciesId) : true;
 
   return {
     id: item.id,
@@ -232,6 +238,7 @@ function toShopItemView(item: ShopItemRecord, userId: string, ownedSkinIds = new
     createdAt: item.createdAt,
     purchaseCount,
     ownsSkin,
+    ownsRequiredSpecies,
     petSkin: item.petSkin
       ? {
           ...item.petSkin,
@@ -326,10 +333,17 @@ async function getOwnedPetsWithStages(db: PetAccessClient, userId: string) {
 
   return pets.map((pet) => {
     const normalizedPet = toOwnedPetView(pet as UserPetRecord);
+    const ownedSkinsForPet = ownedSkins
+      .filter((skin) => !skin.speciesId || skin.speciesId === normalizedPet.speciesId)
+      .map((skin) => ({
+        ...skin,
+        usable: isSkinUsableForPet(skin, normalizedPet),
+      }));
 
     return {
       ...normalizedPet,
-      availableSkins: ownedSkins.filter((skin) => isSkinUsableForPet(skin, normalizedPet)),
+      ownedSkins: ownedSkinsForPet,
+      availableSkins: ownedSkinsForPet.filter((skin) => skin.usable),
     };
   });
 }
@@ -376,7 +390,7 @@ async function grantPetXpToActivePet(
 }
 
 async function getActiveShopItemsWithUserState(userId: string) {
-  const [items, ownedPetSkins] = await Promise.all([
+  const [items, ownedPetSkins, ownedPets] = await Promise.all([
     prisma.shopItem.findMany({
       where: { isActive: true },
       include: {
@@ -402,10 +416,17 @@ async function getActiveShopItemsWithUserState(userId: string) {
         skinId: true,
       },
     }),
+    prisma.userPet.findMany({
+      where: { userId },
+      select: {
+        speciesId: true,
+      },
+    }),
   ]);
 
   const ownedSkinIds = new Set(ownedPetSkins.map((entry) => entry.skinId));
-  return items.map((item) => toShopItemView(item as ShopItemRecord, userId, ownedSkinIds));
+  const ownedSpeciesIds = new Set(ownedPets.map((entry) => entry.speciesId));
+  return items.map((item) => toShopItemView(item as ShopItemRecord, userId, ownedSkinIds, ownedSpeciesIds));
 }
 
 async function getTaskAvailabilityForUserFromDb(
@@ -929,6 +950,24 @@ export async function purchaseShopItem(userId: string, itemId: string) {
     }
 
     if (item.kind === "PET_SKIN" && item.petSkin) {
+      if (!item.petSkin.speciesId) {
+        throw new Error(zhCN.actions.itemNotFound);
+      }
+
+      const ownedSpecies = await tx.userPet.findFirst({
+        where: {
+          userId,
+          speciesId: item.petSkin.speciesId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!ownedSpecies) {
+        throw new Error(zhCN.actions.petSkinSpeciesRequired);
+      }
+
       const ownedSkin = await tx.userPetSkin.findUnique({
         where: {
           userId_skinId: {

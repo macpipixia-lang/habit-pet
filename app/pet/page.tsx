@@ -147,15 +147,20 @@ export default async function PetPage({
                   </button>
                 </div>
               </form>
-              {state.activePet.availableSkins.length === 0 ? (
+              {state.activePet.ownedSkins.length === 0 ? (
                 <p className="text-sm text-mist">{zhCN.pet.skinEmpty}</p>
               ) : (
-                state.activePet.availableSkins.map((skin) => {
+                state.activePet.ownedSkins.map((skin) => {
                   const visual = getPetVisual(skin.imageKey);
                   const isActiveSkin = state.activePet.activeSkinId === skin.id;
+                  const isDisabled = isActiveSkin || !skin.usable;
 
                   return (
-                    <form key={skin.id} action={applyPetSkinAction} className="rounded-2xl border border-line bg-black/20 p-4">
+                    <form
+                      key={skin.id}
+                      action={applyPetSkinAction}
+                      className={`rounded-2xl border border-line bg-black/20 p-4 ${!skin.usable ? "opacity-60" : ""}`}
+                    >
                       <input type="hidden" name="userPetId" value={state.activePet.id} />
                       <input type="hidden" name="skinId" value={skin.id} />
                       <div className="flex items-center gap-4">
@@ -168,9 +173,14 @@ export default async function PetPage({
                             {isActiveSkin ? <Pill>{zhCN.pet.activeTag}</Pill> : null}
                           </div>
                           <p className="mt-1 text-sm text-mist">{skin.descriptionZh}</p>
+                          {!skin.usable && skin.stageIndex != null ? (
+                            <p className="mt-2 text-sm text-mist">
+                              {formatText(zhCN.pet.skinLockedHint, { stage: skin.stageIndex + 1 })}
+                            </p>
+                          ) : null}
                         </div>
                         <button
-                          disabled={isActiveSkin}
+                          disabled={isDisabled}
                           className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-slate-950 disabled:cursor-not-allowed disabled:bg-white/20 disabled:text-mist"
                         >
                           {isActiveSkin ? zhCN.pet.activatedButton : zhCN.pet.skinApplyButton}

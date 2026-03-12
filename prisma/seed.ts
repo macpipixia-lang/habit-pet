@@ -87,6 +87,7 @@ const petSkinSeeds = [
     speciesSlug: "moss-fox",
     nameZh: "青芽围巾",
     descriptionZh: "给苔尾狐披上一圈春天的嫩叶围巾。",
+    stageIndex: 0,
     imageKey: "moss-fox-spring-scarf",
     rarity: "RARE",
     shop: {
@@ -100,6 +101,7 @@ const petSkinSeeds = [
     speciesSlug: "sun-seal",
     nameZh: "晴波泳圈",
     descriptionZh: "让晴团海豹像带着一圈发光海浪。",
+    stageIndex: 1,
     imageKey: "sun-seal-wave-float",
     rarity: "RARE",
     shop: {
@@ -113,6 +115,7 @@ const petSkinSeeds = [
     speciesSlug: "plum-owl",
     nameZh: "夜庭披风",
     descriptionZh: "为梅影枭添上一层带月色纹理的披风。",
+    stageIndex: 2,
     imageKey: "plum-owl-night-cape",
     rarity: "EPIC",
     shop: {
@@ -276,7 +279,7 @@ async function main() {
         nameZh: skin.nameZh,
         descriptionZh: skin.descriptionZh,
         speciesId: species.id,
-        stageIndex: null,
+        stageIndex: skin.stageIndex,
         imageKey: skin.imageKey,
         rarity: skin.rarity,
         isActive: true,
@@ -286,7 +289,7 @@ async function main() {
         nameZh: skin.nameZh,
         descriptionZh: skin.descriptionZh,
         speciesId: species.id,
-        stageIndex: null,
+        stageIndex: skin.stageIndex,
         imageKey: skin.imageKey,
         rarity: skin.rarity,
         isActive: true,

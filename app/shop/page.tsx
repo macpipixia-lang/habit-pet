@@ -73,6 +73,9 @@ export default async function ShopPage({
                       name: item.petSkin.species?.nameZh ?? zhCN.pet.skinDefault,
                     })}
                   </p>
+                  <p className="mt-2 text-sm text-mist">
+                    {item.ownsRequiredSpecies ? zhCN.shop.petSkinSpeciesOwned : zhCN.shop.petSkinSpeciesMissing}
+                  </p>
                 </div>
               ) : null}
               <div className="flex items-center justify-between gap-4">
@@ -97,6 +100,9 @@ export default async function ShopPage({
                   <p className="mt-2 text-sm text-white">{item.slug}</p>
                 </div>
               </div>
+              {item.kind === "PET_SKIN" && !item.ownsRequiredSpecies ? (
+                <p className="mt-4 text-sm text-mist">{zhCN.shop.petSkinSpeciesRequiredHint}</p>
+              ) : null}
               {item.kind === "PET_EGG" ? (
                 <Link
                   href="/shop/pet-egg"
@@ -108,11 +114,13 @@ export default async function ShopPage({
                 <form action={purchaseShopItemAction} className="mt-6">
                   <input type="hidden" name="itemId" value={item.id} />
                   <button
-                    disabled={item.kind === "PET_SKIN" && item.ownsSkin}
+                    disabled={item.kind === "PET_SKIN" && (item.ownsSkin || !item.ownsRequiredSpecies)}
                     className="rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950 disabled:cursor-not-allowed disabled:bg-white/20 disabled:text-mist"
                   >
                     {item.kind === "PET_SKIN" && item.ownsSkin
                       ? zhCN.shop.petSkinOwned
+                      : item.kind === "PET_SKIN" && !item.ownsRequiredSpecies
+                        ? zhCN.shop.petSkinSpeciesRequiredButton
                       : item.kind === "MAKEUP_CARD"
                         ? zhCN.shop.buyButton
                         : zhCN.shop.buyButtonGeneric}
