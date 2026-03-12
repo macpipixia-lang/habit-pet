@@ -7,7 +7,7 @@
 - Next.js App Router
 - TypeScript
 - Tailwind CSS
-- Prisma + SQLite
+- Prisma + PostgreSQL
 - 基于用户名和密码的自定义签名 Session Cookie 鉴权
 
 ## 功能特性
@@ -41,7 +41,7 @@ cp .env.example .env
 
 ```bash
 npm run prisma:generate
-npm run prisma:push
+npx prisma migrate deploy
 ```
 
 4. 启动应用：
@@ -94,4 +94,21 @@ npm run prisma:seed
 npm run dev:clean
 ```
 
-这会自动：清理 `.next` → 重新生成 Prisma Client → 同步 SQLite schema → 再启动 Next dev。
+这会自动：清理 `.next` → 重新生成 Prisma Client → 同步 Prisma schema → 再启动 Next dev。
+
+## Vercel 部署说明
+
+在 Vercel 项目中至少配置以下环境变量：
+
+- `DATABASE_URL`：填写 Vercel Postgres 提供的 `pet_PRISMA_DATABASE_URL`
+- `SESSION_SECRET`：填写一个足够长的随机字符串
+- `ADMIN_SECRET`：填写管理端密钥
+- `DIRECT_URL`：可选，填写直连 Postgres 的连接串
+
+构建命令使用：
+
+```bash
+npm run vercel-build
+```
+
+该命令会在 `next build` 前先执行 `prisma migrate deploy` 和 `prisma generate`，确保 Vercel 构建时数据库 schema 已同步到 Postgres。
