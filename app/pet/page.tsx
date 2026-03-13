@@ -8,6 +8,7 @@ import { formatText, zhCN } from "@/lib/i18n/zhCN";
 import { getPetVisual } from "@/lib/pets";
 import { formatShanghaiDate } from "@/lib/time";
 import { formatNumber } from "@/lib/utils";
+import { isPet3DEnabled, PET_3D_ROUTE } from "@/modules/pet3d/pet3d";
 
 export default async function PetPage({
   searchParams,
@@ -17,6 +18,7 @@ export default async function PetPage({
   const user = await requireUser();
   const params = (await searchParams) ?? {};
   const state = await getPetPageState(user.id);
+  const pet3dEnabled = isPet3DEnabled();
   const error = typeof params.error === "string" ? params.error : null;
   const success = typeof params.success === "string" ? params.success : null;
   const successMessage =
@@ -38,6 +40,16 @@ export default async function PetPage({
     return (
       <PetOnboardingGuard>
         <div className="space-y-6">
+          {pet3dEnabled ? (
+            <div className="flex justify-end">
+              <Link
+                href={PET_3D_ROUTE}
+                className="inline-flex rounded-full border border-line px-4 py-2 text-sm text-white transition hover:border-white/30"
+              >
+                {zhCN.pet.mode3dEntry}
+              </Link>
+            </div>
+          ) : null}
           {error ? (
             <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card>
           ) : successMessage ? (
@@ -61,6 +73,16 @@ export default async function PetPage({
   return (
     <PetOnboardingGuard>
       <div className="space-y-6">
+      {pet3dEnabled ? (
+        <div className="flex justify-end">
+          <Link
+            href={PET_3D_ROUTE}
+            className="inline-flex rounded-full border border-line px-4 py-2 text-sm text-white transition hover:border-white/30"
+          >
+            {zhCN.pet.mode3dEntry}
+          </Link>
+        </div>
+      ) : null}
       {error ? (
         <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card>
       ) : successMessage ? (

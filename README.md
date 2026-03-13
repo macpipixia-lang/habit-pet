@@ -22,6 +22,7 @@
 - 补签仅支持恢复昨天的记录，并依赖已保存的每日日志
 - 可查看每日记录和积分流水
 - 提供仅限开发环境的 `/api/debug/reset` 接口，用于重置当前登录用户数据
+- 可通过 `PET_3D_ENABLED=true` 启用独立的 `/pet/3d` 3D 宠物预览模块，保留原有 2D `/pet` 逻辑
 
 ## 使用方法
 
@@ -64,6 +65,8 @@ npm run dev:clean
 - 每日任务模板定义在 [`lib/constants.ts`](/Users/ppx/.openclaw/workspace/projects/habit-pet/lib/constants.ts)。
 - Prisma Schema 位于 [`prisma/schema.prisma`](/Users/ppx/.openclaw/workspace/projects/habit-pet/prisma/schema.prisma)。
 - 在开发环境下，已登录用户可以向 `/api/debug/reset` 发送 POST 请求，清空自己的资料、日志和积分流水。
+- 3D 宠物开关为 `PET_3D_ENABLED`，默认建议保持 `false`，确认模型资源可用后再开启。
+- 3D 宠物占位模型位于 [`public/pet3d/placeholder.glb`](/Users/ppx/.openclaw/workspace/projects/habit-pet/public/pet3d/placeholder.glb)。正式模型建议包含 `Idle`、`Pet`、`Eat` 三个动画名称，便于当前按钮直接映射。
 
 ## 常用命令
 
@@ -104,6 +107,7 @@ npm run dev:clean
 - `SESSION_SECRET`：填写一个足够长的随机字符串
 - `ADMIN_SECRET`：填写管理端密钥
 - `DIRECT_URL`：可选，填写直连 Postgres 的连接串
+- `PET_3D_ENABLED`：可选，填写 `true` 以显示 `/pet/3d` 入口
 
 构建命令使用：
 
