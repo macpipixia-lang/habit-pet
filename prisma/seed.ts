@@ -264,6 +264,8 @@ async function main() {
           nameZh: stage.nameZh,
           minXp: stage.minXp,
           imageKey: stage.imageKey,
+          coverImageUrl: null,
+          modelGlbUrl: null,
         },
         create: {
           speciesId: savedSpecies.id,
@@ -271,6 +273,8 @@ async function main() {
           nameZh: stage.nameZh,
           minXp: stage.minXp,
           imageKey: stage.imageKey,
+          coverImageUrl: null,
+          modelGlbUrl: null,
         },
       });
     }

@@ -10,6 +10,7 @@ type SpeciesStage = {
   nameZh: string;
   minXp: number;
   imageKey: string;
+  coverImageUrl?: string | null;
 };
 
 type OwnedPetSummary = {
@@ -54,6 +55,7 @@ function getRarityPillClass(rarity: string | null) {
 export function StageHero({
   stage,
   imageKey,
+  coverImageUrl,
   title,
   subtitle,
   concealed = false,
@@ -61,6 +63,7 @@ export function StageHero({
 }: {
   stage: SpeciesStage;
   imageKey?: string;
+  coverImageUrl?: string | null;
   title?: string;
   subtitle?: string;
   concealed?: boolean;
@@ -84,7 +87,16 @@ export function StageHero({
             concealed && "blur-md saturate-0",
           )}
         >
-          {visual.emoji}
+          {coverImageUrl ?? stage.coverImageUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={coverImageUrl ?? stage.coverImageUrl ?? ""}
+              alt={stage.nameZh}
+              className="h-full w-full rounded-full object-cover"
+            />
+          ) : (
+            visual.emoji
+          )}
         </div>
       </div>
       <div className="px-6 py-5">
@@ -118,6 +130,7 @@ export function PokedexSpeciesCard({ species }: { species: SpeciesSummary }) {
           <StageHero
             stage={preview}
             imageKey={species.ownedPet?.currentImageKey}
+            coverImageUrl={preview.coverImageUrl}
             title={species.owned ? zhCN.pokedex.currentStagePreview : zhCN.pokedex.finalStagePreview}
             subtitle={species.owned ? zhCN.pokedex.heroOwnedHint : zhCN.pokedex.heroUnownedHint}
             concealed={!species.owned}
@@ -151,6 +164,7 @@ export function PokedexTimeline({
         <StageHero
           key={stage.id}
           stage={stage}
+          coverImageUrl={stage.coverImageUrl}
           title={formatText(zhCN.pokedex.stageLabel, { index: stage.stageIndex + 1 })}
           highlighted={currentStageId === stage.id}
         />

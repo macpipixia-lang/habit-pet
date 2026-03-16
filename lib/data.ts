@@ -29,6 +29,9 @@ import {
 } from "@/lib/game";
 import { formatText, zhCN } from "@/lib/i18n/zhCN";
 import { getPetImageKey, getPetProgress } from "@/lib/pets";
+import { PET_3D_PLACEHOLDER_MODEL } from "@/modules/pet3d/pet3d";
+
+export const PET_STAGE_PLACEHOLDER_IMAGE = "/pet-stage-placeholder.svg";
 
 const SHOP_ITEM_INCLUDE = {
   purchases: true,
@@ -252,6 +255,31 @@ function sortStages(stages: PetStage[]) {
   return [...stages].sort((left, right) => left.stageIndex - right.stageIndex);
 }
 
+function resolveStageCoverImageUrl(
+  stage: Pick<PetStage, "coverImageUrl">,
+  species: Pick<PetSpecies, "coverImageUrl">,
+) {
+  return stage.coverImageUrl ?? species.coverImageUrl ?? PET_STAGE_PLACEHOLDER_IMAGE;
+}
+
+function resolveStageModelGlbUrl(
+  stage: Pick<PetStage, "modelGlbUrl">,
+  species: Pick<PetSpecies, "modelGlbUrl">,
+) {
+  return stage.modelGlbUrl ?? species.modelGlbUrl ?? PET_3D_PLACEHOLDER_MODEL;
+}
+
+function withResolvedStageAssets<T extends Pick<PetSpecies, "coverImageUrl" | "modelGlbUrl"> & { stages: PetStage[] }>(species: T) {
+  return {
+    ...species,
+    stages: sortStages(species.stages).map((stage) => ({
+      ...stage,
+      coverImageUrl: resolveStageCoverImageUrl(stage, species),
+      modelGlbUrl: resolveStageModelGlbUrl(stage, species),
+    })),
+  };
+}
+
 function getCurrentStage(stages: PetStage[], xp: number) {
   return sortStages(stages).reduce((current, stage) => (xp >= stage.minXp ? stage : current), stages[0]);
 }
@@ -293,16 +321,14 @@ function toOwnedSkinView(record: UserPetSkinRecord) {
 }
 
 function toOwnedPetView(userPet: UserPetRecord) {
-  const stages = sortStages(userPet.species.stages);
+  const species = withResolvedStageAssets(userPet.species);
+  const stages = species.stages;
   const progress = getPetProgress(stages, userPet.xp);
   const currentImageKey = getPetImageKey(progress.currentStage.imageKey, userPet.activeSkin);
 
   return {
     ...userPet,
-    species: {
-      ...userPet.species,
-      stages,
-    },
+    species,
     currentStage: progress.currentStage,
     nextStage: progress.nextStage,
     progress,
@@ -356,10 +382,7 @@ async function getAllPetSpecies(db: Pick<typeof prisma, "petSpecies">) {
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
   });
 
-  return species.map((entry) => ({
-    ...entry,
-    stages: sortStages(entry.stages),
-  })) as PetSpeciesRecord[];
+  return species.map((entry) => withResolvedStageAssets(entry)) as PetSpeciesRecord[];
 }
 
 export async function hasAnyUserPet(userId: string) {
@@ -767,8 +790,7 @@ export async function getPokedexSpeciesState(userId: string, slug: string) {
   }
 
   const normalizedSpecies = {
-    ...species,
-    stages: sortStages(species.stages),
+    ...withResolvedStageAssets(species),
   };
 
   return {
@@ -1538,6 +1560,11 @@ export async function getAdminPets() {
 export async function getAdminPetById(id: string) {
   return prisma.petSpecies.findUnique({
     where: { id },
+    include: {
+      stages: {
+        orderBy: { stageIndex: "asc" },
+      },
+    },
   });
 }
 
@@ -1645,6 +1672,12 @@ type PetMutationInput = {
   isActive?: boolean;
 };
 
+type PetStageAssetMutationInput = Array<{
+  id: string;
+  coverImageUrl?: string;
+  modelGlbUrl?: string;
+}>;
+
 export async function createPet(input: Omit<PetMutationInput, "id">) {
   const existingBySlug = await prisma.petSpecies.findUnique({
     where: { slug: input.slug },
@@ -1704,6 +1737,47 @@ export async function updatePet(input: PetMutationInput) {
       isActive: input.isActive ?? pet.isActive,
     },
   });
+}
+
+export async function updatePetStagesAssets(petId: string, stages: PetStageAssetMutationInput) {
+  if (stages.length === 0) {
+    return [];
+  }
+
+  const pet = await prisma.petSpecies.findUnique({
+    where: { id: petId },
+    include: {
+      stages: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  if (!pet) {
+    throw new Error(zhCN.actions.petNotFound);
+  }
+
+  const existingStageIds = new Set(pet.stages.map((stage) => stage.id));
+
+  for (const stage of stages) {
+    if (!existingStageIds.has(stage.id)) {
+      throw new Error(zhCN.actions.petNotFound);
+    }
+  }
+
+  await prisma.$transaction(
+    stages.map((stage) =>
+      prisma.petStage.update({
+        where: { id: stage.id },
+        data: {
+          coverImageUrl: stage.coverImageUrl,
+          modelGlbUrl: stage.modelGlbUrl,
+        },
+      }),
+    ),
+  );
 }
 
 export async function togglePetActive(petId: string) {

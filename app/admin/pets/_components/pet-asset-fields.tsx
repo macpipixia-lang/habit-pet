@@ -2,36 +2,13 @@
 
 import { useState } from "react";
 import { zhCN } from "@/lib/i18n/zhCN";
-
-type UploadStatus = "idle" | "uploading" | "success" | "error";
-
-type UploadResponse = {
-  url: string;
-  pathname: string;
-  contentType: string | null;
-  size: number;
-};
-
-function getUploadStatusLabel(status: UploadStatus) {
-  switch (status) {
-    case "uploading":
-      return zhCN.admin.uploadUploading;
-    case "success":
-      return zhCN.admin.uploadSuccess;
-    case "error":
-      return zhCN.admin.uploadFailed;
-    default:
-      return zhCN.admin.uploadIdle;
-  }
-}
-
-function getFileNameFromUrl(url: string) {
-  try {
-    return new URL(url).pathname.split("/").filter(Boolean).pop() ?? url;
-  } catch {
-    return url;
-  }
-}
+import {
+  getFileNameFromUrl,
+  getUploadStatusLabel,
+  type UploadResponse,
+  type UploadStatus,
+  uploadBlobFile,
+} from "./pet-asset-upload";
 
 export function PetAssetFields({
   initialCoverImageUrl,
@@ -47,25 +24,6 @@ export function PetAssetFields({
   const [coverError, setCoverError] = useState("");
   const [modelError, setModelError] = useState("");
 
-  async function uploadFile(file: File, folder: string) {
-    const formData = new FormData();
-    formData.set("file", file);
-    formData.set("folder", folder);
-
-    const response = await fetch("/api/admin/blob/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const payload = (await response.json()) as UploadResponse | { error?: string };
-
-    if (!response.ok || !("url" in payload)) {
-      throw new Error(("error" in payload && payload.error) || zhCN.feedback.fallbackError);
-    }
-
-    return payload;
-  }
-
   async function handleFileChange(
     file: File | undefined,
     folder: string,
@@ -80,7 +38,7 @@ export function PetAssetFields({
     onStart();
 
     try {
-      const payload = await uploadFile(file, folder);
+      const payload = await uploadBlobFile(file, folder);
       onSuccess(payload);
     } catch (error) {
       onError(error instanceof Error ? error.message : zhCN.feedback.fallbackError);

@@ -138,6 +138,26 @@ export const adminPetSchema = z.object({
   isActive: adminBooleanFieldSchema,
 });
 
+export const adminPetStageAssetsSchema = z.array(
+  z.object({
+    id: z.string().min(1, zhCN.feedback.invalidInput),
+    coverImageUrl: z
+      .string()
+      .trim()
+      .url(zhCN.validation.petAssetUrlInvalid)
+      .optional()
+      .or(z.literal(""))
+      .transform((value) => value || undefined),
+    modelGlbUrl: z
+      .string()
+      .trim()
+      .url(zhCN.validation.petAssetUrlInvalid)
+      .optional()
+      .or(z.literal(""))
+      .transform((value) => value || undefined),
+  }),
+);
+
 export const adminCodeUpdateSchema = z.object({
   code: z.string().uuid(zhCN.validation.codeInvalid),
   status: z.enum(["REDEEMED", "VOID"], { message: zhCN.feedback.invalidInput }),

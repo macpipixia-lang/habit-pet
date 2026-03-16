@@ -3,6 +3,7 @@ import { savePetAction } from "@/app/actions";
 import { Card, Pill } from "@/components/ui";
 import { zhCN } from "@/lib/i18n/zhCN";
 import { PetAssetFields } from "./pet-asset-fields";
+import { PetStageAssetFields } from "./pet-stage-asset-fields";
 
 type PetFormValue = {
   id?: string;
@@ -15,6 +16,13 @@ type PetFormValue = {
   modelGlbUrl: string | null;
   sortOrder: number;
   isActive: boolean;
+  stages?: Array<{
+    id: string;
+    stageIndex: number;
+    nameZh: string;
+    coverImageUrl: string | null;
+    modelGlbUrl: string | null;
+  }>;
 };
 
 export function PetForm({
@@ -153,6 +161,8 @@ export function PetForm({
             initialCoverImageUrl={pet?.coverImageUrl}
             initialModelGlbUrl={pet?.modelGlbUrl}
           />
+
+          {pet?.id ? <PetStageAssetFields stages={pet.stages ?? []} /> : null}
 
           <button className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950">
             {submitLabel}

@@ -10,6 +10,7 @@ import {
   appRedirectSchema,
   adminCodeUpdateSchema,
   adminLoginSchema,
+  adminPetStageAssetsSchema,
   adminPetSchema,
   adminShopItemSchema,
   adminTaskDefinitionSchema,
@@ -47,6 +48,7 @@ import {
   toggleShopItemActive,
   togglePetActive,
   updatePet,
+  updatePetStagesAssets,
   updatePetNickname,
   updateRedeemCodeStatus,
   updateTodayTaskSelection,
@@ -467,6 +469,7 @@ export async function savePetAction(formData: FormData) {
 
   try {
     await requireAdmin();
+    const rawStageAssets = formData.get("stageAssetsJson");
     const parsed = adminPetSchema.safeParse({
       id: formData.get("id") || undefined,
       slug: formData.get("slug"),
@@ -484,8 +487,32 @@ export async function savePetAction(formData: FormData) {
       throw new Error(parsed.error.issues[0]?.message ?? zhCN.feedback.invalidInput);
     }
 
+    let parsedStageAssets: Array<{
+      id: string;
+      coverImageUrl?: string;
+      modelGlbUrl?: string;
+    }> = [];
+
+    if (typeof rawStageAssets === "string" && rawStageAssets.trim()) {
+      let stageAssetsPayload: unknown;
+
+      try {
+        stageAssetsPayload = JSON.parse(rawStageAssets);
+      } catch {
+        throw new Error(zhCN.feedback.invalidInput);
+      }
+
+      const parsedStageAssetsResult = adminPetStageAssetsSchema.safeParse(stageAssetsPayload);
+      if (!parsedStageAssetsResult.success) {
+        throw new Error(parsedStageAssetsResult.error.issues[0]?.message ?? zhCN.feedback.invalidInput);
+      }
+
+      parsedStageAssets = parsedStageAssetsResult.data;
+    }
+
     if (parsed.data.id) {
       await updatePet(parsed.data);
+      await updatePetStagesAssets(parsed.data.id, parsedStageAssets);
     } else {
       await createPet(parsed.data);
     }
@@ -495,7 +522,9 @@ export async function savePetAction(formData: FormData) {
     revalidatePath("/shop/pet-egg");
     revalidatePath("/onboarding/pet-egg");
     revalidatePath("/pokedex");
+    revalidatePath(`/pokedex/${parsed.data.slug}`);
     revalidatePath("/pet");
+    revalidatePath("/pet/3d");
     redirect(`${redirectTo}?success=pet-saved`);
   } catch (error) {
     rethrowIfRedirect(error);

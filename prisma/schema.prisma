@@ -126,6 +126,8 @@ model PetStage {
   nameZh     String
   minXp      Int
   imageKey   String
+  coverImageUrl String?
+  modelGlbUrl   String?
   species    PetSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
 
   @@unique([speciesId, stageIndex])

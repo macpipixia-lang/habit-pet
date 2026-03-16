@@ -14,6 +14,7 @@ export type Pet3DActivePet = {
   };
   currentStage: {
     nameZh: string;
+    modelGlbUrl?: string | null;
   };
   activeSkin?: {
     nameZh: string;
@@ -25,7 +26,7 @@ export function isPet3DEnabled() {
 }
 
 export function getPet3DModelSrc(_pet: Pet3DActivePet) {
-  return _pet.species.modelGlbUrl || PET_3D_PLACEHOLDER_MODEL;
+  return _pet.currentStage.modelGlbUrl || _pet.species.modelGlbUrl || PET_3D_PLACEHOLDER_MODEL;
 }
 
 export function getPet3DActionLabel(action: Pet3DAction, labels: Record<Pet3DAction, string>) {

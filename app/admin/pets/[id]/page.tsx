@@ -31,7 +31,10 @@ export default async function AdminEditPetPage({
         title={zhCN.admin.editPetTitle}
         description={zhCN.admin.petsDescription}
         submitLabel={zhCN.admin.updatePetButton}
-        pet={pet}
+        pet={{
+          ...pet,
+          stages: pet.stages,
+        }}
       />
     </AdminShell>
   );
