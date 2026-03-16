@@ -1,5 +1,5 @@
 export const PET_3D_ROUTE = "/pet/3d";
-export const PET_3D_PLACEHOLDER_MODEL = "/pet3d/placeholder.glb";
+export const PET_3D_PLACEHOLDER_MODEL = "/pet3d/pet.glb";
 export const PET_3D_ACTIONS = ["Idle", "Pet", "Eat"] as const;
 
 export type Pet3DAction = (typeof PET_3D_ACTIONS)[number];
