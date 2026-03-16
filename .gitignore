@@ -12,3 +12,4 @@ prisma/dev.db-journal
 # local sqlite db
 prisma/prisma/dev.db
 prisma/prisma/dev.db-journal
+.DS_Store

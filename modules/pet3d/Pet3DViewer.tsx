@@ -20,6 +20,8 @@ export function Pet3DViewer({ modelSrc, petName }: Pet3DViewerProps) {
   const viewerRef = useRef<ModelViewerElement | null>(null);
   const [selectedAction, setSelectedAction] = useState<Pet3DAction>("Idle");
   const [toast, setToast] = useState<ToastState>(null);
+  const [modelLoaded, setModelLoaded] = useState(false);
+  const [modelError, setModelError] = useState(false);
 
   useEffect(() => {
     if (!toast) {
@@ -48,6 +50,31 @@ export function Pet3DViewer({ modelSrc, petName }: Pet3DViewerProps) {
     });
   }, [selectedAction]);
 
+  useEffect(() => {
+    const viewer = viewerRef.current;
+
+    if (!viewer) {
+      return;
+    }
+
+    setModelLoaded(false);
+    setModelError(false);
+
+    const onLoad = () => setModelLoaded(true);
+    const onError = () => {
+      setModelLoaded(false);
+      setModelError(true);
+    };
+
+    viewer.addEventListener("load", onLoad);
+    viewer.addEventListener("error", onError);
+
+    return () => {
+      viewer.removeEventListener("load", onLoad);
+      viewer.removeEventListener("error", onError);
+    };
+  }, [modelSrc]);
+
   return (
     <div className="space-y-4">
       <Script
@@ -67,9 +94,14 @@ export function Pet3DViewer({ modelSrc, petName }: Pet3DViewerProps) {
           animation-name="Idle"
           interaction-prompt="none"
           className="h-[360px] w-full overflow-hidden rounded-[1.6rem] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.14),_rgba(15,23,42,0.94)_72%)]"
-        >
-          <div className="flex h-full items-center justify-center text-sm text-mist">{zhCN.pet.mode3dLoading}</div>
-        </model-viewer>
+        />
+
+        {!modelLoaded ? (
+          <div className="pointer-events-none absolute inset-3 flex items-center justify-center rounded-[1.6rem] bg-black/30 text-sm text-mist backdrop-blur">
+            {modelError ? zhCN.pet.mode3dLoadFailed : zhCN.pet.mode3dLoading}
+          </div>
+        ) : null}
+
         <div className="pointer-events-none absolute inset-x-6 bottom-6 rounded-2xl border border-white/10 bg-black/45 px-4 py-3 backdrop-blur">
           <p className="text-sm text-white">{petName}</p>
           <p className="mt-1 text-xs text-mist">{zhCN.pet.mode3dModelFallback}</p>

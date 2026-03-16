@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: habit-pet-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: habit
+      POSTGRES_PASSWORD: habit
+      POSTGRES_DB: habit_pet
+    volumes:
+      - habit_pet_pg:/var/lib/postgresql/data
+
+volumes:
+  habit_pet_pg:

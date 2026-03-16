@@ -130,6 +130,7 @@ export const zhCN = {
     mode3dHint: "真实模型建议提供 Idle / Pet / Eat 三个动画名称，以便直接映射。",
     mode3dUnsupportedAction: "当前模型不支持该动作",
     mode3dLoading: "3D 模型加载中...",
+    mode3dLoadFailed: "3D 模型加载失败（可能是网络或资源路径问题）", 
     mode3dModelFallback: "当前使用占位模型，后续可替换为正式宠物 GLB。",
     mode3dStatsTitle: "当前宠物状态",
     actionIdle: "Idle",
