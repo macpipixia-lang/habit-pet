@@ -10,6 +10,7 @@ import {
   appRedirectSchema,
   adminCodeUpdateSchema,
   adminLoginSchema,
+  adminPetSchema,
   adminShopItemSchema,
   adminTaskDefinitionSchema,
   authSchema,
@@ -32,6 +33,7 @@ import {
 } from "@/lib/auth";
 import {
   applyPetSkin,
+  createPet,
   ensureProfile,
   grantStarterPet,
   hasAnyUserPet,
@@ -43,6 +45,8 @@ import {
   setActivePet,
   settleToday,
   toggleShopItemActive,
+  togglePetActive,
+  updatePet,
   updatePetNickname,
   updateRedeemCodeStatus,
   updateTodayTaskSelection,
@@ -458,6 +462,47 @@ export async function saveTaskDefinitionAction(formData: FormData) {
   }
 }
 
+export async function savePetAction(formData: FormData) {
+  const redirectTo = getAdminRedirectTarget(formData.get("redirectTo"));
+
+  try {
+    await requireAdmin();
+    const parsed = adminPetSchema.safeParse({
+      id: formData.get("id") || undefined,
+      slug: formData.get("slug"),
+      nameZh: formData.get("nameZh"),
+      summaryZh: formData.get("summaryZh"),
+      descriptionZh: formData.get("descriptionZh"),
+      rarity: formData.get("rarity"),
+      coverImageUrl: formData.get("coverImageUrl"),
+      modelGlbUrl: formData.get("modelGlbUrl"),
+      sortOrder: formData.get("sortOrder"),
+      isActive: formData.get("isActive"),
+    });
+
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? zhCN.feedback.invalidInput);
+    }
+
+    if (parsed.data.id) {
+      await updatePet(parsed.data);
+    } else {
+      await createPet(parsed.data);
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/pets");
+    revalidatePath("/shop/pet-egg");
+    revalidatePath("/onboarding/pet-egg");
+    revalidatePath("/pokedex");
+    revalidatePath("/pet");
+    redirect(`${redirectTo}?success=pet-saved`);
+  } catch (error) {
+    rethrowIfRedirect(error);
+    redirect(`${redirectTo}?error=${encodeURIComponent(toMessage(error))}`);
+  }
+}
+
 export async function toggleShopItemActiveAction(formData: FormData) {
   const redirectTo = getAdminRedirectTarget(formData.get("redirectTo"));
 
@@ -474,6 +519,30 @@ export async function toggleShopItemActiveAction(formData: FormData) {
     revalidatePath("/admin");
     revalidatePath("/admin/items");
     redirect(`${redirectTo}?success=item-status-updated`);
+  } catch (error) {
+    rethrowIfRedirect(error);
+    redirect(`${redirectTo}?error=${encodeURIComponent(toMessage(error))}`);
+  }
+}
+
+export async function togglePetActiveAction(formData: FormData) {
+  const redirectTo = getAdminRedirectTarget(formData.get("redirectTo"));
+
+  try {
+    await requireAdmin();
+    const petId = String(formData.get("petId") ?? "");
+
+    if (!petId) {
+      throw new Error(zhCN.feedback.invalidInput);
+    }
+
+    await togglePetActive(petId);
+    revalidatePath("/admin");
+    revalidatePath("/admin/pets");
+    revalidatePath("/shop/pet-egg");
+    revalidatePath("/onboarding/pet-egg");
+    revalidatePath("/pokedex");
+    redirect(`${redirectTo}?success=pet-status-updated`);
   } catch (error) {
     rethrowIfRedirect(error);
     redirect(`${redirectTo}?error=${encodeURIComponent(toMessage(error))}`);

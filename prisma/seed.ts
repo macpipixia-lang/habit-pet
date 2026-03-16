@@ -49,8 +49,10 @@ const petSpeciesSeeds = [
   {
     slug: "moss-fox",
     nameZh: "苔尾狐",
+    summaryZh: "清晨系森林宠物，喜欢收集露珠。",
     descriptionZh: "喜欢在清晨收集露珠，尾巴像刚醒来的小森林。",
     rarity: "COMMON",
+    sortOrder: 10,
     stages: [
       { stageIndex: 0, nameZh: "露珠幼团", minXp: 0, imageKey: "moss-fox-0" },
       { stageIndex: 1, nameZh: "苔尾幼狐", minXp: 60, imageKey: "moss-fox-1" },
@@ -60,8 +62,10 @@ const petSpeciesSeeds = [
   {
     slug: "sun-seal",
     nameZh: "晴团海豹",
+    summaryZh: "晒太阳时会越滚越亮的圆团子。",
     descriptionZh: "圆滚滚地晒太阳，越成长越像一颗会发光的午后。",
     rarity: "RARE",
+    sortOrder: 20,
     stages: [
       { stageIndex: 0, nameZh: "暖光团子", minXp: 0, imageKey: "sun-seal-0" },
       { stageIndex: 1, nameZh: "晴团海豹", minXp: 60, imageKey: "sun-seal-1" },
@@ -71,8 +75,10 @@ const petSpeciesSeeds = [
   {
     slug: "plum-owl",
     nameZh: "梅影枭",
+    summaryZh: "夜色系巡游宠物，羽毛像风里的花瓣。",
     descriptionZh: "夜里会安静盘旋，羽毛边缘像晚风里的花瓣。",
     rarity: "EPIC",
+    sortOrder: 30,
     stages: [
       { stageIndex: 0, nameZh: "花瓣雏影", minXp: 0, imageKey: "plum-owl-0" },
       { stageIndex: 1, nameZh: "梅影幼枭", minXp: 60, imageKey: "plum-owl-1" },
@@ -225,15 +231,23 @@ async function main() {
       where: { slug: species.slug },
       update: {
         nameZh: species.nameZh,
+        summaryZh: species.summaryZh,
         descriptionZh: species.descriptionZh,
+        coverImageUrl: null,
+        modelGlbUrl: null,
         rarity: species.rarity,
+        sortOrder: species.sortOrder,
         isActive: true,
       },
       create: {
         slug: species.slug,
         nameZh: species.nameZh,
+        summaryZh: species.summaryZh,
         descriptionZh: species.descriptionZh,
+        coverImageUrl: null,
+        modelGlbUrl: null,
         rarity: species.rarity,
+        sortOrder: species.sortOrder,
         isActive: true,
       },
     });

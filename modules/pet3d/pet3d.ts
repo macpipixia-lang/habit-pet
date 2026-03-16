@@ -10,6 +10,7 @@ export type Pet3DActivePet = {
   xp: number;
   species: {
     nameZh: string;
+    modelGlbUrl?: string | null;
   };
   currentStage: {
     nameZh: string;
@@ -24,7 +25,7 @@ export function isPet3DEnabled() {
 }
 
 export function getPet3DModelSrc(_pet: Pet3DActivePet) {
-  return PET_3D_PLACEHOLDER_MODEL;
+  return _pet.species.modelGlbUrl || PET_3D_PLACEHOLDER_MODEL;
 }
 
 export function getPet3DActionLabel(action: Pet3DAction, labels: Record<Pet3DAction, string>) {

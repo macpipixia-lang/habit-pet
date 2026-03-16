@@ -104,6 +104,40 @@ export const adminTaskDefinitionSchema = z.object({
   isActive: adminBooleanFieldSchema,
 });
 
+export const adminPetSchema = z.object({
+  id: z.string().optional(),
+  slug: z
+    .string()
+    .min(2, zhCN.validation.petSlugMin)
+    .max(48, zhCN.validation.petSlugMax)
+    .regex(/^[a-z0-9-]+$/, zhCN.validation.petSlugPattern),
+  nameZh: z.string().min(1, zhCN.validation.petNameRequired),
+  summaryZh: z.string().trim().max(120, zhCN.validation.petSummaryMax),
+  descriptionZh: z.string().min(1, zhCN.validation.petDescriptionRequired),
+  rarity: z
+    .string()
+    .trim()
+    .max(32, zhCN.validation.petRarityMax)
+    .optional()
+    .transform((value) => value || undefined),
+  coverImageUrl: z
+    .string()
+    .trim()
+    .url(zhCN.validation.petAssetUrlInvalid)
+    .optional()
+    .or(z.literal(""))
+    .transform((value) => value || undefined),
+  modelGlbUrl: z
+    .string()
+    .trim()
+    .url(zhCN.validation.petAssetUrlInvalid)
+    .optional()
+    .or(z.literal(""))
+    .transform((value) => value || undefined),
+  sortOrder: z.coerce.number().int().min(0, zhCN.validation.sortOrderMin),
+  isActive: adminBooleanFieldSchema,
+});
+
 export const adminCodeUpdateSchema = z.object({
   code: z.string().uuid(zhCN.validation.codeInvalid),
   status: z.enum(["REDEEMED", "VOID"], { message: zhCN.feedback.invalidInput }),

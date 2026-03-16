@@ -103,14 +103,20 @@ model PetSpecies {
   id            String     @id @default(cuid())
   slug          String     @unique
   nameZh        String
+  summaryZh     String     @default("")
   descriptionZh String
+  coverImageUrl String?
+  modelGlbUrl   String?
   rarity        String?
   isActive      Boolean    @default(true)
+  sortOrder     Int        @default(0)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   stages        PetStage[]
   skins         PetSkin[]
   userPets      UserPet[]
+
+  @@index([isActive, sortOrder, createdAt])
 }
 
 model PetStage {

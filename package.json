@@ -15,6 +15,7 @@
     "prisma:seed": "node --import tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@vercel/blob": "^0.27.0",
     "@prisma/client": "^6.5.0",
     "clsx": "^2.1.1",
     "next": "^15.2.2",

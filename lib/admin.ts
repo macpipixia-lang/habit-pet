@@ -1,13 +1,14 @@
 import type { RedeemCodeStatus } from "@prisma/client";
 import { zhCN } from "@/lib/i18n/zhCN";
 
-export const ADMIN_ROUTE_SET = new Set(["/admin", "/admin/items", "/admin/codes", "/admin/tasks"]);
+export const ADMIN_ROUTE_SET = new Set(["/admin", "/admin/items", "/admin/codes", "/admin/tasks", "/admin/pets"]);
 
 export const adminNavItems = [
   { href: "/admin", label: zhCN.admin.overviewBadge },
   { href: "/admin/items", label: zhCN.admin.itemsBadge },
   { href: "/admin/codes", label: zhCN.admin.codesBadge },
   { href: "/admin/tasks", label: zhCN.admin.tasksBadge },
+  { href: "/admin/pets", label: zhCN.admin.petsBadge },
 ] as const;
 
 export function getAdminSuccessMessage(success: string | null) {
@@ -24,6 +25,10 @@ export function getAdminSuccessMessage(success: string | null) {
       return zhCN.feedback.itemStatusUpdated;
     case "code-updated":
       return zhCN.feedback.codeUpdated;
+    case "pet-saved":
+      return zhCN.feedback.petSaved;
+    case "pet-status-updated":
+      return zhCN.feedback.petStatusUpdated;
     default:
       return null;
   }
@@ -44,4 +49,3 @@ export function getAdminRedirectTarget(value: FormDataEntryValue | null) {
   const target = typeof value === "string" ? value : "";
   return ADMIN_ROUTE_SET.has(target) ? target : "/admin";
 }
-

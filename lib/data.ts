@@ -353,7 +353,7 @@ async function getAllPetSpecies(db: Pick<typeof prisma, "petSpecies">) {
   const species = await db.petSpecies.findMany({
     where: { isActive: true },
     include: PET_SPECIES_INCLUDE,
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
   });
 
   return species.map((entry) => ({
@@ -1492,11 +1492,13 @@ export async function getAdminState(status?: RedeemCodeStatus, code?: string) {
 }
 
 export async function getAdminOverview() {
-  const [itemsCount, activeItemsCount, tasksCount, activeTasksCount, issuedCodesCount] = await Promise.all([
+  const [itemsCount, activeItemsCount, tasksCount, activeTasksCount, petsCount, activePetsCount, issuedCodesCount] = await Promise.all([
     prisma.shopItem.count(),
     prisma.shopItem.count({ where: { isActive: true } }),
     prisma.taskDefinition.count(),
     prisma.taskDefinition.count({ where: { isActive: true } }),
+    prisma.petSpecies.count(),
+    prisma.petSpecies.count({ where: { isActive: true } }),
     prisma.redeemCode.count({ where: { status: "ISSUED" } }),
   ]);
 
@@ -1505,6 +1507,8 @@ export async function getAdminOverview() {
     activeItemsCount,
     tasksCount,
     activeTasksCount,
+    petsCount,
+    activePetsCount,
     issuedCodesCount,
   };
 }
@@ -1518,6 +1522,22 @@ export async function getAdminItems() {
 export async function getAdminTasks() {
   return prisma.taskDefinition.findMany({
     orderBy: [{ isActive: "desc" }, { unlockLevel: "asc" }, { createdAt: "asc" }],
+  });
+}
+
+export async function listPets() {
+  return prisma.petSpecies.findMany({
+    orderBy: [{ isActive: "desc" }, { sortOrder: "asc" }, { createdAt: "asc" }],
+  });
+}
+
+export async function getAdminPets() {
+  return listPets();
+}
+
+export async function getAdminPetById(id: string) {
+  return prisma.petSpecies.findUnique({
+    where: { id },
   });
 }
 
@@ -1608,6 +1628,97 @@ export async function saveTaskDefinition(input: {
       unlockLevel: input.unlockLevel,
       unlockAfterTaskSlug: input.unlockAfterTaskSlug,
       isActive: input.isActive ?? true,
+    },
+  });
+}
+
+type PetMutationInput = {
+  id?: string;
+  slug: string;
+  nameZh: string;
+  summaryZh: string;
+  descriptionZh: string;
+  rarity?: string;
+  coverImageUrl?: string;
+  modelGlbUrl?: string;
+  sortOrder: number;
+  isActive?: boolean;
+};
+
+export async function createPet(input: Omit<PetMutationInput, "id">) {
+  const existingBySlug = await prisma.petSpecies.findUnique({
+    where: { slug: input.slug },
+  });
+
+  if (existingBySlug) {
+    throw new Error(zhCN.actions.petSlugTaken);
+  }
+
+  return prisma.petSpecies.create({
+    data: {
+      slug: input.slug,
+      nameZh: input.nameZh,
+      summaryZh: input.summaryZh,
+      descriptionZh: input.descriptionZh,
+      rarity: input.rarity,
+      coverImageUrl: input.coverImageUrl,
+      modelGlbUrl: input.modelGlbUrl,
+      sortOrder: input.sortOrder,
+      isActive: input.isActive ?? true,
+    },
+  });
+}
+
+export async function updatePet(input: PetMutationInput) {
+  if (!input.id) {
+    throw new Error(zhCN.actions.petNotFound);
+  }
+
+  const existingBySlug = await prisma.petSpecies.findUnique({
+    where: { slug: input.slug },
+  });
+
+  if (existingBySlug && existingBySlug.id !== input.id) {
+    throw new Error(zhCN.actions.petSlugTaken);
+  }
+
+  const pet = await prisma.petSpecies.findUnique({
+    where: { id: input.id },
+  });
+
+  if (!pet) {
+    throw new Error(zhCN.actions.petNotFound);
+  }
+
+  return prisma.petSpecies.update({
+    where: { id: input.id },
+    data: {
+      slug: input.slug,
+      nameZh: input.nameZh,
+      summaryZh: input.summaryZh,
+      descriptionZh: input.descriptionZh,
+      rarity: input.rarity,
+      coverImageUrl: input.coverImageUrl,
+      modelGlbUrl: input.modelGlbUrl,
+      sortOrder: input.sortOrder,
+      isActive: input.isActive ?? pet.isActive,
+    },
+  });
+}
+
+export async function togglePetActive(petId: string) {
+  const pet = await prisma.petSpecies.findUnique({
+    where: { id: petId },
+  });
+
+  if (!pet) {
+    throw new Error(zhCN.actions.petNotFound);
+  }
+
+  return prisma.petSpecies.update({
+    where: { id: petId },
+    data: {
+      isActive: !pet.isActive,
     },
   });
 }

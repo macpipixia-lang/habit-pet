@@ -40,6 +40,8 @@ export default async function AdminPage({
     { label: zhCN.admin.summaryActiveItems, value: overview.activeItemsCount },
     { label: zhCN.admin.summaryTasks, value: overview.tasksCount },
     { label: zhCN.admin.summaryActiveTasks, value: overview.activeTasksCount },
+    { label: zhCN.admin.summaryPets, value: overview.petsCount },
+    { label: zhCN.admin.summaryActivePets, value: overview.activePetsCount },
     { label: zhCN.admin.summaryIssuedCodes, value: overview.issuedCodesCount },
   ];
   const moduleCards = [
@@ -61,6 +63,12 @@ export default async function AdminPage({
       title: zhCN.admin.overviewTasksTitle,
       description: zhCN.admin.overviewTasksDescription,
     },
+    {
+      href: "/admin/pets",
+      badge: zhCN.admin.petsBadge,
+      title: zhCN.admin.overviewPetsTitle,
+      description: zhCN.admin.overviewPetsDescription,
+    },
   ];
 
   return (
@@ -70,7 +78,7 @@ export default async function AdminPage({
       description={zhCN.admin.overviewDescription}
     >
       <AdminFeedback error={error} successMessage={successMessage} />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-7">
         {summaryCards.map((card) => (
           <Card key={card.label}>
             <p className="text-sm text-mist">{card.label}</p>
@@ -78,7 +86,7 @@ export default async function AdminPage({
           </Card>
         ))}
       </div>
-      <div className="grid gap-6 xl:grid-cols-3">
+      <div className="grid gap-6 xl:grid-cols-4">
         {moduleCards.map((card) => (
           <Card key={card.href} className="flex h-full flex-col">
             <Pill className="text-accent">{card.badge}</Pill>
