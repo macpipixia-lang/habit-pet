@@ -7,6 +7,7 @@ import { getAdminRedirectTarget } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import {
   activePetSchema,
+  adminDailyTaskAuditSchema,
   appRedirectSchema,
   adminCodeUpdateSchema,
   adminLoginSchema,
@@ -15,6 +16,7 @@ import {
   adminShopItemSchema,
   adminTaskDefinitionSchema,
   authSchema,
+  dailyTaskActionSchema,
   petEggPurchaseSchema,
   petNicknameSchema,
   petSkinApplySchema,
@@ -33,7 +35,10 @@ import {
   verifyPassword,
 } from "@/lib/auth";
 import {
+  adminCompleteDailyTask,
+  adminRevertDailyTask,
   applyPetSkin,
+  completeDailyTask,
   createPet,
   ensureProfile,
   grantStarterPet,
@@ -44,14 +49,12 @@ import {
   saveShopItem,
   saveTaskDefinition,
   setActivePet,
-  settleToday,
   toggleShopItemActive,
   togglePetActive,
   updatePet,
   updatePetStagesAssets,
   updatePetNickname,
   updateRedeemCodeStatus,
-  updateTodayTaskSelection,
   useYesterdayMakeupCard,
 } from "@/lib/data";
 import { zhCN } from "@/lib/i18n/zhCN";
@@ -173,35 +176,24 @@ export async function adminLogoutAction() {
   redirect("/admin?success=logout");
 }
 
-function extractTaskIds(formData: FormData) {
-  return formData
-    .getAll("taskIds")
-    .map((value) => String(value))
-    .filter(Boolean);
-}
-
-export async function saveTasksAction(formData: FormData) {
+export async function completeDailyTaskAction(formData: FormData) {
   try {
     const user = await requireUser();
-    await updateTodayTaskSelection(user.id, extractTaskIds(formData));
-    revalidatePath("/today");
-    redirect("/today?success=progress-saved");
-  } catch (error) {
-    rethrowIfRedirect(error);
-    redirect(`/today?error=${encodeURIComponent(toMessage(error))}`);
-  }
-}
+    const parsed = dailyTaskActionSchema.safeParse({
+      taskSlug: formData.get("taskSlug"),
+    });
 
-export async function settleTodayAction(formData: FormData) {
-  try {
-    const user = await requireUser();
-    await updateTodayTaskSelection(user.id, extractTaskIds(formData));
-    await settleToday(user.id);
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? zhCN.feedback.invalidInput);
+    }
+
+    await completeDailyTask(user.id, parsed.data.taskSlug);
     revalidatePath("/today");
+    revalidatePath("/shop");
+    revalidatePath("/backpack");
     revalidatePath("/pet");
     revalidatePath("/history");
-    revalidatePath("/shop");
-    redirect("/today?success=settled");
+    redirect("/today?success=task-completed");
   } catch (error) {
     rethrowIfRedirect(error);
     redirect(`/today?error=${encodeURIComponent(toMessage(error))}`);
@@ -398,6 +390,60 @@ export async function useMakeupCardAction(_formData: FormData) {
   } catch (error) {
     rethrowIfRedirect(error);
     redirect(`/today?error=${encodeURIComponent(toMessage(error))}`);
+  }
+}
+
+export async function adminCompleteDailyTaskAction(formData: FormData) {
+  try {
+    await requireAdmin();
+    const parsed = adminDailyTaskAuditSchema.safeParse({
+      userQuery: formData.get("userQuery"),
+      taskSlug: formData.get("taskSlug"),
+    });
+
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? zhCN.feedback.invalidInput);
+    }
+
+    await adminCompleteDailyTask(parsed.data.userQuery, parsed.data.taskSlug, "admin");
+    revalidatePath("/admin");
+    revalidatePath("/admin/today");
+    revalidatePath("/today");
+    revalidatePath("/shop");
+    revalidatePath("/backpack");
+    revalidatePath("/pet");
+    revalidatePath("/history");
+    redirect(`/admin/today?user=${encodeURIComponent(parsed.data.userQuery)}&success=task-audit-updated`);
+  } catch (error) {
+    rethrowIfRedirect(error);
+    redirect(`/admin/today?error=${encodeURIComponent(toMessage(error))}`);
+  }
+}
+
+export async function adminRevertDailyTaskAction(formData: FormData) {
+  try {
+    await requireAdmin();
+    const parsed = adminDailyTaskAuditSchema.safeParse({
+      userQuery: formData.get("userQuery"),
+      taskSlug: formData.get("taskSlug"),
+    });
+
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? zhCN.feedback.invalidInput);
+    }
+
+    await adminRevertDailyTask(parsed.data.userQuery, parsed.data.taskSlug, "admin");
+    revalidatePath("/admin");
+    revalidatePath("/admin/today");
+    revalidatePath("/today");
+    revalidatePath("/shop");
+    revalidatePath("/backpack");
+    revalidatePath("/pet");
+    revalidatePath("/history");
+    redirect(`/admin/today?user=${encodeURIComponent(parsed.data.userQuery)}&success=task-audit-updated`);
+  } catch (error) {
+    rethrowIfRedirect(error);
+    redirect(`/admin/today?error=${encodeURIComponent(toMessage(error))}`);
   }
 }
 

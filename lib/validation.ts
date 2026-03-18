@@ -63,6 +63,23 @@ export const appRedirectSchema = z
   .optional()
   .transform((value) => value ?? "/pet");
 
+export const dailyTaskActionSchema = z.object({
+  taskSlug: z
+    .string()
+    .min(2, zhCN.validation.taskSlugMin)
+    .max(48, zhCN.validation.taskSlugMax)
+    .regex(/^[a-z0-9-]+$/, zhCN.validation.taskSlugPattern),
+});
+
+export const adminDailyTaskAuditSchema = z.object({
+  userQuery: z.string().trim().min(1, zhCN.feedback.invalidInput),
+  taskSlug: z
+    .string()
+    .min(2, zhCN.validation.taskSlugMin)
+    .max(48, zhCN.validation.taskSlugMax)
+    .regex(/^[a-z0-9-]+$/, zhCN.validation.taskSlugPattern),
+});
+
 export const adminLoginSchema = z.object({
   secret: z.string().min(1, zhCN.feedback.invalidInput),
 });

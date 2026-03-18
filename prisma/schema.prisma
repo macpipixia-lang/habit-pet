@@ -15,7 +15,9 @@ model User {
   updatedAt    DateTime    @updatedAt
   profile      Profile?
   dailyLogs    DailyLog[]
+  dailyTaskCompletions DailyTaskCompletion[]
   pointsLedger PointsLedger[]
+  xpLedger     XpLedger[]
   purchases    UserPurchase[]
   redeemCodes  RedeemCode[]
   pets         UserPet[]
@@ -81,6 +83,23 @@ model PointsLedger {
   metaJson    String?
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model XpLedger {
+  id          String        @id @default(cuid())
+  userId      String
+  userPetId   String?
+  scope       XpLedgerScope
+  delta       Int
+  reason      String
+  description String
+  metaJson    String?
+  createdAt   DateTime      @default(now())
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userPet     UserPet?      @relation(fields: [userPetId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([userPetId, createdAt])
 }
 
 model ShopItem {
@@ -167,9 +186,34 @@ model UserPet {
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   species    PetSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
   activeSkin PetSkin?   @relation("UserPetActiveSkin", fields: [activeSkinId], references: [id], onDelete: SetNull)
+  xpLedger   XpLedger[]
+  dailyTaskCompletions DailyTaskCompletion[]
 
   @@unique([userId, speciesId])
   @@index([userId, isActive])
+}
+
+model DailyTaskCompletion {
+  id            String                    @id @default(cuid())
+  userId        String
+  dateKey       String
+  taskSlug      String
+  userPetId     String?
+  status        DailyTaskCompletionStatus @default(PENDING)
+  completedAt   DateTime?
+  revertedAt    DateTime?
+  revertedBy    String?
+  pointsDelta   Int                       @default(0)
+  userXpDelta   Int                       @default(0)
+  petXpDelta    Int                       @default(0)
+  ledgerGroupId String?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  user          User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userPet       UserPet?                  @relation(fields: [userPetId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, dateKey, taskSlug])
+  @@index([userId, dateKey, status])
 }
 
 model UserPetSkin {
@@ -223,4 +267,14 @@ enum RedeemCodeStatus {
   ISSUED
   REDEEMED
   VOID
+}
+
+enum DailyTaskCompletionStatus {
+  PENDING
+  COMPLETED
+}
+
+enum XpLedgerScope {
+  USER
+  PET
 }

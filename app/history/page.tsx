@@ -11,6 +11,10 @@ function getLedgerReason(reason: string) {
   switch (reason) {
     case "daily_settlement":
       return zhCN.ledger.dailySettlementReason;
+    case "daily_task_complete":
+      return zhCN.ledger.dailyTaskCompleteReason;
+    case "daily_task_revert":
+      return zhCN.ledger.dailyTaskRevertReason;
     case "makeup_settlement":
       return zhCN.ledger.makeupSettlementReason;
     case "makeup_card_used":
@@ -30,11 +34,23 @@ function getLedgerReason(reason: string) {
 
 function getLedgerDescription(entry: PointsLedger) {
   try {
-    const meta = entry.metaJson ? (JSON.parse(entry.metaJson) as { date?: string; name?: string }) : {};
+    const meta = entry.metaJson
+      ? (JSON.parse(entry.metaJson) as {
+          date?: string;
+          name?: string;
+          taskSlug?: string;
+          taskNameZh?: string;
+          dateKey?: string;
+        })
+      : {};
 
     switch (entry.reason) {
       case "daily_settlement":
         return formatText(zhCN.ledger.dailySettlement, { date: meta.date ?? "" });
+      case "daily_task_complete":
+        return formatText(zhCN.ledger.dailyTaskComplete, { task: meta.taskNameZh ?? meta.taskSlug ?? "", date: meta.dateKey ?? "" });
+      case "daily_task_revert":
+        return formatText(zhCN.ledger.dailyTaskRevert, { task: meta.taskNameZh ?? meta.taskSlug ?? "", date: meta.dateKey ?? "" });
       case "makeup_settlement":
         return formatText(zhCN.ledger.makeupSettlement, { date: meta.date ?? "" });
       case "makeup_card_used":

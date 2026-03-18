@@ -1,4 +1,4 @@
-import { saveTasksAction, settleTodayAction, useMakeupCardAction } from "@/app/actions";
+import { completeDailyTaskAction, useMakeupCardAction } from "@/app/actions";
 import { PetOnboardingGuard } from "@/components/pet-onboarding-guard";
 import { Card, Pill } from "@/components/ui";
 import { getDashboardState } from "@/lib/data";
@@ -17,7 +17,6 @@ export default async function TodayPage({
   const params = (await searchParams) ?? {};
   const state = await getDashboardState(user.id);
   const profile = state.user.profile!;
-  const isSettled = Boolean(state.todayLog.settledAt);
   const expIntoLevel = getExpIntoCurrentLevel(profile.exp);
   const levelSpan = profile.level >= MAX_LEVEL ? expIntoLevel : getExpRequiredForLevel(profile.level);
   const progressPercent = Math.min(100, Math.round((expIntoLevel / Math.max(levelSpan, 1)) * 100));
@@ -32,11 +31,7 @@ export default async function TodayPage({
         <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card>
       ) : success ? (
         <Card className="border-success/40 bg-emerald-500/10 text-sm text-emerald-100">
-          {success === "progress-saved"
-            ? zhCN.feedback.progressSaved
-            : success === "settled"
-              ? zhCN.feedback.todaySettled
-              : zhCN.feedback.makeupApplied}
+          {success === "task-completed" ? zhCN.feedback.taskCompleted : zhCN.feedback.makeupApplied}
         </Card>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -75,30 +70,16 @@ export default async function TodayPage({
               <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.today.title}</h1>
               <p className="mt-2 text-sm leading-7 text-mist">{zhCN.today.description}</p>
             </div>
-            {isSettled ? (
-              <Pill className="text-success">{zhCN.today.statusSettled}</Pill>
-            ) : (
-              <Pill className="text-accentWarm">{zhCN.today.statusOpen}</Pill>
-            )}
+            <Pill className="text-accentWarm">{zhCN.today.statusRealtime}</Pill>
           </div>
 
-          <form className="mt-6 space-y-4">
+          <div className="mt-6 space-y-4">
             {state.tasks.map((task) => {
-              const checked = state.todayCompletedTaskIds.includes(task.id);
-
               return (
-                <label
+                <div
                   key={task.id}
                   className="flex items-start gap-4 rounded-2xl border border-line bg-black/20 p-4 transition hover:border-white/20"
                 >
-                  <input
-                    type="checkbox"
-                    name="taskIds"
-                    value={task.id}
-                    defaultChecked={checked}
-                    disabled={isSettled}
-                    className="mt-1 h-4 w-4 rounded border-white/20 bg-transparent text-accent focus:ring-accent"
-                  />
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium text-white">{task.nameZh}</span>
@@ -107,7 +88,20 @@ export default async function TodayPage({
                     </div>
                     <p className="mt-2 text-sm text-mist">{task.descriptionZh}</p>
                   </div>
-                </label>
+                  <form action={completeDailyTaskAction}>
+                    <input type="hidden" name="taskSlug" value={task.slug} />
+                    <button
+                      disabled={task.completed}
+                      className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                        task.completed
+                          ? "cursor-not-allowed border border-line bg-white/5 text-mist"
+                          : "bg-accent text-slate-950 hover:brightness-110"
+                      }`}
+                    >
+                      {task.completed ? zhCN.today.completedButton : zhCN.today.completeButton}
+                    </button>
+                  </form>
+                </div>
               );
             })}
             {state.lockedTasks.length > 0 ? (
@@ -131,23 +125,7 @@ export default async function TodayPage({
                 </div>
               </details>
             ) : null}
-            <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-              <button
-                formAction={saveTasksAction}
-                disabled={isSettled}
-                className="rounded-2xl border border-line px-4 py-3 text-sm text-white transition hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {zhCN.today.save}
-              </button>
-              <button
-                formAction={settleTodayAction}
-                disabled={isSettled}
-                className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {zhCN.today.settle}
-              </button>
-            </div>
-          </form>
+          </div>
         </Card>
 
         <div className="space-y-6">

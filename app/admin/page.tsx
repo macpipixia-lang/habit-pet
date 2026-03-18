@@ -64,6 +64,12 @@ export default async function AdminPage({
       description: zhCN.admin.overviewTasksDescription,
     },
     {
+      href: "/admin/today",
+      badge: zhCN.admin.todayAuditBadge,
+      title: zhCN.admin.overviewTodayAuditTitle,
+      description: zhCN.admin.overviewTodayAuditDescription,
+    },
+    {
       href: "/admin/pets",
       badge: zhCN.admin.petsBadge,
       title: zhCN.admin.overviewPetsTitle,
@@ -86,7 +92,7 @@ export default async function AdminPage({
           </Card>
         ))}
       </div>
-      <div className="grid gap-6 xl:grid-cols-4">
+      <div className="grid gap-6 xl:grid-cols-5">
         {moduleCards.map((card) => (
           <Card key={card.href} className="flex h-full flex-col">
             <Pill className="text-accent">{card.badge}</Pill>
