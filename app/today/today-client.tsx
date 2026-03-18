@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useMakeupCardAction } from "@/app/actions";
 import { Card, Pill } from "@/components/ui";
 import { LEVEL_EXP_THRESHOLDS, MAX_LEVEL } from "@/lib/constants";
@@ -38,6 +39,17 @@ type TodayClientProps = {
   showMakeupPrompt: boolean;
   initialError: string | null;
   initialSuccess: string | null;
+  petSummary?: {
+    name: string;
+    speciesName: string;
+    stageName: string;
+    xp: number;
+    progressPercent: number;
+    coverImageUrl: string;
+    stageLabel: string;
+    skinName: string;
+    mode3dHref?: string | null;
+  } | null;
 };
 
 function getLevelFromExp(exp: number) {
@@ -82,6 +94,7 @@ export function TodayClient({
   showMakeupPrompt,
   initialError,
   initialSuccess,
+  petSummary,
 }: TodayClientProps) {
   const [tasks, setTasks] = useState(initialTasks);
   const [profile, setProfile] = useState(initialProfile);
@@ -259,6 +272,49 @@ export function TodayClient({
         </Card>
 
         <div className="space-y-6">
+          {petSummary ? (
+            <Card className="overflow-hidden p-0">
+              <div className="border-b border-line bg-gradient-to-br from-cyan-400/15 via-sky-300/10 to-transparent px-6 py-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <Pill className="text-accentWarm">{zhCN.pet.activeBadge}</Pill>
+                    <h2 className="mt-4 text-2xl font-semibold text-white">{petSummary.name}</h2>
+                    <p className="mt-2 text-sm text-mist">{petSummary.speciesName}</p>
+                  </div>
+                  {petSummary.mode3dHref ? (
+                    <Link href={petSummary.mode3dHref} className="rounded-full border border-line px-4 py-2 text-sm text-white transition hover:border-white/30">
+                      {zhCN.pet.mode3dEntry}
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
+              <div className="space-y-4 px-6 py-6">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={petSummary.coverImageUrl} alt={petSummary.stageName} className="h-48 w-full rounded-3xl object-cover" />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <p className="text-sm text-mist">{zhCN.pet.stageLabel}</p>
+                    <p className="mt-2 text-lg text-white">{petSummary.stageName}</p>
+                    <p className="mt-1 text-xs text-mist">{petSummary.stageLabel}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-mist">{zhCN.pet.skinLabel}</p>
+                    <p className="mt-2 text-lg text-white">{petSummary.skinName}</p>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between gap-3 text-sm text-mist">
+                    <span>{zhCN.pet.exp}</span>
+                    <span>{formatNumber(petSummary.xp)} XP</span>
+                  </div>
+                  <div className="mt-3 h-3 rounded-full bg-white/10">
+                    <div className="h-3 rounded-full bg-accent" style={{ width: `${petSummary.progressPercent}%` }} />
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ) : null}
+
           <Card>
             <Pill className="text-accentWarm">{zhCN.today.rewardBadge}</Pill>
             <p className="mt-4 text-3xl font-semibold text-white">

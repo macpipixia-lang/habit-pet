@@ -6,6 +6,7 @@ export const zhCN = {
     headerDescription: "每日任务、连续记录和宠物成长，都以北京时间(Asia/Shanghai)为准。",
   },
   nav: {
+    dashboard: "今日面板",
     today: "今日",
     pet: "宠物",
     backpack: "背包",

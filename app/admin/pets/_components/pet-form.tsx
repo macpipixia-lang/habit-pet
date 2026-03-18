@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
-import { savePetAction } from "@/app/actions";
+import { useState } from "react";
 import { Card, Pill } from "@/components/ui";
 import { zhCN } from "@/lib/i18n/zhCN";
+import { AdminNoticeCard, postAdminJson } from "@/app/admin/_components/admin-client";
 import { PetAssetFields } from "./pet-asset-fields";
 import { PetStageAssetFields } from "./pet-stage-asset-fields";
 
@@ -30,16 +33,47 @@ export function PetForm({
   description,
   submitLabel,
   pet,
+  initialNotice,
 }: Readonly<{
   title: string;
   description: string;
   submitLabel: string;
   pet?: PetFormValue | null;
+  initialNotice?: { type: "error" | "success"; text: string } | null;
 }>) {
   const blobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  const [formPet, setFormPet] = useState<PetFormValue | null>(pet ?? null);
+  const [notice, setNotice] = useState(initialNotice ?? null);
+  const [pending, setPending] = useState(false);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setNotice(null);
+
+    try {
+      const formData = new FormData(event.currentTarget);
+      const rawStageAssets = String(formData.get("stageAssetsJson") ?? "").trim();
+      const payload = Object.fromEntries(formData.entries());
+      delete payload.stageAssetsJson;
+
+      const result = await postAdminJson<PetFormValue & { stages?: PetFormValue["stages"] }>("/api/admin/pets/save", {
+        ...payload,
+        stageAssets: rawStageAssets ? JSON.parse(rawStageAssets) : [],
+      });
+
+      setFormPet(result.data ?? formPet);
+      setNotice({ type: "success", text: result.message ?? zhCN.feedback.petSaved });
+    } catch (error) {
+      setNotice({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
+      <AdminNoticeCard notice={notice} />
       {!blobConfigured ? (
         <Card className="border-amber-300/30 bg-amber-400/10">
           <Pill className="text-accentWarm">{zhCN.admin.envMissingTitle}</Pill>
@@ -60,9 +94,8 @@ export function PetForm({
           </Link>
         </div>
 
-        <form action={savePetAction} className="mt-6 space-y-4">
-          <input type="hidden" name="id" value={pet?.id ?? ""} />
-          <input type="hidden" name="redirectTo" value="/admin/pets" />
+        <form className="mt-6 space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+          <input type="hidden" name="id" value={formPet?.id ?? ""} readOnly />
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm text-mist" htmlFor="slug">
@@ -71,7 +104,7 @@ export function PetForm({
               <input
                 id="slug"
                 name="slug"
-                defaultValue={pet?.slug ?? ""}
+                defaultValue={formPet?.slug ?? ""}
                 className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
                 required
               />
@@ -83,7 +116,7 @@ export function PetForm({
               <input
                 id="nameZh"
                 name="nameZh"
-                defaultValue={pet?.nameZh ?? ""}
+                defaultValue={formPet?.nameZh ?? ""}
                 className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
                 required
               />
@@ -97,7 +130,7 @@ export function PetForm({
             <input
               id="summaryZh"
               name="summaryZh"
-              defaultValue={pet?.summaryZh ?? ""}
+              defaultValue={formPet?.summaryZh ?? ""}
               className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
             />
           </div>
@@ -109,7 +142,7 @@ export function PetForm({
             <textarea
               id="descriptionZh"
               name="descriptionZh"
-              defaultValue={pet?.descriptionZh ?? ""}
+              defaultValue={formPet?.descriptionZh ?? ""}
               className="min-h-32 w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
               required
             />
@@ -123,7 +156,7 @@ export function PetForm({
               <input
                 id="rarity"
                 name="rarity"
-                defaultValue={pet?.rarity ?? ""}
+                defaultValue={formPet?.rarity ?? ""}
                 className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
               />
             </div>
@@ -136,7 +169,7 @@ export function PetForm({
                 name="sortOrder"
                 type="number"
                 min="0"
-                defaultValue={pet?.sortOrder ?? 0}
+                defaultValue={formPet?.sortOrder ?? 0}
                 className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
                 required
               />
@@ -148,7 +181,7 @@ export function PetForm({
               <select
                 id="isActive"
                 name="isActive"
-                defaultValue={String(pet?.isActive ?? true)}
+                defaultValue={String(formPet?.isActive ?? true)}
                 className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
               >
                 <option value="true">{zhCN.admin.activeOption}</option>
@@ -158,14 +191,14 @@ export function PetForm({
           </div>
 
           <PetAssetFields
-            initialCoverImageUrl={pet?.coverImageUrl}
-            initialModelGlbUrl={pet?.modelGlbUrl}
+            initialCoverImageUrl={formPet?.coverImageUrl}
+            initialModelGlbUrl={formPet?.modelGlbUrl}
           />
 
-          {pet?.id ? <PetStageAssetFields stages={pet.stages ?? []} /> : null}
+          {formPet?.id ? <PetStageAssetFields stages={formPet.stages ?? []} /> : null}
 
-          <button className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950">
-            {submitLabel}
+          <button disabled={pending} className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950 disabled:opacity-70">
+            {pending ? zhCN.auth.submitting : submitLabel}
           </button>
         </form>
       </Card>

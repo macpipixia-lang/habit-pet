@@ -18,7 +18,7 @@ export default function LandingPage() {
             <Link href="/auth" className="rounded-full bg-accent px-5 py-3 font-medium text-slate-950">
               {zhCN.landing.primaryCta}
             </Link>
-            <Link href="/today" className="rounded-full border border-line px-5 py-3 text-mist">
+            <Link href="/dashboard" className="rounded-full border border-line px-5 py-3 text-mist">
               {zhCN.landing.secondaryCta}
             </Link>
           </div>

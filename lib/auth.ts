@@ -174,6 +174,7 @@ export async function getCurrentUser() {
 }
 
 type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>;
+type RequireAdminOptions = { unauthorized: "return-null" };
 
 export async function requireUser(): Promise<NonNullable<CurrentUser>>;
 export async function requireUser(options: { unauthorized: "return-null" }): Promise<CurrentUser>;
@@ -202,12 +203,18 @@ export async function isAdminAuthenticated() {
   return Boolean(decodeAdminSession(session));
 }
 
-export async function requireAdmin() {
+export async function requireAdmin(options?: RequireAdminOptions): Promise<boolean | null | undefined> {
   const isAdmin = await isAdminAuthenticated();
 
   if (!isAdmin) {
+    if (options?.unauthorized === "return-null") {
+      return null;
+    }
+
     redirect("/admin");
   }
+
+  return true;
 }
 
 export function verifyAdminSecret(secret: string) {

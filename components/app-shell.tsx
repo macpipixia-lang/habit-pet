@@ -5,8 +5,7 @@ import { zhCN } from "@/lib/i18n/zhCN";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/today", label: zhCN.nav.today },
-  { href: "/pet", label: zhCN.nav.pet },
+  { href: "/dashboard", label: zhCN.nav.dashboard },
   { href: "/backpack", label: zhCN.nav.backpack },
   { href: "/pokedex", label: zhCN.nav.pokedex },
   { href: "/shop", label: zhCN.nav.shop },

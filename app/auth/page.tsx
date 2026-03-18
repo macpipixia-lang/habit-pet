@@ -10,7 +10,7 @@ export default async function AuthPage() {
 
   if (user) {
     const hasPets = await hasAnyUserPet(user.id);
-    redirect(hasPets ? "/today" : "/onboarding/pet-egg");
+    redirect(hasPets ? "/dashboard" : "/onboarding/pet-egg");
   }
 
   return (

@@ -17,7 +17,7 @@ export default async function PetEggOnboardingPage({
   const error = typeof params.error === "string" ? params.error : null;
 
   if (state.hasPets) {
-    redirect("/pet");
+    redirect("/dashboard");
   }
 
   return (
