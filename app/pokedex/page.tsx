@@ -33,22 +33,7 @@ export default async function PokedexPage({
   const sort: SortMode = sortParam === "name" ? "name" : "rarity";
   const queryLower = query.toLocaleLowerCase("zh-CN");
 
-  const petBySpeciesId = new Map(
-    state.ownedPets.map((pet) => [
-      pet.speciesId,
-      {
-        xp: pet.xp,
-        currentStageId: pet.currentStage.id,
-        currentImageKey: pet.currentImageKey,
-      },
-    ]),
-  );
-
   const species = state.species
-    .map((entry) => ({
-      ...entry,
-      ownedPet: petBySpeciesId.get(entry.id) ?? null,
-    }))
     .filter((entry) => {
       if (filter === "owned" && !entry.owned) return false;
       if (filter === "unowned" && entry.owned) return false;

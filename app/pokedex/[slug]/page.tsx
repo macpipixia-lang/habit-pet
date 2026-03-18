@@ -35,7 +35,8 @@ export default async function PokedexSpeciesPage({
           <StageHero
             stage={preview}
             imageKey={state.ownedPet?.currentImageKey}
-            title={state.owned ? zhCN.pokedex.currentStagePreview : zhCN.pokedex.finalStagePreview}
+            coverImageUrl={state.previewCoverImageUrl}
+            title={state.owned ? zhCN.pokedex.currentStagePreview : zhCN.pokedex.coverPreview}
             subtitle={state.owned ? zhCN.pokedex.heroOwnedHint : zhCN.pokedex.heroUnownedHint}
             concealed={!state.owned}
           />

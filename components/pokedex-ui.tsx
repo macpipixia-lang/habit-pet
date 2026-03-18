@@ -17,6 +17,7 @@ type OwnedPetSummary = {
   xp: number;
   currentStageId: string;
   currentImageKey?: string;
+  currentStageCoverImageUrl: string;
 };
 
 type SpeciesSummary = {
@@ -27,6 +28,7 @@ type SpeciesSummary = {
   rarity: string | null;
   owned: boolean;
   stages: SpeciesStage[];
+  previewCoverImageUrl: string;
   ownedPet?: OwnedPetSummary | null;
 };
 
@@ -130,8 +132,8 @@ export function PokedexSpeciesCard({ species }: { species: SpeciesSummary }) {
           <StageHero
             stage={preview}
             imageKey={species.ownedPet?.currentImageKey}
-            coverImageUrl={preview.coverImageUrl}
-            title={species.owned ? zhCN.pokedex.currentStagePreview : zhCN.pokedex.finalStagePreview}
+            coverImageUrl={species.previewCoverImageUrl}
+            title={species.owned ? zhCN.pokedex.currentStagePreview : zhCN.pokedex.coverPreview}
             subtitle={species.owned ? zhCN.pokedex.heroOwnedHint : zhCN.pokedex.heroUnownedHint}
             concealed={!species.owned}
           />

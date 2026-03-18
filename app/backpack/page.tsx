@@ -93,14 +93,17 @@ export default async function BackpackPage({
             </Card>
           ) : (
             state.ownedPets.map((pet) => {
-              const visual = getPetVisual(pet.currentImageKey);
-
               return (
                 <Card key={pet.id}>
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
                     <div className="flex min-w-0 flex-1 items-center gap-4">
-                      <div className={`flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 text-3xl ${visual.className}`}>
-                        {visual.emoji}
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                        {/* 当前出战宠物优先展示阶段封面，列表项也保持同一口径。 */}
+                        <img
+                          src={pet.currentStageCoverImageUrl}
+                          alt={pet.currentStage.nameZh}
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
@@ -113,6 +116,7 @@ export default async function BackpackPage({
                         <p className="mt-1 text-sm text-mist">
                           {formatText(zhCN.backpack.stageSummary, { name: pet.currentStage.nameZh })}
                         </p>
+                        <p className="mt-1 text-sm text-mist">{zhCN.backpack.coverPreviewHint}</p>
                         <p className="mt-1 text-sm text-mist">
                           {formatText(zhCN.backpack.activePetSummary, {
                             skin: pet.activeSkin?.nameZh ?? zhCN.pet.skinDefault,

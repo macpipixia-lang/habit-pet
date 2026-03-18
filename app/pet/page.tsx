@@ -99,20 +99,13 @@ export default async function PetPage({
           </div>
           <div className="px-6 py-6">
             <div className="rounded-[2rem] border border-white/10 bg-black/20 p-8 text-center">
-              {state.activePet.currentStage.coverImageUrl ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={state.activePet.currentStage.coverImageUrl}
-                  alt={state.activePet.currentStage.nameZh}
-                  className="mx-auto h-44 w-44 rounded-full border border-white/10 object-cover shadow-glow"
-                />
-              ) : (
-                <div
-                  className={`mx-auto flex h-44 w-44 items-center justify-center rounded-full border border-white/10 text-7xl shadow-glow ${activeVisual.className}`}
-                >
-                  {activeVisual.emoji}
-                </div>
-              )}
+              {/* 优先使用当前阶段封面，保持与图鉴/背包一致。 */}
+              <img
+                src={state.activePet.currentStageCoverImageUrl}
+                alt={state.activePet.currentStage.nameZh}
+                className="mx-auto h-44 w-44 rounded-full border border-white/10 object-cover shadow-glow"
+              />
+              <p className="mt-4 text-xs uppercase tracking-[0.24em] text-mist">{zhCN.pet.stageCoverLabel}</p>
               <p className="mt-6 text-sm text-mist">{zhCN.pet.stageLabel}</p>
               <p className="mt-2 text-2xl text-white">{state.activePet.currentStage.nameZh}</p>
               <p className="mt-3 text-sm text-mist">{zhCN.pet.skinLabel}</p>

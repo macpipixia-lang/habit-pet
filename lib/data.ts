@@ -325,11 +325,13 @@ function toOwnedPetView(userPet: UserPetRecord) {
   const stages = species.stages;
   const progress = getPetProgress(stages, userPet.xp);
   const currentImageKey = getPetImageKey(progress.currentStage.imageKey, userPet.activeSkin);
+  const currentStageCoverImageUrl = resolveStageCoverImageUrl(progress.currentStage, species);
 
   return {
     ...userPet,
     species,
     currentStage: progress.currentStage,
+    currentStageCoverImageUrl,
     nextStage: progress.nextStage,
     progress,
     currentImageKey,
@@ -753,12 +755,24 @@ export async function getBackpackState(userId: string) {
 
 export async function getPokedexState(userId: string) {
   const [species, pets] = await Promise.all([getAllPetSpecies(prisma), getOwnedPetsWithStages(prisma, userId)]);
-  const ownedSpeciesIds = new Set(pets.map((pet) => pet.speciesId));
+  const petBySpeciesId = new Map(
+    pets.map((pet) => [
+      pet.speciesId,
+      {
+        xp: pet.xp,
+        currentStageId: pet.currentStage.id,
+        currentImageKey: pet.currentImageKey,
+        currentStageCoverImageUrl: pet.currentStageCoverImageUrl,
+      },
+    ]),
+  );
 
   return {
     species: species.map((entry) => ({
       ...entry,
-      owned: ownedSpeciesIds.has(entry.id),
+      ownedPet: petBySpeciesId.get(entry.id) ?? null,
+      owned: petBySpeciesId.has(entry.id),
+      previewCoverImageUrl: petBySpeciesId.get(entry.id)?.currentStageCoverImageUrl ?? entry.coverImageUrl ?? PET_STAGE_PLACEHOLDER_IMAGE,
     })),
     ownedPets: pets,
   };
@@ -792,11 +806,15 @@ export async function getPokedexSpeciesState(userId: string, slug: string) {
   const normalizedSpecies = {
     ...withResolvedStageAssets(species),
   };
+  const ownedPet = pet ? toOwnedPetView(pet as UserPetRecord) : null;
 
   return {
     species: normalizedSpecies,
-    owned: pet != null,
-    ownedPet: pet ? toOwnedPetView(pet as UserPetRecord) : null,
+    owned: ownedPet != null,
+    ownedPet,
+    previewCoverImageUrl: ownedPet
+      ? ownedPet.currentStageCoverImageUrl
+      : normalizedSpecies.coverImageUrl ?? PET_STAGE_PLACEHOLDER_IMAGE,
   };
 }
 
