@@ -72,6 +72,7 @@ export function StageHero({
   highlighted?: boolean;
 }) {
   const visual = getPetVisual(imageKey ?? stage.imageKey);
+  const heroImage = coverImageUrl ?? stage.coverImageUrl;
 
   return (
     <div
@@ -86,15 +87,15 @@ export function StageHero({
           className={cn(
             "mx-auto mt-4 flex h-40 w-40 items-center justify-center rounded-full border border-white/10 text-7xl shadow-glow transition",
             visual.className,
-            concealed && "blur-md saturate-0",
+            concealed && "bg-white/5",
           )}
         >
-          {coverImageUrl ?? stage.coverImageUrl ? (
+          {heroImage ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
-              src={coverImageUrl ?? stage.coverImageUrl ?? ""}
+              src={heroImage}
               alt={stage.nameZh}
-              className="h-full w-full rounded-full object-cover"
+              className={cn("h-full w-full rounded-full object-contain p-3", concealed && "blur-md saturate-0")}
             />
           ) : (
             visual.emoji
@@ -104,12 +105,23 @@ export function StageHero({
       <div className="px-6 py-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-lg font-semibold text-white">{stage.nameZh}</p>
-            <p className="mt-1 text-sm text-mist">XP {formatNumber(stage.minXp)}+</p>
+            {concealed ? (
+              <div className="space-y-2 pt-1">
+                <div className="h-5 w-28 rounded-full bg-white/10" />
+                <div className="h-4 w-20 rounded-full bg-white/10" />
+              </div>
+            ) : (
+              <>
+                <p className="text-lg font-semibold text-white">{stage.nameZh}</p>
+                <p className="mt-1 text-sm text-mist">XP {formatNumber(stage.minXp)}+</p>
+              </>
+            )}
           </div>
-          {highlighted ? <Pill className="text-accent">{zhCN.pokedex.highlightCurrentStage}</Pill> : null}
+          {highlighted && !concealed ? <Pill className="text-accent">{zhCN.pokedex.highlightCurrentStage}</Pill> : null}
         </div>
-        {subtitle ? <p className="mt-3 text-sm leading-7 text-mist">{subtitle}</p> : null}
+        {subtitle ? (
+          concealed ? <div className="mt-4 h-4 w-3/4 rounded-full bg-white/10" /> : <p className="mt-3 text-sm leading-7 text-mist">{subtitle}</p>
+        ) : null}
       </div>
     </div>
   );
@@ -134,7 +146,6 @@ export function PokedexSpeciesCard({ species }: { species: SpeciesSummary }) {
             imageKey={species.ownedPet?.currentImageKey}
             coverImageUrl={species.previewCoverImageUrl}
             title={species.owned ? zhCN.pokedex.currentStagePreview : zhCN.pokedex.coverPreview}
-            subtitle={species.owned ? zhCN.pokedex.heroOwnedHint : zhCN.pokedex.heroUnownedHint}
             concealed={!species.owned}
           />
         </div>
@@ -156,9 +167,11 @@ export function PokedexSpeciesCard({ species }: { species: SpeciesSummary }) {
 export function PokedexTimeline({
   species,
   currentStageId,
+  concealed = false,
 }: {
   species: Pick<SpeciesSummary, "stages">;
   currentStageId?: string | null;
+  concealed?: boolean;
 }) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
@@ -169,6 +182,7 @@ export function PokedexTimeline({
           coverImageUrl={stage.coverImageUrl}
           title={formatText(zhCN.pokedex.stageLabel, { index: stage.stageIndex + 1 })}
           highlighted={currentStageId === stage.id}
+          concealed={concealed}
         />
       ))}
     </div>

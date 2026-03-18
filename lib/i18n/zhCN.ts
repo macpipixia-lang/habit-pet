@@ -314,8 +314,6 @@ export const zhCN = {
     rarityEpic: "史诗",
     ownershipSummary: "{count} / {total} 已收集",
     currentStage: "当前阶段",
-    heroOwnedHint: "你已拥有该物种，图鉴展示当前宠物形态。",
-    heroUnownedHint: "尚未拥有时，优先展示物种封面，没有则使用占位图。",
     detailBack: "返回图鉴",
     detailTitleSuffix: "图鉴详情",
     detailOwnedStatus: "收集状态：已拥有",

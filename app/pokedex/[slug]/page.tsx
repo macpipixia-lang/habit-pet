@@ -37,7 +37,6 @@ export default async function PokedexSpeciesPage({
             imageKey={state.ownedPet?.currentImageKey}
             coverImageUrl={state.previewCoverImageUrl}
             title={state.owned ? zhCN.pokedex.currentStagePreview : zhCN.pokedex.coverPreview}
-            subtitle={state.owned ? zhCN.pokedex.heroOwnedHint : zhCN.pokedex.heroUnownedHint}
             concealed={!state.owned}
           />
           <div>
@@ -88,7 +87,7 @@ export default async function PokedexSpeciesPage({
         <h2 className="mt-4 text-2xl font-semibold text-white">{zhCN.pokedex.timelineTitle}</h2>
         <p className="mt-3 text-sm leading-7 text-mist">{zhCN.pokedex.timelineDescription}</p>
         <div className="mt-6">
-          <PokedexTimeline species={state.species} currentStageId={state.ownedPet?.currentStage.id ?? null} />
+          <PokedexTimeline species={state.species} currentStageId={state.ownedPet?.currentStage.id ?? null} concealed={!state.owned} />
         </div>
       </Card>
     </div>
