@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     const pet = await setActivePet(user.id, parsed.data.userPetId);
-    revalidatePaths("/pet", "/backpack", "/today", "/dashboard");
+    revalidatePaths("/pet", "/pet/3d", "/backpack", "/today", "/dashboard");
     return ok(pet, zhCN.feedback.activePetUpdated);
   } catch (error) {
     return fail(toErrorMessage(error), 500);

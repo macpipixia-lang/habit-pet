@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     await adminCompleteDailyTask(parsed.data.userQuery, parsed.data.taskSlug, "admin");
     const state = await getAdminTodayAuditState(parsed.data.userQuery);
-    revalidateAdminPaths("/admin", "/admin/today", "/today", "/dashboard", "/shop", "/backpack", "/pet", "/history");
+    revalidateAdminPaths("/admin", "/admin/today", "/today", "/dashboard", "/shop", "/backpack", "/pet", "/pet/3d", "/history");
     return ok(state, zhCN.feedback.taskAuditUpdated);
   } catch (error) {
     return fail(toErrorMessage(error), 500);

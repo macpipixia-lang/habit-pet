@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     const result = await grantStarterPet(user.id, parsed.data.speciesId);
-    revalidatePaths("/onboarding/pet-egg", "/pet", "/today", "/shop", "/backpack", "/pokedex", "/history");
+    revalidatePaths("/onboarding/pet-egg", "/pet", "/pet/3d", "/today", "/shop", "/backpack", "/pokedex", "/history");
     return ok(result, result.status === "already-has-pet" ? zhCN.feedback.starterPetExists : zhCN.feedback.starterPetGranted);
   } catch (error) {
     return fail(toErrorMessage(error), 500);

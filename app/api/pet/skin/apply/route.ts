@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     const pet = await applyPetSkin(user.id, parsed.data.userPetId, parsed.data.skinId);
-    revalidatePaths("/pet", "/backpack", "/pokedex", "/dashboard");
+    revalidatePaths("/pet", "/pet/3d", "/backpack", "/pokedex", "/dashboard");
     return ok(pet, zhCN.feedback.petSkinUpdated);
   } catch (error) {
     return fail(toErrorMessage(error), 500);

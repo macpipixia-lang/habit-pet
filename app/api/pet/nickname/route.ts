@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     const pet = await updatePetNickname(user.id, parsed.data.userPetId, parsed.data.nickname || undefined);
-    revalidatePaths("/pet", "/backpack", "/pokedex", "/dashboard");
+    revalidatePaths("/pet", "/pet/3d", "/backpack", "/pokedex", "/dashboard");
     return ok(pet, zhCN.feedback.petNicknameUpdated);
   } catch (error) {
     return fail(toErrorMessage(error), 500);

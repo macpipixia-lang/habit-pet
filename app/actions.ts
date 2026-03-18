@@ -192,6 +192,7 @@ export async function completeDailyTaskAction(formData: FormData) {
     revalidatePath("/shop");
     revalidatePath("/backpack");
     revalidatePath("/pet");
+    revalidatePath("/pet/3d");
     revalidatePath("/history");
     redirect("/today?success=task-completed");
   } catch (error) {
@@ -215,6 +216,7 @@ export async function purchaseShopItemAction(formData: FormData) {
     revalidatePath("/shop");
     revalidatePath("/today");
     revalidatePath("/pet");
+    revalidatePath("/pet/3d");
     revalidatePath("/pokedex");
     revalidatePath("/history");
 
@@ -240,6 +242,7 @@ export async function buyMakeupCardAction(_formData: FormData) {
     revalidatePath("/shop");
     revalidatePath("/today");
     revalidatePath("/pet");
+    revalidatePath("/pet/3d");
     revalidatePath("/history");
     redirect("/shop?success=purchased");
   } catch (error) {
@@ -264,6 +267,7 @@ export async function purchasePetEggAction(formData: FormData) {
     revalidatePath("/shop");
     revalidatePath("/shop/pet-egg");
     revalidatePath("/pet");
+    revalidatePath("/pet/3d");
     revalidatePath("/pokedex");
     revalidatePath("/history");
     redirect("/pet?success=pet-unlocked");
@@ -287,6 +291,7 @@ export async function grantStarterPetAction(formData: FormData) {
     const result = await grantStarterPet(user.id, parsed.data.speciesId);
     revalidatePath("/onboarding/pet-egg");
     revalidatePath("/pet");
+    revalidatePath("/pet/3d");
     revalidatePath("/today");
     revalidatePath("/shop");
     revalidatePath("/backpack");
@@ -319,6 +324,7 @@ export async function setActivePetAction(formData: FormData) {
 
     await setActivePet(user.id, parsed.data.userPetId);
     revalidatePath("/pet");
+    revalidatePath("/pet/3d");
     revalidatePath("/backpack");
     revalidatePath("/today");
     redirect(`${redirectTo}?success=active-pet-updated`);
@@ -344,6 +350,7 @@ export async function updatePetNicknameAction(formData: FormData) {
 
     await updatePetNickname(user.id, parsed.data.userPetId, parsed.data.nickname || undefined);
     revalidatePath("/pet");
+    revalidatePath("/pet/3d");
     revalidatePath("/backpack");
     revalidatePath("/pokedex");
     redirect(`${redirectTo}?success=pet-nickname-updated`);
@@ -369,6 +376,7 @@ export async function applyPetSkinAction(formData: FormData) {
 
     await applyPetSkin(user.id, parsed.data.userPetId, parsed.data.skinId);
     revalidatePath("/pet");
+    revalidatePath("/pet/3d");
     revalidatePath("/backpack");
     revalidatePath("/pokedex");
     redirect(`${redirectTo}?success=pet-skin-updated`);
@@ -384,6 +392,7 @@ export async function useMakeupCardAction(_formData: FormData) {
     await useYesterdayMakeupCard(user.id);
     revalidatePath("/today");
     revalidatePath("/pet");
+    revalidatePath("/pet/3d");
     revalidatePath("/shop");
     revalidatePath("/history");
     redirect("/today?success=makeup-used");
@@ -412,6 +421,7 @@ export async function adminCompleteDailyTaskAction(formData: FormData) {
     revalidatePath("/shop");
     revalidatePath("/backpack");
     revalidatePath("/pet");
+    revalidatePath("/pet/3d");
     revalidatePath("/history");
     redirect(`/admin/today?user=${encodeURIComponent(parsed.data.userQuery)}&success=task-audit-updated`);
   } catch (error) {
@@ -439,6 +449,7 @@ export async function adminRevertDailyTaskAction(formData: FormData) {
     revalidatePath("/shop");
     revalidatePath("/backpack");
     revalidatePath("/pet");
+    revalidatePath("/pet/3d");
     revalidatePath("/history");
     redirect(`/admin/today?user=${encodeURIComponent(parsed.data.userQuery)}&success=task-audit-updated`);
   } catch (error) {

@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { completeDailyTask, getDashboardState } from "@/lib/data";
 import { zhCN } from "@/lib/i18n/zhCN";
 import { dailyTaskActionSchema } from "@/lib/validation";
+import { revalidatePaths } from "@/app/api/_utils";
 
 function toMessage(error: unknown) {
   if (error instanceof Error) {
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
     }
 
     const result = await completeDailyTask(user.id, parsed.data.taskSlug);
+    revalidatePaths("/today", "/pet", "/pet/3d", "/shop", "/history", "/backpack", "/dashboard");
     const profileSummary =
       "profile" in result && result.profile
         ? {

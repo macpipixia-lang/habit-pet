@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     const result = await purchasePetEgg(user.id, parsed.data.itemId, parsed.data.speciesId);
-    revalidatePaths("/shop", "/shop/pet-egg", "/pet", "/pokedex", "/history", "/backpack");
+    revalidatePaths("/shop", "/shop/pet-egg", "/pet", "/pet/3d", "/pokedex", "/history", "/backpack");
     return ok(result, zhCN.feedback.petUnlocked);
   } catch (error) {
     return fail(toErrorMessage(error), 500);

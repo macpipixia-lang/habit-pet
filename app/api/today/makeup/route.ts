@@ -11,7 +11,7 @@ export async function POST() {
 
   try {
     const result = await useYesterdayMakeupCard(user.id);
-    revalidatePaths("/today", "/pet", "/shop", "/history", "/backpack", "/dashboard");
+    revalidatePaths("/today", "/pet", "/pet/3d", "/shop", "/history", "/backpack", "/dashboard");
     return ok(result, zhCN.feedback.makeupApplied);
   } catch (error) {
     return fail(toErrorMessage(error), 500);

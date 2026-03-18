@@ -5,7 +5,7 @@ import { Card, Pill } from "@/components/ui";
 import { formatText, zhCN } from "@/lib/i18n/zhCN";
 import { formatNumber } from "@/lib/utils";
 import { Pet3DViewer } from "@/modules/pet3d/Pet3DViewer";
-import { getPet3DModelSrc, type Pet3DActivePet } from "@/modules/pet3d/pet3d";
+import { getPet3DModelSrc, getPet3DViewerKey, type Pet3DActivePet } from "@/modules/pet3d/pet3d";
 
 type Pet3DCardProps = {
   pet: Pet3DActivePet;
@@ -13,6 +13,7 @@ type Pet3DCardProps = {
 
 export function Pet3DCard({ pet }: Pet3DCardProps) {
   const modelSrc = getPet3DModelSrc(pet);
+  const viewerKey = getPet3DViewerKey(pet);
 
   return (
     <div className="space-y-6">
@@ -38,7 +39,7 @@ export function Pet3DCard({ pet }: Pet3DCardProps) {
             <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.pet.mode3dDescription}</p>
           </div>
           <div className="px-6 py-6">
-            <Pet3DViewer modelSrc={modelSrc} petName={pet.displayName} />
+            <Pet3DViewer viewerKey={viewerKey} modelSrc={modelSrc} petName={pet.displayName} />
           </div>
         </Card>
 

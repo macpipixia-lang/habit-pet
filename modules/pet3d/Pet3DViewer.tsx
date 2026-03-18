@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { PET_3D_ACTIONS, type Pet3DAction } from "@/modules/pet3d/pet3d";
 
 type Pet3DViewerProps = {
+  viewerKey: string;
   modelSrc: string;
   petName: string;
 };
@@ -16,7 +17,7 @@ type ToastState = {
   message: string;
 } | null;
 
-export function Pet3DViewer({ modelSrc, petName }: Pet3DViewerProps) {
+export function Pet3DViewer({ viewerKey, modelSrc, petName }: Pet3DViewerProps) {
   const viewerRef = useRef<ModelViewerElement | null>(null);
   const [selectedAction, setSelectedAction] = useState<Pet3DAction>("Idle");
   const [toast, setToast] = useState<ToastState>(null);
@@ -85,7 +86,7 @@ export function Pet3DViewer({ modelSrc, petName }: Pet3DViewerProps) {
       <div className="relative overflow-hidden rounded-[2rem] border border-line bg-[radial-gradient(circle_at_top,_rgba(250,204,21,0.16),_transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.12))] p-3">
         <model-viewer
           ref={viewerRef}
-          key={modelSrc}
+          key={viewerKey}
           src={modelSrc}
           camera-controls
           shadow-intensity="1"

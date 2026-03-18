@@ -13,6 +13,7 @@ export type Pet3DActivePet = {
     modelGlbUrl?: string | null;
   };
   currentStage: {
+    id: string;
     nameZh: string;
     modelGlbUrl?: string | null;
   };
@@ -25,8 +26,13 @@ export function isPet3DEnabled() {
   return process.env.PET_3D_ENABLED === "true";
 }
 
-export function getPet3DModelSrc(_pet: Pet3DActivePet) {
-  return _pet.currentStage.modelGlbUrl || _pet.species.modelGlbUrl || PET_3D_PLACEHOLDER_MODEL;
+export function getPet3DModelSrc(pet: Pet3DActivePet) {
+  // 3D 模型必须按“当前出战宠物 + 当前阶段”解析，避免回退顺序被后续改坏。
+  return pet.currentStage.modelGlbUrl || pet.species.modelGlbUrl || PET_3D_PLACEHOLDER_MODEL;
+}
+
+export function getPet3DViewerKey(pet: Pet3DActivePet) {
+  return `${pet.id}:${pet.currentStage.id}:${getPet3DModelSrc(pet)}`;
 }
 
 export function getPet3DActionLabel(action: Pet3DAction, labels: Record<Pet3DAction, string>) {
