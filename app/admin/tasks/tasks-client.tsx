@@ -27,6 +27,7 @@ export function AdminTasksClient({
   const [tasks, setTasks] = useState(initialTasks);
   const { notify } = useAdminNotice(initialNotice);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
+  const [syncUserQuery, setSyncUserQuery] = useState("");
   const taskOptions = tasks.map((task) => ({ value: task.slug, label: `${task.slug} · ${task.nameZh}` }));
 
   async function handleSave(formData: FormData, form?: HTMLFormElement | null) {
@@ -58,8 +59,55 @@ export function AdminTasksClient({
     }
   }
 
+  async function handleSyncTodayTasks() {
+    if (!syncUserQuery.trim()) {
+      notify({ type: "error", text: zhCN.feedback.invalidInput });
+      return;
+    }
+
+    setPendingKey("sync-today");
+
+    try {
+      const result = await postAdminJson<{ addedCount: number; totalCount: number }>("/api/admin/tasks/sync-today", {
+        userQuery: syncUserQuery.trim(),
+      });
+      notify({ type: "success", text: result.message ?? zhCN.admin.syncTodayTasksNoChange });
+    } catch (error) {
+      notify({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
+    } finally {
+      setPendingKey(null);
+    }
+  }
+
   return (
     <>
+      <Card>
+        <Pill className="text-accentWarm">{zhCN.admin.syncTodayTasksTitle}</Pill>
+        <p className="mt-3 text-sm leading-7 text-mist">{zhCN.admin.syncTodayTasksDescription}</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
+          <div className="space-y-2">
+            <label className="text-sm text-mist" htmlFor="syncUserQuery">
+              {zhCN.admin.syncTodayTasksUserLabel}
+            </label>
+            <input
+              id="syncUserQuery"
+              value={syncUserQuery}
+              onChange={(event) => setSyncUserQuery(event.target.value)}
+              placeholder={zhCN.admin.syncTodayTasksUserPlaceholder}
+              className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+            />
+          </div>
+          <button
+            type="button"
+            disabled={pendingKey === "sync-today"}
+            onClick={() => void handleSyncTodayTasks()}
+            className="self-end rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950 disabled:opacity-70"
+          >
+            {pendingKey === "sync-today" ? zhCN.auth.submitting : zhCN.admin.syncTodayTasksButton}
+          </button>
+        </div>
+      </Card>
+
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <Card>
           <Pill className="text-accent">{zhCN.admin.createTaskTitle}</Pill>

@@ -1462,6 +1462,52 @@ export async function adminRevertDailyTask(userQuery: string, taskSlug: string, 
   return revertDailyTaskForUser(userId, taskSlug, adminId);
 }
 
+export async function adminSyncTodayTasks(userQuery: string) {
+  const userId = await resolveUserIdFromQuery(userQuery);
+  const { today } = getShanghaiDateParts();
+
+  return prisma.$transaction(async (tx) => {
+    const log = await ensureLogForDate(tx, userId, today);
+    const unlockedTasks = await getAvailableTaskDefinitionsForUserFromDb(tx, userId, today);
+    const existingSnapshots = parseTasksJson(log.tasksJson);
+    const snapshotBySlug = new Map(existingSnapshots.map((task) => [task.slug, task]));
+
+    let addedCount = 0;
+
+    for (const task of unlockedTasks) {
+      if (!snapshotBySlug.has(task.slug)) {
+        addedCount += 1;
+      }
+
+      snapshotBySlug.set(task.slug, {
+        ...(snapshotBySlug.get(task.slug) ?? mapTaskDefinitionToDailyTaskSnapshot(task)),
+        id: task.slug,
+        slug: task.slug,
+        nameZh: task.nameZh,
+        descriptionZh: task.descriptionZh,
+        exp: task.exp,
+        points: task.points,
+      });
+    }
+
+    const mergedSnapshots = Array.from(snapshotBySlug.values());
+
+    await tx.dailyLog.update({
+      where: { id: log.id },
+      data: {
+        tasksJson: serializeTaskSnapshots(mergedSnapshots),
+      },
+    });
+
+    return {
+      userId,
+      dateKey: today,
+      addedCount,
+      totalCount: mergedSnapshots.length,
+    };
+  });
+}
+
 export async function setActivePet(userId: string, userPetId: string) {
   return prisma.$transaction(async (tx) => {
     const pet = await tx.userPet.findUnique({

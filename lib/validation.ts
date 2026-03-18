@@ -80,6 +80,10 @@ export const adminDailyTaskAuditSchema = z.object({
     .regex(/^[a-z0-9-]+$/, zhCN.validation.taskSlugPattern),
 });
 
+export const adminUserQuerySchema = z.object({
+  userQuery: z.string().trim().min(1, zhCN.feedback.invalidInput),
+});
+
 export const adminLoginSchema = z.object({
   secret: z.string().min(1, zhCN.feedback.invalidInput),
 });
