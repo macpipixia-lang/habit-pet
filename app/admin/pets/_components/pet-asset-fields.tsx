@@ -13,9 +13,11 @@ import {
 export function PetAssetFields({
   initialCoverImageUrl,
   initialModelGlbUrl,
+  onUploadResult,
 }: Readonly<{
   initialCoverImageUrl?: string | null;
   initialModelGlbUrl?: string | null;
+  onUploadResult: (type: "success" | "error", message: string) => void;
 }>) {
   const [coverImageUrl, setCoverImageUrl] = useState(initialCoverImageUrl ?? "");
   const [modelGlbUrl, setModelGlbUrl] = useState(initialModelGlbUrl ?? "");
@@ -39,9 +41,12 @@ export function PetAssetFields({
 
     try {
       const payload = await uploadBlobFile(file, folder);
+      onUploadResult("success", zhCN.admin.uploadSuccess);
       onSuccess(payload);
     } catch (error) {
-      onError(error instanceof Error ? error.message : zhCN.feedback.fallbackError);
+      const message = error instanceof Error ? error.message : zhCN.feedback.fallbackError;
+      onUploadResult("error", message);
+      onError(message);
     }
   }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useToast } from "@/components/toast-provider";
 import { zhCN } from "@/lib/i18n/zhCN";
 
 export function CopyCodeButton({
@@ -10,23 +10,20 @@ export function CopyCodeButton({
   code: string;
   className?: string;
 }) {
-  const [message, setMessage] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(code);
-      setMessage(zhCN.feedback.copySuccess);
+      showToast("success", zhCN.feedback.copySuccess);
     } catch {
-      setMessage(zhCN.feedback.copyFailed);
+      showToast("error", zhCN.feedback.copyFailed);
     }
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <button type="button" onClick={handleCopy} className={className}>
-        {zhCN.shop.copyButton}
-      </button>
-      {message ? <p className="text-xs text-mist">{message}</p> : null}
-    </div>
+    <button type="button" onClick={handleCopy} className={className}>
+      {zhCN.shop.copyButton}
+    </button>
   );
 }

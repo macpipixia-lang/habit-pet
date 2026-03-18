@@ -25,7 +25,7 @@ export function AdminTasksClient({
   initialNotice: { type: "error" | "success"; text: string } | null;
 }) {
   const [tasks, setTasks] = useState(initialTasks);
-  const [notice, setNotice] = useAdminNotice(initialNotice);
+  const { notify } = useAdminNotice(initialNotice);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const taskOptions = tasks.map((task) => ({ value: task.slug, label: `${task.slug} · ${task.nameZh}` }));
 
@@ -50,9 +50,9 @@ export function AdminTasksClient({
         form.reset();
       }
 
-      setNotice({ type: "success", text: result.message ?? zhCN.feedback.taskSaved });
+      notify({ type: "success", text: result.message ?? zhCN.feedback.taskSaved });
     } catch (error) {
-      setNotice({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
+      notify({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
     } finally {
       setPendingKey(null);
     }
@@ -60,7 +60,6 @@ export function AdminTasksClient({
 
   return (
     <>
-      <AdminNoticeCard notice={notice} />
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <Card>
           <Pill className="text-accent">{zhCN.admin.createTaskTitle}</Pill>

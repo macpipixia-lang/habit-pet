@@ -535,6 +535,7 @@ export async function savePetAction(formData: FormData) {
 
     let parsedStageAssets: Array<{
       id: string;
+      nameZh: string;
       coverImageUrl?: string;
       modelGlbUrl?: string;
     }> = [];

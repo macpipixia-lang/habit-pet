@@ -1,4 +1,7 @@
-import { Card } from "@/components/ui";
+"use client";
+
+import { useEffect } from "react";
+import { useToast } from "@/components/toast-provider";
 
 export function AdminFeedback({
   error,
@@ -7,18 +10,18 @@ export function AdminFeedback({
   error: string | null;
   successMessage: string | null;
 }>) {
-  if (error) {
-    return <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card>;
-  }
+  const { showToast } = useToast();
 
-  if (successMessage) {
-    return (
-      <Card className="border-success/40 bg-emerald-500/10 text-sm text-emerald-100">
-        {successMessage}
-      </Card>
-    );
-  }
+  useEffect(() => {
+    if (error) {
+      showToast("error", error);
+      return;
+    }
+
+    if (successMessage) {
+      showToast("success", successMessage);
+    }
+  }, [error, showToast, successMessage]);
 
   return null;
 }
-

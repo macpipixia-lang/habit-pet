@@ -30,7 +30,7 @@ export function AdminCodesClient({
   statusFilter?: string;
 }) {
   const [codes, setCodes] = useState(initialCodes);
-  const [notice, setNotice] = useAdminNotice(initialNotice);
+  const { notify } = useAdminNotice(initialNotice);
   const [pendingCode, setPendingCode] = useState<string | null>(null);
 
   async function handleUpdate(codeId: string, status: "REDEEMED" | "VOID", adminNote: string) {
@@ -68,9 +68,9 @@ export function AdminCodesClient({
         return [next];
       }));
 
-      setNotice({ type: "success", text: result.message ?? zhCN.feedback.codeUpdated });
+      notify({ type: "success", text: result.message ?? zhCN.feedback.codeUpdated });
     } catch (error) {
-      setNotice({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
+      notify({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
     } finally {
       setPendingCode(null);
     }
@@ -78,7 +78,6 @@ export function AdminCodesClient({
 
   return (
     <>
-      <AdminNoticeCard notice={notice} />
       <Card>
         <Pill className="text-accent">{zhCN.admin.codesBadge}</Pill>
         <h2 className="mt-4 text-2xl font-semibold text-white">{zhCN.admin.codesTitle}</h2>

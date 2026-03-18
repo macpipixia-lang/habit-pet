@@ -2251,6 +2251,7 @@ type PetMutationInput = {
 
 type PetStageAssetMutationInput = Array<{
   id: string;
+  nameZh: string;
   coverImageUrl?: string;
   modelGlbUrl?: string;
 }>;
@@ -2349,6 +2350,7 @@ export async function updatePetStagesAssets(petId: string, stages: PetStageAsset
       prisma.petStage.update({
         where: { id: stage.id },
         data: {
+          nameZh: stage.nameZh,
           coverImageUrl: stage.coverImageUrl,
           modelGlbUrl: stage.modelGlbUrl,
         },

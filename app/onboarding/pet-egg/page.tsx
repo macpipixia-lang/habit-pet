@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { grantStarterPetAction } from "@/app/actions";
+import { ClientActionForm } from "@/components/client-action-form";
 import { Card, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { getStarterPetOnboardingState } from "@/lib/data";
@@ -7,14 +7,12 @@ import { zhCN } from "@/lib/i18n/zhCN";
 import { getPetVisual } from "@/lib/pets";
 
 export default async function PetEggOnboardingPage({
-  searchParams,
+  searchParams: _searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const user = await requireUser();
-  const params = (await searchParams) ?? {};
   const state = await getStarterPetOnboardingState(user.id);
-  const error = typeof params.error === "string" ? params.error : null;
 
   if (state.hasPets) {
     redirect("/dashboard");
@@ -22,7 +20,6 @@ export default async function PetEggOnboardingPage({
 
   return (
     <div className="space-y-6">
-      {error ? <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card> : null}
       <Card>
         <Pill className="text-accent">{zhCN.nav.onboarding}</Pill>
         <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.onboarding.title}</h1>
@@ -51,12 +48,12 @@ export default async function PetEggOnboardingPage({
                   <p className="mt-3 text-sm leading-7 text-mist">{species.descriptionZh}</p>
                 </div>
                 <div className="px-6 py-6">
-                  <form action={grantStarterPetAction}>
+                  <ClientActionForm action="/api/onboarding/pet/grant" successMessage={zhCN.feedback.starterPetGranted} redirectTo="/pet" refreshOnSuccess={false}>
                     <input type="hidden" name="speciesId" value={species.id} />
                     <button className="w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950">
                       {zhCN.onboarding.chooseButton}
                     </button>
-                  </form>
+                  </ClientActionForm>
                 </div>
               </Card>
             );

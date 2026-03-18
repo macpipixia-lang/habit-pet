@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/toast-provider";
 import { zhCN } from "@/lib/i18n/zhCN";
 
 export function CouponCodeModal({
@@ -12,15 +13,15 @@ export function CouponCodeModal({
   itemName: string;
 }) {
   const router = useRouter();
-  const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const { showToast } = useToast();
   const [isPending, startTransition] = useTransition();
 
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(code);
-      setCopyMessage(zhCN.feedback.copySuccess);
+      showToast("success", zhCN.feedback.copySuccess);
     } catch {
-      setCopyMessage(zhCN.feedback.copyFailed);
+      showToast("error", zhCN.feedback.copyFailed);
     }
   }
 
@@ -40,7 +41,6 @@ export function CouponCodeModal({
           <p className="text-sm text-mist">{zhCN.shop.couponCodeLabel}</p>
           <p className="mt-2 break-all text-lg font-semibold text-white">{code}</p>
         </div>
-        {copyMessage ? <p className="mt-3 text-sm text-accent">{copyMessage}</p> : null}
         <div className="mt-6 flex gap-3">
           <button
             type="button"

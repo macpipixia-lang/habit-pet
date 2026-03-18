@@ -1,6 +1,7 @@
-import { put } from "@vercel/blob";
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/auth";
+import { zhCN } from "@/lib/i18n/zhCN";
 
 export const runtime = "nodejs";
 
@@ -8,17 +9,22 @@ function sanitizeSegment(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9.-]+/g, "-").replace(/^-+|-+$/g, "") || "file";
 }
 
-async function putBlob(
-  pathname: string,
-  file: File,
-  token: string,
-): Promise<{ url: string; pathname: string; contentType?: string | null }> {
-  return put(pathname, file, {
-    access: "public",
-    token,
-    addRandomSuffix: false,
-    contentType: file.type || undefined,
-  });
+function toUploadErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : zhCN.admin.blobUploadFailed;
+
+  if (message.includes('access must be "public"')) {
+    return zhCN.admin.blobStorePublicOnly;
+  }
+
+  if (message.includes("store does not exist") || message.includes("store has been suspended")) {
+    return zhCN.admin.blobStoreUnavailable;
+  }
+
+  if (message.includes("BLOB_READ_WRITE_TOKEN")) {
+    return zhCN.admin.blobTokenMissing;
+  }
+
+  return message;
 }
 
 export async function POST(request: Request) {
@@ -31,34 +37,57 @@ export async function POST(request: Request) {
 
     if (!process.env.BLOB_READ_WRITE_TOKEN) {
       return NextResponse.json(
-        { error: "BLOB_READ_WRITE_TOKEN 未配置，当前环境无法上传文件。" },
+        { error: zhCN.admin.blobTokenMissing },
         { status: 500 },
       );
     }
 
-    const formData = await request.formData();
-    const file = formData.get("file");
-    const folderValue = typeof formData.get("folder") === "string" ? String(formData.get("folder")) : "pet-assets";
-    const folder = sanitizeSegment(folderValue);
+    const body = (await request.json()) as HandleUploadBody;
 
-    if (!(file instanceof File) || file.size === 0) {
-      return NextResponse.json({ error: "未检测到可上传的文件。" }, { status: 400 });
-    }
+    const result = await handleUpload({
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      request,
+      body,
+      onBeforeGenerateToken: async (pathname, clientPayload, multipart) => {
+        const parsedPayload = (() => {
+          if (!clientPayload) {
+            return null;
+          }
 
-    const extension = file.name.includes(".") ? `.${sanitizeSegment(file.name.split(".").pop() ?? "")}` : "";
-    const basename = file.name.replace(/\.[^.]+$/, "");
-    const pathname = `${folder}/${Date.now()}-${sanitizeSegment(basename)}${extension}`;
+          try {
+            return JSON.parse(clientPayload) as { folder?: string; contentType?: string | null; kind?: string | null };
+          } catch {
+            return null;
+          }
+        })();
+        const folder = sanitizeSegment(parsedPayload?.folder ?? "pet-assets");
+        const requestedName = pathname.split("/").pop() ?? pathname;
+        const extension = requestedName.includes(".") ? `.${sanitizeSegment(requestedName.split(".").pop() ?? "")}` : "";
+        const basename = requestedName.replace(/\.[^.]+$/, "");
+        const isImage = (parsedPayload?.contentType ?? "").startsWith("image/");
+        const isGlb = parsedPayload?.contentType === "model/gltf-binary" || extension === ".glb";
 
-    const blob = await putBlob(pathname, file, process.env.BLOB_READ_WRITE_TOKEN);
+        if (!isImage && !isGlb) {
+          throw new Error(zhCN.admin.blobUploadTypeInvalid);
+        }
 
-    return NextResponse.json({
-      url: blob.url,
-      pathname: blob.pathname,
-      contentType: blob.contentType ?? file.type ?? null,
-      size: file.size,
+        return {
+          allowedContentTypes: isImage ? ["image/*"] : ["model/gltf-binary", "application/octet-stream"],
+          maximumSizeInBytes: isImage ? 10 * 1024 * 1024 : 200 * 1024 * 1024,
+          addRandomSuffix: false,
+          validUntil: Date.now() + 60 * 1000,
+          tokenPayload: JSON.stringify({
+            folder,
+            kind: isImage ? "image" : "glb",
+            multipart,
+          }),
+        };
+      },
+      onUploadCompleted: async () => {},
     });
+
+    return NextResponse.json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "上传失败，请稍后重试。";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: toUploadErrorMessage(error) }, { status: 500 });
   }
 }

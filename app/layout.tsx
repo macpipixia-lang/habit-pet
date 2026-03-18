@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/app-shell";
+import { ToastProvider } from "@/components/toast-provider";
 import { zhCN } from "@/lib/i18n/zhCN";
 import "./globals.css";
 
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className="dark">
       <body>
-        <AppShell>{children}</AppShell>
+        <ToastProvider>
+          <AppShell>{children}</AppShell>
+        </ToastProvider>
       </body>
     </html>
   );

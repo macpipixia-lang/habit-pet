@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useToast } from "@/components/toast-provider";
 import { Card, Pill } from "@/components/ui";
 import { zhCN } from "@/lib/i18n/zhCN";
-import { AdminNoticeCard, postAdminJson } from "@/app/admin/_components/admin-client";
+import { useAdminNotice, postAdminJson } from "@/app/admin/_components/admin-client";
 import { PetAssetFields } from "./pet-asset-fields";
 import { PetStageAssetFields } from "./pet-stage-asset-fields";
 
@@ -43,13 +44,13 @@ export function PetForm({
 }>) {
   const blobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
   const [formPet, setFormPet] = useState<PetFormValue | null>(pet ?? null);
-  const [notice, setNotice] = useState(initialNotice ?? null);
+  const { notify } = useAdminNotice(initialNotice);
+  const { showToast } = useToast();
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
-    setNotice(null);
 
     try {
       const formData = new FormData(event.currentTarget);
@@ -63,9 +64,9 @@ export function PetForm({
       });
 
       setFormPet(result.data ?? formPet);
-      setNotice({ type: "success", text: result.message ?? zhCN.feedback.petSaved });
+      notify({ type: "success", text: result.message ?? zhCN.feedback.petSaved });
     } catch (error) {
-      setNotice({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
+      notify({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
     } finally {
       setPending(false);
     }
@@ -73,7 +74,6 @@ export function PetForm({
 
   return (
     <div className="space-y-6">
-      <AdminNoticeCard notice={notice} />
       {!blobConfigured ? (
         <Card className="border-amber-300/30 bg-amber-400/10">
           <Pill className="text-accentWarm">{zhCN.admin.envMissingTitle}</Pill>
@@ -193,9 +193,12 @@ export function PetForm({
           <PetAssetFields
             initialCoverImageUrl={formPet?.coverImageUrl}
             initialModelGlbUrl={formPet?.modelGlbUrl}
+            onUploadResult={(type, message) => showToast(type, message)}
           />
 
-          {formPet?.id ? <PetStageAssetFields stages={formPet.stages ?? []} /> : null}
+          {formPet?.id ? (
+            <PetStageAssetFields stages={formPet.stages ?? []} onUploadResult={(type, message) => showToast(type, message)} />
+          ) : null}
 
           <button disabled={pending} className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950 disabled:opacity-70">
             {pending ? zhCN.auth.submitting : submitLabel}

@@ -27,7 +27,7 @@ export function AdminPetsClient({
   initialNotice: { type: "error" | "success"; text: string } | null;
 }) {
   const [pets, setPets] = useState(initialPets);
-  const [notice, setNotice] = useAdminNotice(initialNotice);
+  const { notify } = useAdminNotice(initialNotice);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
 
   async function handleSortSave(formData: FormData) {
@@ -39,9 +39,9 @@ export function AdminPetsClient({
       const result = await postAdminJson<AdminPet>("/api/admin/pets/save", payload);
       const savedPet = result.data!;
       setPets((current) => current.map((pet) => (pet.id === savedPet.id ? { ...pet, ...savedPet } : pet)));
-      setNotice({ type: "success", text: result.message ?? zhCN.feedback.petSaved });
+      notify({ type: "success", text: result.message ?? zhCN.feedback.petSaved });
     } catch (error) {
-      setNotice({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
+      notify({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
     } finally {
       setPendingKey(null);
     }
@@ -56,10 +56,10 @@ export function AdminPetsClient({
       const result = await postAdminJson<AdminPet>("/api/admin/pets/toggle", { petId });
       const updatedPet = result.data!;
       setPets((current) => current.map((pet) => (pet.id === updatedPet.id ? { ...pet, ...updatedPet } : pet)));
-      setNotice({ type: "success", text: result.message ?? zhCN.feedback.petStatusUpdated });
+      notify({ type: "success", text: result.message ?? zhCN.feedback.petStatusUpdated });
     } catch (error) {
       setPets(previousPets);
-      setNotice({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
+      notify({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
     } finally {
       setPendingKey(null);
     }
@@ -67,7 +67,6 @@ export function AdminPetsClient({
 
   return (
     <>
-      <AdminNoticeCard notice={notice} />
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

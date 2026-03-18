@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useMakeupCardAction } from "@/app/actions";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/toast-provider";
 import { Card, Pill } from "@/components/ui";
 import { LEVEL_EXP_THRESHOLDS, MAX_LEVEL } from "@/lib/constants";
+import { postJson } from "@/lib/client-api";
 import { formatText, zhCN } from "@/lib/i18n/zhCN";
 import { formatNumber } from "@/lib/utils";
 
@@ -99,13 +101,9 @@ export function TodayClient({
   const [tasks, setTasks] = useState(initialTasks);
   const [profile, setProfile] = useState(initialProfile);
   const [pendingTaskSlug, setPendingTaskSlug] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(
-    initialError
-      ? { type: "error", text: initialError }
-      : initialSuccess
-        ? { type: "success", text: initialSuccess }
-        : null,
-  );
+  const [makeupPending, setMakeupPending] = useState(false);
+  const router = useRouter();
+  const { showToast } = useToast();
 
   const expIntoLevel = getExpIntoCurrentLevel(profile.exp);
   const levelSpan = profile.level >= MAX_LEVEL ? expIntoLevel : getExpRequiredForLevel(profile.level);
@@ -121,61 +119,48 @@ export function TodayClient({
 
     const previousTasks = tasks;
     setPendingTaskSlug(taskSlug);
-    setMessage(null);
     setTasks((current) =>
       current.map((task) => (task.slug === taskSlug ? { ...task, completed: true } : task)),
     );
 
     try {
-      const response = await fetch("/api/today/complete", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ taskSlug }),
-      });
-      const payload = (await response.json()) as {
-        ok: boolean;
-        error?: string;
+      const result = await postJson<{
         profileSummary?: ProfileSummary;
-      };
+      }>("/api/today/complete", { taskSlug });
 
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || zhCN.today.completeFailed);
+      if (result.data?.profileSummary) {
+        setProfile(result.data.profileSummary);
       }
 
-      if (payload.profileSummary) {
-        setProfile(payload.profileSummary);
-      }
-
-      setMessage({
-        type: "success",
-        text: zhCN.feedback.taskCompleted,
-      });
+      showToast("success", zhCN.feedback.taskCompleted);
     } catch (error) {
       setTasks(previousTasks);
-      setMessage({
-        type: "error",
-        text: error instanceof Error ? error.message : zhCN.today.completeFailed,
-      });
+      showToast("error", error instanceof Error ? error.message : zhCN.today.completeFailed);
     } finally {
       setPendingTaskSlug(null);
     }
   }
 
+  async function handleMakeup() {
+    if (makeupPending) {
+      return;
+    }
+
+    setMakeupPending(true);
+
+    try {
+      await postJson("/api/today/makeup", {});
+      showToast("success", zhCN.feedback.makeupApplied);
+      router.refresh();
+    } catch (error) {
+      showToast("error", error instanceof Error ? error.message : zhCN.feedback.fallbackError);
+    } finally {
+      setMakeupPending(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
-      {message ? (
-        <Card
-          className={
-            message.type === "error"
-              ? "border-danger/40 bg-danger/10 text-sm text-red-100"
-              : "border-success/40 bg-emerald-500/10 text-sm text-emerald-100"
-          }
-        >
-          {message.text}
-        </Card>
-      ) : null}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Card>
           <p className="text-sm text-mist">{zhCN.today.streak}</p>
@@ -334,11 +319,16 @@ export function TodayClient({
               <Pill className="text-accentWarm">{zhCN.today.recoveryBadge}</Pill>
               <h2 className="mt-4 text-xl font-semibold text-white">{zhCN.today.makeupPromptTitle}</h2>
               <p className="mt-2 text-sm leading-7 text-mist">{zhCN.today.makeupPromptDescription}</p>
-              <form action={useMakeupCardAction} className="mt-4">
-                <button className="w-full rounded-2xl border border-line px-4 py-3 text-sm text-white transition hover:border-white/20">
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => void handleMakeup()}
+                  disabled={makeupPending}
+                  className="w-full rounded-2xl border border-line px-4 py-3 text-sm text-white transition hover:border-white/20 disabled:opacity-70"
+                >
                   {zhCN.today.recoveryButton}
                 </button>
-              </form>
+              </div>
             </Card>
           ) : null}
         </div>

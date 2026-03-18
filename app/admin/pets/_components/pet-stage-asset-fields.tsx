@@ -27,6 +27,7 @@ type StageUploadState = {
 
 export function PetStageAssetFields({
   stages,
+  onUploadResult,
 }: Readonly<{
   stages: Array<{
     id: string;
@@ -35,6 +36,7 @@ export function PetStageAssetFields({
     coverImageUrl?: string | null;
     modelGlbUrl?: string | null;
   }>;
+  onUploadResult: (type: "success" | "error", message: string) => void;
 }>) {
   const [stageValues, setStageValues] = useState<StageAssetValue[]>(
     stages.map((stage) => ({
@@ -62,12 +64,13 @@ export function PetStageAssetFields({
   const serializedValue = JSON.stringify(
     stageValues.map((stage) => ({
       id: stage.id,
+      nameZh: stage.nameZh.trim(),
       coverImageUrl: stage.coverImageUrl.trim(),
       modelGlbUrl: stage.modelGlbUrl.trim(),
     })),
   );
 
-  function updateStageValue(stageId: string, key: "coverImageUrl" | "modelGlbUrl", value: string) {
+  function updateStageValue(stageId: string, key: "nameZh" | "coverImageUrl" | "modelGlbUrl", value: string) {
     setStageValues((current) => current.map((stage) => (stage.id === stageId ? { ...stage, [key]: value } : stage)));
   }
 
@@ -95,12 +98,15 @@ export function PetStageAssetFields({
       if (kind === "cover") {
         updateStageValue(stageId, "coverImageUrl", payload.url);
         updateStageUploadState(stageId, { coverStatus: "success" });
+        onUploadResult("success", zhCN.admin.uploadSuccess);
       } else {
         updateStageValue(stageId, "modelGlbUrl", payload.url);
         updateStageUploadState(stageId, { modelStatus: "success" });
+        onUploadResult("success", zhCN.admin.uploadSuccess);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : zhCN.feedback.fallbackError;
+      onUploadResult("error", message);
       updateStageUploadState(stageId, kind === "cover"
         ? { coverStatus: "error", coverError: message }
         : { modelStatus: "error", modelError: message });
@@ -145,6 +151,17 @@ export function PetStageAssetFields({
                 </div>
 
                 <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm text-mist" htmlFor={`stage-name-${stage.id}`}>
+                      {zhCN.admin.stageNameLabel}
+                    </label>
+                    <input
+                      id={`stage-name-${stage.id}`}
+                      value={stage.nameZh}
+                      onChange={(event) => updateStageValue(stage.id, "nameZh", event.target.value)}
+                      className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                    />
+                  </div>
                   <div className="space-y-2">
                     <label className="text-sm text-mist" htmlFor={`stage-cover-${stage.id}`}>
                       {zhCN.admin.stageAssetsCoverLabel}

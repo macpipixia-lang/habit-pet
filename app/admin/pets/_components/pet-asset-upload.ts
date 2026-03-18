@@ -1,3 +1,4 @@
+import { upload } from "@vercel/blob/client";
 import { zhCN } from "@/lib/i18n/zhCN";
 
 export type UploadStatus = "idle" | "uploading" | "success" | "error";
@@ -30,30 +31,50 @@ export function getFileNameFromUrl(url: string) {
   }
 }
 
+function sanitizeSegment(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9.-]+/g, "-").replace(/^-+|-+$/g, "") || "file";
+}
+
+function buildPathname(file: File, folder: string) {
+  const extension = file.name.includes(".") ? `.${sanitizeSegment(file.name.split(".").pop() ?? "")}` : "";
+  const basename = file.name.replace(/\.[^.]+$/, "");
+  return `${sanitizeSegment(folder)}/${Date.now()}-${sanitizeSegment(basename)}${extension}`;
+}
+
+function toUploadErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : zhCN.admin.blobUploadFailed;
+
+  if (message.includes("Failed to  retrieve the client token")) {
+    return zhCN.admin.blobUploadAuthFailed;
+  }
+
+  if (message.includes("access must be \"public\"")) {
+    return zhCN.admin.blobStorePublicOnly;
+  }
+
+  return message;
+}
+
 export async function uploadBlobFile(file: File, folder: string) {
-  const formData = new FormData();
-  formData.set("file", file);
-  formData.set("folder", folder);
-
-  const response = await fetch("/api/admin/blob/upload", {
-    method: "POST",
-    body: formData,
-  });
-
-  let payload: UploadResponse | { error?: string } | null = null;
-
   try {
-    payload = (await response.json()) as UploadResponse | { error?: string };
-  } catch {
-    if (!response.ok) {
-      throw new Error("上传服务返回异常，请检查 BLOB_READ_WRITE_TOKEN 和网络连接。");
-    }
-    throw new Error(zhCN.feedback.fallbackError);
-  }
+    const payload = await upload(buildPathname(file, folder), file, {
+      access: "public",
+      contentType: file.type || undefined,
+      handleUploadUrl: "/api/admin/blob/upload",
+      clientPayload: JSON.stringify({
+        folder,
+        contentType: file.type || null,
+      }),
+      multipart: file.type === "model/gltf-binary" || file.name.toLowerCase().endsWith(".glb"),
+    });
 
-  if (!response.ok || !payload || !("url" in payload)) {
-    throw new Error((payload && "error" in payload && payload.error) || zhCN.feedback.fallbackError);
+    return {
+      url: payload.url,
+      pathname: payload.pathname,
+      contentType: payload.contentType ?? file.type ?? null,
+      size: file.size,
+    };
+  } catch (error) {
+    throw new Error(toUploadErrorMessage(error));
   }
-
-  return payload;
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { purchasePetEggAction } from "@/app/actions";
+import { ClientActionForm } from "@/components/client-action-form";
 import { Card, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { getPetEggShopState } from "@/lib/data";
@@ -7,14 +7,12 @@ import { formatText, zhCN } from "@/lib/i18n/zhCN";
 import { getPetVisual } from "@/lib/pets";
 
 export default async function PetEggPage({
-  searchParams,
+  searchParams: _searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const user = await requireUser();
-  const params = (await searchParams) ?? {};
   const state = await getPetEggShopState(user.id);
-  const error = typeof params.error === "string" ? params.error : null;
 
   if (!state.item) {
     return <Card className="text-sm text-mist">{zhCN.shop.activeItemsEmpty}</Card>;
@@ -24,7 +22,6 @@ export default async function PetEggPage({
 
   return (
     <div className="space-y-6">
-      {error ? <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card> : null}
       <Card>
         <Pill className="text-accent">{zhCN.shop.kindPetEgg}</Pill>
         <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.shop.petEggTitle}</h1>
@@ -77,13 +74,13 @@ export default async function PetEggPage({
                       </div>
                     ))}
                   </div>
-                  <form action={purchasePetEggAction} className="mt-6">
+                  <ClientActionForm action="/api/shop/pet-egg/purchase" successMessage={zhCN.feedback.petUnlocked} redirectTo="/pet" className="mt-6" refreshOnSuccess={false}>
                     <input type="hidden" name="itemId" value={item.id} />
                     <input type="hidden" name="speciesId" value={species.id} />
                     <button className="w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950">
                       {formatText(zhCN.shop.petEggConfirm, { points: item.currentPrice })}
                     </button>
-                  </form>
+                  </ClientActionForm>
                 </div>
               </Card>
             );

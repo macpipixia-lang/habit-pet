@@ -24,7 +24,7 @@ export function AdminItemsClient({
   initialNotice: { type: "error" | "success"; text: string } | null;
 }) {
   const [items, setItems] = useState(initialItems);
-  const [notice, setNotice] = useAdminNotice(initialNotice);
+  const { notify } = useAdminNotice(initialNotice);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
 
   async function handleSave(formData: FormData, form?: HTMLFormElement | null) {
@@ -52,9 +52,9 @@ export function AdminItemsClient({
         form.reset();
       }
 
-      setNotice({ type: "success", text: result.message ?? zhCN.feedback.itemSaved });
+      notify({ type: "success", text: result.message ?? zhCN.feedback.itemSaved });
     } catch (error) {
-      setNotice({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
+      notify({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
     } finally {
       setPendingKey(null);
     }
@@ -69,10 +69,10 @@ export function AdminItemsClient({
       const result = await postAdminJson<AdminItem>("/api/admin/items/toggle", { itemId });
       const updated = result.data!;
       setItems((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-      setNotice({ type: "success", text: result.message ?? zhCN.feedback.itemStatusUpdated });
+      notify({ type: "success", text: result.message ?? zhCN.feedback.itemStatusUpdated });
     } catch (error) {
       setItems(previousItems);
-      setNotice({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
+      notify({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
     } finally {
       setPendingKey(null);
     }
@@ -80,7 +80,6 @@ export function AdminItemsClient({
 
   return (
     <>
-      <AdminNoticeCard notice={notice} />
       <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
         <Card>
           <Pill className="text-accent">{zhCN.admin.createItemTitle}</Pill>

@@ -158,6 +158,7 @@ export const adminPetSchema = z.object({
 export const adminPetStageAssetsSchema = z.array(
   z.object({
     id: z.string().min(1, zhCN.feedback.invalidInput),
+    nameZh: z.string().trim().min(1, zhCN.validation.petStageNameRequired),
     coverImageUrl: z
       .string()
       .trim()

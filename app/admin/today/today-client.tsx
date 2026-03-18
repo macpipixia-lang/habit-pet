@@ -39,7 +39,7 @@ export function AdminTodayClient({
   initialNotice: { type: "error" | "success"; text: string } | null;
 }) {
   const [state, setState] = useState(initialState);
-  const [notice, setNotice] = useAdminNotice(initialNotice);
+  const { notify } = useAdminNotice(initialNotice);
   const [pendingTask, setPendingTask] = useState<string | null>(null);
 
   async function handleAction(taskSlug: string, action: "complete" | "revert") {
@@ -55,22 +55,21 @@ export function AdminTodayClient({
     try {
       const result = await postAdminJson<TodayAuditState>(`/api/admin/today/${action}`, { userQuery, taskSlug });
       setState(result.data ?? previousState);
-      setNotice({ type: "success", text: result.message ?? zhCN.feedback.taskAuditUpdated });
+      notify({ type: "success", text: result.message ?? zhCN.feedback.taskAuditUpdated });
     } catch (error) {
       setState(previousState);
-      setNotice({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
+      notify({ type: "error", text: error instanceof Error ? error.message : zhCN.feedback.fallbackError });
     } finally {
       setPendingTask(null);
     }
   }
 
   if (!state.targetUser) {
-    return <AdminNoticeCard notice={notice} />;
+    return null;
   }
 
   return (
     <div className="space-y-6">
-      <AdminNoticeCard notice={notice} />
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>

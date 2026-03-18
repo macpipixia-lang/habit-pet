@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Card } from "@/components/ui";
+import { useEffect } from "react";
+import { useToast } from "@/components/toast-provider";
 import { zhCN } from "@/lib/i18n/zhCN";
+import { postJson } from "@/lib/client-api";
 
 export type AdminApiResponse<T> = {
   ok: boolean;
@@ -15,46 +16,28 @@ export type AdminNotice = {
   text: string;
 };
 
-export function AdminNoticeCard({
-  notice,
-}: {
+export function AdminNoticeCard(_props: {
   notice: AdminNotice | null;
 }) {
-  if (!notice) {
-    return null;
-  }
-
-  return (
-    <Card
-      className={
-        notice.type === "error"
-          ? "border-danger/40 bg-danger/10 text-sm text-red-100"
-          : "border-success/40 bg-emerald-500/10 text-sm text-emerald-100"
-      }
-    >
-      {notice.text}
-    </Card>
-  );
+  return null;
 }
 
 export function useAdminNotice(initialNotice?: AdminNotice | null) {
-  return useState<AdminNotice | null>(initialNotice ?? null);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!initialNotice) {
+      return;
+    }
+
+    showToast(initialNotice.type, initialNotice.text);
+  }, [initialNotice, showToast]);
+
+  return {
+    notify: (notice: AdminNotice) => showToast(notice.type, notice.text),
+  };
 }
 
 export async function postAdminJson<T>(url: string, body: Record<string, unknown>) {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-
-  const payload = (await response.json()) as AdminApiResponse<T>;
-
-  if (!response.ok || !payload.ok) {
-    throw new Error(payload.message || zhCN.feedback.fallbackError);
-  }
-
-  return payload;
+  return postJson<T>(url, body) as Promise<AdminApiResponse<T>>;
 }

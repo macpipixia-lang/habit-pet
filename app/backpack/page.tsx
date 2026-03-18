@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { RedeemCodeStatus } from "@prisma/client";
-import { applyPetSkinAction, setActivePetAction, updatePetNicknameAction } from "@/app/actions";
+import { ClientActionForm } from "@/components/client-action-form";
 import { PetOnboardingGuard } from "@/components/pet-onboarding-guard";
 import { CopyCodeButton } from "@/components/copy-code-button";
 import { Card, Pill } from "@/components/ui";
@@ -23,33 +23,16 @@ function getRedeemStatusLabel(status: RedeemCodeStatus) {
 }
 
 export default async function BackpackPage({
-  searchParams,
+  searchParams: _searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const user = await requireUser();
-  const params = (await searchParams) ?? {};
   const state = await getBackpackState(user.id);
-  const error = typeof params.error === "string" ? params.error : null;
-  const success = typeof params.success === "string" ? params.success : null;
-  const successMessage =
-    success === "active-pet-updated"
-      ? zhCN.feedback.activePetUpdated
-      : success === "pet-nickname-updated"
-        ? zhCN.feedback.petNicknameUpdated
-        : success === "pet-skin-updated"
-          ? zhCN.feedback.petSkinUpdated
-          : null;
 
   return (
     <PetOnboardingGuard>
       <div className="space-y-6">
-      {error ? (
-        <Card className="border-danger/40 bg-danger/10 text-sm text-red-100">{error}</Card>
-      ) : successMessage ? (
-        <Card className="border-success/40 bg-emerald-500/10 text-sm text-emerald-100">{successMessage}</Card>
-      ) : null}
-
       <Card>
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
@@ -142,9 +125,8 @@ export default async function BackpackPage({
                             <summary className="inline-flex cursor-pointer list-none rounded-2xl border border-line px-4 py-2 text-sm text-white">
                               {zhCN.pet.nicknameSetButton}
                             </summary>
-                            <form action={updatePetNicknameAction} className="mt-3 space-y-3">
+                            <ClientActionForm action="/api/pet/nickname" successMessage={zhCN.feedback.petNicknameUpdated} className="mt-3 space-y-3">
                               <input type="hidden" name="userPetId" value={pet.id} />
-                              <input type="hidden" name="redirectTo" value="/backpack" />
                               <input
                                 type="text"
                                 name="nickname"
@@ -156,20 +138,19 @@ export default async function BackpackPage({
                               <button className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-slate-950">
                                 {zhCN.pet.nicknameSaveButton}
                               </button>
-                            </form>
+                            </ClientActionForm>
                           </details>
                         )}
                       </div>
 
-                      <form action={applyPetSkinAction} className="rounded-2xl border border-line bg-black/20 p-4">
+                      <ClientActionForm action="/api/pet/skin/apply" successMessage={zhCN.feedback.petSkinUpdated} className="rounded-2xl border border-line bg-black/20 p-4">
                         <input type="hidden" name="userPetId" value={pet.id} />
-                        <input type="hidden" name="redirectTo" value="/backpack" />
                         <p className="text-sm text-mist">{zhCN.pet.skinLabel}</p>
                         <p className="mt-2 text-white">{pet.activeSkin?.nameZh ?? zhCN.pet.skinDefault}</p>
                         <button className="mt-4 rounded-2xl border border-line px-4 py-2 text-sm text-white">
                           {zhCN.pet.skinRemoveButton}
                         </button>
-                      </form>
+                      </ClientActionForm>
 
                       <div className="rounded-2xl border border-line bg-black/20 p-4">
                         <p className="text-sm text-mist">{zhCN.backpack.obtainedAtLabel}</p>
@@ -179,13 +160,12 @@ export default async function BackpackPage({
                             {zhCN.pet.activatedButton}
                           </span>
                         ) : (
-                          <form action={setActivePetAction} className="mt-4">
+                          <ClientActionForm action="/api/pet/active" successMessage={zhCN.feedback.activePetUpdated} className="mt-4">
                             <input type="hidden" name="userPetId" value={pet.id} />
-                            <input type="hidden" name="redirectTo" value="/backpack" />
                             <button className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-slate-950">
                               {zhCN.pet.activateButton}
                             </button>
-                          </form>
+                          </ClientActionForm>
                         )}
                       </div>
                     </div>
@@ -268,9 +248,8 @@ export default async function BackpackPage({
 
                     <div className="w-full rounded-2xl border border-line bg-black/20 p-4 lg:w-[20rem]">
                       {usablePets.length > 0 ? (
-                        <form action={applyPetSkinAction} className="space-y-3">
+                        <ClientActionForm action="/api/pet/skin/apply" successMessage={zhCN.feedback.petSkinUpdated} className="space-y-3">
                           <input type="hidden" name="skinId" value={skin.id} />
-                          <input type="hidden" name="redirectTo" value="/backpack" />
                           <label className="block text-sm text-mist" htmlFor={`pet-${skin.id}`}>
                             {zhCN.backpack.skinApplyLabel}
                           </label>
@@ -289,7 +268,7 @@ export default async function BackpackPage({
                           <button className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-slate-950">
                             {zhCN.backpack.skinApplyButton}
                           </button>
-                        </form>
+                        </ClientActionForm>
                       ) : (
                         <p className="text-sm text-mist">
                           {ownedSpeciesPets.length === 0
