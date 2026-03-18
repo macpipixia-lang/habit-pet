@@ -1,3 +1,4 @@
+import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/auth";
 
@@ -12,20 +13,6 @@ async function putBlob(
   file: File,
   token: string,
 ): Promise<{ url: string; pathname: string; contentType?: string | null }> {
-  const importer = new Function("specifier", "return import(specifier)") as (specifier: string) => Promise<{
-    put: (
-      pathname: string,
-      body: File,
-      options: {
-        access: "public";
-        token: string;
-        addRandomSuffix: boolean;
-        contentType?: string;
-      },
-    ) => Promise<{ url: string; pathname: string; contentType?: string | null }>;
-  }>;
-  const { put } = await importer("@vercel/blob");
-
   return put(pathname, file, {
     access: "public",
     token,
