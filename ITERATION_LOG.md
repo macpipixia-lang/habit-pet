@@ -187,11 +187,72 @@ npm run dev:clean
 
 ---
 
+## 今日任务系统重构：实时结算 + 管理审核回滚
+
+### 完成内容
+- /today 改为“任务清单”模式：单条任务点击完成即可实时结算（积分 + 用户XP + 宠物XP）。
+- 新增 `DailyTaskCompletion`（按 `userId + dateKey + taskSlug` 唯一）和 `XpLedger`（USER/PET scope）。
+- 管理后台新增 `/admin/today`：可对“今天”任务执行标记完成/回滚。
+- 回滚时自动写负向 ledger（可逆对账），并同步状态。
+
+### 验证方式
+- 用户侧点击单条任务后立即生效；管理员回滚后积分/XP同步扣回。
+
+---
+
+## Dashboard 合并与 Admin 无刷新
+
+### 完成内容
+- 新增 `/dashboard`：合并“今日任务 + 当前宠物卡”。
+- `/today` 与 `/pet` 改为重定向到 `/dashboard`（保留 query 透传）。
+- Admin 各模块（items/codes/tasks/pets/today）改为 API + client 局部更新，无整页刷新。
+
+### 验证方式
+- 用户侧进入统一面板；后台保存/切换/审核后仅局部更新并即时反馈。
+
+---
+
+## 上传与交互体验：Blob 直传 + 阶段名可编辑 + 全局 Toast
+
+### 完成内容
+- Blob 上传改为直传签发模式（解决大体积 `.glb` 中转失败）。
+- 阶段配置支持编辑 `PetStage.nameZh`（随资源一起保存）。
+- 新增全局 `ToastProvider`，统一操作型请求成功/失败提示（admin + 用户侧）。
+- 新增用户侧 API 层（shop/pet/onboarding/today makeup 等）统一 JSON 返回。
+
+### 验证方式
+- `.glb` 上传成功；阶段名称保存生效；操作反馈统一 toast。
+
+---
+
+## 运营修复：今日任务同步机制 + 视觉细节优化
+
+### 完成内容
+- 新增 `/api/admin/tasks/sync-today` 与后台“同步今日任务”入口：可将新建任务增量并入指定用户当天清单。
+- 宠物新增第4阶段（每物种 stageIndex=3，minXp=360）并补充视觉映射。
+- 图鉴与面板视觉修正：
+  - 今日面板宠物图按完整比例显示（不裁切）；
+  - 图鉴未拥有时阶段区模糊不可读；
+  - 删除两句图鉴提示文案；
+  - 宠物蛋选择图标优先使用阶段1图片。
+
+### 验证方式
+- 后台同步后前台可见新任务；图鉴/面板/宠物蛋页面视觉符合预期。
+
+---
+
 ## 里程碑时间线（commit 摘要）
 - `3e456ec` feat: backpack module
 - `9ee8ddb` feat: starter pet onboarding
 - `2d202b7` feat: admin pets + blob uploads
 - `c4de72a` feat: stage assets for pets
 - `30994ca` feat: annotate upload dimensions for pet assets
+- `f85871a` feat: realtime daily tasks + admin audit
+- `96d219c` feat: today complete without refresh
+- `fc3a4a9` feat: admin no-refresh + dashboard merge
+- `2796e10` feat: add 4th pet stage
+- `6580008` feat: blob direct upload + editable stages + unified toasts
+- `0626442` feat: add admin sync today tasks action
+- `92997e0` feat: refine dashboard and pokedex visuals
 
 > 注：更早的 commit 请在 GitHub 提交历史中查看。
