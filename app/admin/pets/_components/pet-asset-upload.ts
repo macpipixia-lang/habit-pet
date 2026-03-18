@@ -40,10 +40,19 @@ export async function uploadBlobFile(file: File, folder: string) {
     body: formData,
   });
 
-  const payload = (await response.json()) as UploadResponse | { error?: string };
+  let payload: UploadResponse | { error?: string } | null = null;
 
-  if (!response.ok || !("url" in payload)) {
-    throw new Error(("error" in payload && payload.error) || zhCN.feedback.fallbackError);
+  try {
+    payload = (await response.json()) as UploadResponse | { error?: string };
+  } catch {
+    if (!response.ok) {
+      throw new Error("上传服务返回异常，请检查 BLOB_READ_WRITE_TOKEN 和网络连接。");
+    }
+    throw new Error(zhCN.feedback.fallbackError);
+  }
+
+  if (!response.ok || !payload || !("url" in payload)) {
+    throw new Error((payload && "error" in payload && payload.error) || zhCN.feedback.fallbackError);
   }
 
   return payload;

@@ -35,38 +35,43 @@ async function putBlob(
 }
 
 export async function POST(request: Request) {
-  const isAdmin = await isAdminAuthenticated();
+  try {
+    const isAdmin = await isAdminAuthenticated();
 
-  if (!isAdmin) {
-    return NextResponse.json({ error: "未授权访问。" }, { status: 401 });
+    if (!isAdmin) {
+      return NextResponse.json({ error: "未授权访问。" }, { status: 401 });
+    }
+
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return NextResponse.json(
+        { error: "BLOB_READ_WRITE_TOKEN 未配置，当前环境无法上传文件。" },
+        { status: 500 },
+      );
+    }
+
+    const formData = await request.formData();
+    const file = formData.get("file");
+    const folderValue = typeof formData.get("folder") === "string" ? String(formData.get("folder")) : "pet-assets";
+    const folder = sanitizeSegment(folderValue);
+
+    if (!(file instanceof File) || file.size === 0) {
+      return NextResponse.json({ error: "未检测到可上传的文件。" }, { status: 400 });
+    }
+
+    const extension = file.name.includes(".") ? `.${sanitizeSegment(file.name.split(".").pop() ?? "")}` : "";
+    const basename = file.name.replace(/\.[^.]+$/, "");
+    const pathname = `${folder}/${Date.now()}-${sanitizeSegment(basename)}${extension}`;
+
+    const blob = await putBlob(pathname, file, process.env.BLOB_READ_WRITE_TOKEN);
+
+    return NextResponse.json({
+      url: blob.url,
+      pathname: blob.pathname,
+      contentType: blob.contentType ?? file.type ?? null,
+      size: file.size,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "上传失败，请稍后重试。";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return NextResponse.json(
-      { error: "BLOB_READ_WRITE_TOKEN 未配置，当前环境无法上传文件。" },
-      { status: 500 },
-    );
-  }
-
-  const formData = await request.formData();
-  const file = formData.get("file");
-  const folderValue = typeof formData.get("folder") === "string" ? String(formData.get("folder")) : "pet-assets";
-  const folder = sanitizeSegment(folderValue);
-
-  if (!(file instanceof File) || file.size === 0) {
-    return NextResponse.json({ error: "未检测到可上传的文件。" }, { status: 400 });
-  }
-
-  const extension = file.name.includes(".") ? `.${sanitizeSegment(file.name.split(".").pop() ?? "")}` : "";
-  const basename = file.name.replace(/\.[^.]+$/, "");
-  const pathname = `${folder}/${Date.now()}-${sanitizeSegment(basename)}${extension}`;
-
-  const blob = await putBlob(pathname, file, process.env.BLOB_READ_WRITE_TOKEN);
-
-  return NextResponse.json({
-    url: blob.url,
-    pathname: blob.pathname,
-    contentType: blob.contentType ?? file.type ?? null,
-    size: file.size,
-  });
 }
