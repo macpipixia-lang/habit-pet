@@ -57,6 +57,7 @@ const petSpeciesSeeds = [
       { stageIndex: 0, nameZh: "露珠幼团", minXp: 0, imageKey: "moss-fox-0" },
       { stageIndex: 1, nameZh: "苔尾幼狐", minXp: 60, imageKey: "moss-fox-1" },
       { stageIndex: 2, nameZh: "林风守望者", minXp: 180, imageKey: "moss-fox-2" },
+      { stageIndex: 3, nameZh: "森境主理者", minXp: 360, imageKey: "moss-fox-3" },
     ],
   },
   {
@@ -70,6 +71,7 @@ const petSpeciesSeeds = [
       { stageIndex: 0, nameZh: "暖光团子", minXp: 0, imageKey: "sun-seal-0" },
       { stageIndex: 1, nameZh: "晴团海豹", minXp: 60, imageKey: "sun-seal-1" },
       { stageIndex: 2, nameZh: "潮汐领航员", minXp: 180, imageKey: "sun-seal-2" },
+      { stageIndex: 3, nameZh: "曙潮指挥官", minXp: 360, imageKey: "sun-seal-3" },
     ],
   },
   {
@@ -83,6 +85,7 @@ const petSpeciesSeeds = [
       { stageIndex: 0, nameZh: "花瓣雏影", minXp: 0, imageKey: "plum-owl-0" },
       { stageIndex: 1, nameZh: "梅影幼枭", minXp: 60, imageKey: "plum-owl-1" },
       { stageIndex: 2, nameZh: "夜庭巡羽", minXp: 180, imageKey: "plum-owl-2" },
+      { stageIndex: 3, nameZh: "月阙观测者", minXp: 360, imageKey: "plum-owl-3" },
     ],
   },
 ] as const;

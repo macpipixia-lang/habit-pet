@@ -62,6 +62,12 @@ const PET_VISUALS: Record<string, { emoji: string; className: string; accent: st
       "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(74,222,128,0.98),rgba(21,94,117,0.72))]",
     accent: "from-green-300/35 via-teal-300/10 to-transparent",
   },
+  "moss-fox-3": {
+    emoji: "🦊",
+    className:
+      "bg-[radial-gradient(circle_at_28%_28%,rgba(255,255,255,0.26),transparent_30%),linear-gradient(135deg,rgba(16,185,129,0.98),rgba(20,83,45,0.82))]",
+    accent: "from-emerald-400/35 via-green-400/10 to-transparent",
+  },
   "moss-fox-spring-scarf": {
     emoji: "🧣",
     className:
@@ -86,6 +92,12 @@ const PET_VISUALS: Record<string, { emoji: string; className: string; accent: st
       "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(251,191,36,0.98),rgba(14,165,233,0.6))]",
     accent: "from-amber-300/35 via-sky-300/10 to-transparent",
   },
+  "sun-seal-3": {
+    emoji: "🌊",
+    className:
+      "bg-[radial-gradient(circle_at_32%_32%,rgba(255,255,255,0.24),transparent_30%),linear-gradient(135deg,rgba(56,189,248,0.96),rgba(2,132,199,0.8))]",
+    accent: "from-cyan-300/35 via-sky-400/10 to-transparent",
+  },
   "sun-seal-wave-float": {
     emoji: "🛟",
     className:
@@ -109,6 +121,12 @@ const PET_VISUALS: Record<string, { emoji: string; className: string; accent: st
     className:
       "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(192,132,252,0.95),rgba(30,41,59,0.85))]",
     accent: "from-fuchsia-300/35 via-slate-300/10 to-transparent",
+  },
+  "plum-owl-3": {
+    emoji: "🪶",
+    className:
+      "bg-[radial-gradient(circle_at_28%_28%,rgba(255,255,255,0.24),transparent_30%),linear-gradient(135deg,rgba(167,139,250,0.98),rgba(51,65,85,0.9))]",
+    accent: "from-violet-300/35 via-indigo-300/10 to-transparent",
   },
   "plum-owl-night-cape": {
     emoji: "🎐",
