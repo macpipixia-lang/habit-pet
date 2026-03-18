@@ -4,7 +4,7 @@
 
 ## 项目信息
 - Repo：https://github.com/macpipixia-lang/habit-pet
-- 技术栈：Next.js App Router + Tailwind + Prisma(SQLite)
+- 技术栈：Next.js App Router + Tailwind + Prisma(PostgreSQL)
 - 本地启动：`npm run dev`
 - 强制干净启动（解决 .next / Prisma Client 不一致导致的 500）：`npm run dev:clean`
 
@@ -130,8 +130,68 @@ npm run dev:clean
 
 ---
 
+## 运营/部署：Postgres + Vercel（生产可用）
+
+### 完成内容
+- Prisma 从 SQLite 迁移到 PostgreSQL，适配 Vercel Serverless（`migrate deploy`）。
+- `vercel-build` 串联：`prisma generate` → `prisma migrate deploy` → `prisma:seed` → `next build`。
+- 本机安装并启动 `postgresql@16`，创建 `habit_pet` 数据库与 `habit` 用户。
+
+### 验证方式
+- 本地：`pg_isready` 可连；`npm run prisma:seed` 成功；`npm run build` 成功；`npm run dev` 正常启动。
+- 线上：Vercel 部署通过，`/api/debug/health` 正常。
+
+---
+
+## Pet 3D（v0）：加载态修复 + 资源策略调整
+
+### 完成内容
+- 修复“3D 模型加载中...”常驻：使用 `model-viewer` 的 `load/error` 事件控制 overlay。
+- 线上构建时避免 Git LFS 指针文件导致 `.glb` 失效：将 `public/pet3d/*.glb` 从 LFS 撤回普通 Git 文件。
+
+### 验证方式
+- `/pet/3d`：模型加载成功后加载提示消失；失败显示友好中文提示。
+- 线上访问 `/pet3d/pet.glb` 返回真实二进制（非 1KB LFS pointer）。
+
+---
+
+## Admin：宠物管理 + Vercel Blob（物种级）
+
+### 完成内容
+- 新增后台模块：`/admin/pets`（列表）+ `/admin/pets/new` + `/admin/pets/[id]`。
+- `PetSpecies` 增加字段：`summaryZh`、`coverImageUrl`、`modelGlbUrl`、`sortOrder`，并加索引。
+- 新增 Blob 上传 API：`POST /api/admin/blob/upload`（ADMIN_SECRET 保护；缺 `BLOB_READ_WRITE_TOKEN` 返回中文错误）。
+- pets 表单支持上传封面图与 GLB，拿到 Blob URL 回填并预览。
+
+### 验证方式
+- 配置 `BLOB_READ_WRITE_TOKEN` 后，在后台上传图片/GLB，保存后列表可见 URL 与预览。
+
+---
+
+## Admin：阶段资源（Stage 级）
+
+### 完成内容
+- `PetStage` 增加字段：`coverImageUrl`、`modelGlbUrl`。
+- 后台在 `/admin/pets/[id]` 增加“阶段资源配置”，可对每个 stage 上传/填写封面与 GLB。
+- 前台读取策略：**当前阶段优先 → 物种兜底 → placeholder**；`/pet/3d` 优先 `currentStage.modelGlbUrl`。
+
+### 验证方式
+- 后台给不同 stage 上传不同图片/模型，前台切换阶段后展示随阶段变化。
+
+---
+
+## 小优化：上传尺寸/大小提示
+
+### 完成内容
+- 后台上传按钮增加提示：封面图推荐 `512x512`；GLB 建议 `< 15MB`。
+
+---
+
 ## 里程碑时间线（commit 摘要）
 - `3e456ec` feat: backpack module
 - `9ee8ddb` feat: starter pet onboarding
+- `2d202b7` feat: admin pets + blob uploads
+- `c4de72a` feat: stage assets for pets
+- `30994ca` feat: annotate upload dimensions for pet assets
 
 > 注：更早的 commit 请在 GitHub 提交历史中查看。
