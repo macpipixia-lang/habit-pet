@@ -13,3 +13,4 @@ prisma/dev.db-journal
 prisma/prisma/dev.db
 prisma/prisma/dev.db-journal
 .DS_Store
+tsconfig.tsbuildinfo
