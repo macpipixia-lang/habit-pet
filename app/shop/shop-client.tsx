@@ -124,7 +124,7 @@ export function ShopClient({
                 </div>
               ) : null}
               <div className="flex items-center justify-between gap-4">
-                <Pill className="text-accentWarm">{getKindLabel(item.kind)}</Pill>
+                <Pill className="text-accent">{getKindLabel(item.kind)}</Pill>
                 <Pill>{formatText(zhCN.shop.priceRule, { base: item.priceBase, count: item.purchaseCount, step: item.priceStep })}</Pill>
               </div>
               <h2 className="mt-4 text-2xl font-semibold text-ink">{item.nameZh}</h2>

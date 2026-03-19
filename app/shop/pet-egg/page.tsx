@@ -54,7 +54,7 @@ export default async function PetEggPage({
             return (
               <Card key={species.id} className="overflow-hidden p-0">
                 <div className={`border-b border-line bg-gradient-to-br ${visual.accent} px-6 py-6`}>
-                  <Pill className="text-accentWarm">{species.rarity ?? zhCN.shop.petEggAvailable}</Pill>
+                  <Pill className="text-accent">{species.rarity ?? zhCN.shop.petEggAvailable}</Pill>
                   <div
                     className={`mt-5 flex w-28 aspect-square items-center justify-center overflow-hidden rounded-[2rem] border border-line shadow-glow ${visual.className}`}
                   >

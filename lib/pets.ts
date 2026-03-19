@@ -47,92 +47,92 @@ const PET_VISUALS: Record<string, { emoji: string; className: string; accent: st
   "moss-fox-0": {
     emoji: "🥚",
     className:
-      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.42),transparent_28%),linear-gradient(135deg,rgba(187,247,208,0.95),rgba(34,197,94,0.55))]",
-    accent: "from-emerald-200/30 via-green-300/10 to-transparent",
+      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.32),transparent_28%),linear-gradient(135deg,rgba(215,189,144,0.95),rgba(111,89,61,0.72))]",
+    accent: "from-accent/16 via-accent/6 to-transparent",
   },
   "moss-fox-1": {
     emoji: "🦊",
     className:
-      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(110,231,183,0.95),rgba(21,128,61,0.6))]",
-    accent: "from-emerald-300/30 via-lime-300/10 to-transparent",
+      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(208,178,129,0.94),rgba(79,64,44,0.82))]",
+    accent: "from-accent/18 via-accent/7 to-transparent",
   },
   "moss-fox-2": {
     emoji: "🌿",
     className:
-      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(74,222,128,0.98),rgba(21,94,117,0.72))]",
-    accent: "from-green-300/35 via-teal-300/10 to-transparent",
+      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(194,161,113,0.92),rgba(52,45,39,0.88))]",
+    accent: "from-accent/14 via-accent/5 to-transparent",
   },
   "moss-fox-3": {
     emoji: "🦊",
     className:
-      "bg-[radial-gradient(circle_at_28%_28%,rgba(255,255,255,0.26),transparent_30%),linear-gradient(135deg,rgba(16,185,129,0.98),rgba(20,83,45,0.82))]",
-    accent: "from-emerald-400/35 via-green-400/10 to-transparent",
+      "bg-[radial-gradient(circle_at_28%_28%,rgba(255,255,255,0.26),transparent_30%),linear-gradient(135deg,rgba(180,149,104,0.9),rgba(35,31,28,0.92))]",
+    accent: "from-accent/20 via-accent/8 to-transparent",
   },
   "moss-fox-spring-scarf": {
     emoji: "🧣",
     className:
-      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(167,243,208,0.98),rgba(34,197,94,0.6))]",
-    accent: "from-lime-200/35 via-emerald-300/10 to-transparent",
+      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(211,184,139,0.94),rgba(90,71,49,0.8))]",
+    accent: "from-accent/18 via-accent/6 to-transparent",
   },
   "sun-seal-0": {
     emoji: "🥚",
     className:
-      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.42),transparent_28%),linear-gradient(135deg,rgba(254,240,138,0.95),rgba(251,191,36,0.6))]",
-    accent: "from-amber-200/30 via-yellow-200/10 to-transparent",
+      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.36),transparent_28%),linear-gradient(135deg,rgba(220,198,160,0.96),rgba(118,95,67,0.74))]",
+    accent: "from-accent/18 via-accent/7 to-transparent",
   },
   "sun-seal-1": {
     emoji: "🦭",
     className:
-      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(253,224,71,0.95),rgba(251,146,60,0.62))]",
-    accent: "from-yellow-200/30 via-orange-200/10 to-transparent",
+      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(212,181,133,0.96),rgba(102,82,57,0.82))]",
+    accent: "from-accent/20 via-accent/8 to-transparent",
   },
   "sun-seal-2": {
     emoji: "🌞",
     className:
-      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(251,191,36,0.98),rgba(217,119,6,0.62))]",
-    accent: "from-amber-300/35 via-orange-300/10 to-transparent",
+      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(205,171,118,0.94),rgba(72,58,41,0.86))]",
+    accent: "from-accent/16 via-accent/6 to-transparent",
   },
   "sun-seal-3": {
     emoji: "🌊",
     className:
-      "bg-[radial-gradient(circle_at_32%_32%,rgba(255,255,255,0.24),transparent_30%),linear-gradient(135deg,rgba(251,191,36,0.96),rgba(180,83,9,0.8))]",
-    accent: "from-amber-300/35 via-orange-400/10 to-transparent",
+      "bg-[radial-gradient(circle_at_32%_32%,rgba(255,255,255,0.24),transparent_30%),linear-gradient(135deg,rgba(189,156,108,0.9),rgba(41,35,31,0.92))]",
+    accent: "from-accent/18 via-accent/7 to-transparent",
   },
   "sun-seal-wave-float": {
     emoji: "🛟",
     className:
-      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.26),transparent_28%),linear-gradient(135deg,rgba(254,215,170,0.96),rgba(251,191,36,0.65))]",
-    accent: "from-orange-200/35 via-amber-300/10 to-transparent",
+      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.26),transparent_28%),linear-gradient(135deg,rgba(217,191,150,0.95),rgba(114,91,63,0.78))]",
+    accent: "from-accent/18 via-accent/7 to-transparent",
   },
   "plum-owl-0": {
     emoji: "🥚",
     className:
-      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.42),transparent_28%),linear-gradient(135deg,rgba(244,114,182,0.9),rgba(190,24,93,0.45))]",
-    accent: "from-rose-200/30 via-pink-200/10 to-transparent",
+      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.34),transparent_28%),linear-gradient(135deg,rgba(208,187,155,0.94),rgba(94,79,64,0.82))]",
+    accent: "from-accent/14 via-accent/5 to-transparent",
   },
   "plum-owl-1": {
     emoji: "🦉",
     className:
-      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(244,114,182,0.95),rgba(124,58,237,0.55))]",
-    accent: "from-pink-300/30 via-fuchsia-300/10 to-transparent",
+      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(195,169,131,0.94),rgba(59,50,42,0.88))]",
+    accent: "from-accent/16 via-accent/6 to-transparent",
   },
   "plum-owl-2": {
     emoji: "🌙",
     className:
-      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(192,132,252,0.95),rgba(30,41,59,0.85))]",
-    accent: "from-fuchsia-300/35 via-slate-300/10 to-transparent",
+      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(177,151,113,0.9),rgba(29,27,25,0.94))]",
+    accent: "from-accent/12 via-accent/4 to-transparent",
   },
   "plum-owl-3": {
     emoji: "🪶",
     className:
-      "bg-[radial-gradient(circle_at_28%_28%,rgba(255,255,255,0.24),transparent_30%),linear-gradient(135deg,rgba(167,139,250,0.98),rgba(51,65,85,0.9))]",
-    accent: "from-violet-300/35 via-indigo-300/10 to-transparent",
+      "bg-[radial-gradient(circle_at_28%_28%,rgba(255,255,255,0.24),transparent_30%),linear-gradient(135deg,rgba(165,142,107,0.88),rgba(24,23,22,0.96))]",
+    accent: "from-accent/14 via-accent/5 to-transparent",
   },
   "plum-owl-night-cape": {
     emoji: "🎐",
     className:
-      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(216,180,254,0.96),rgba(51,65,85,0.88))]",
-    accent: "from-violet-300/35 via-slate-400/10 to-transparent",
+      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(186,162,127,0.9),rgba(35,32,29,0.94))]",
+    accent: "from-accent/16 via-accent/5 to-transparent",
   },
 };
 
@@ -141,8 +141,8 @@ export function getPetVisual(imageKey: string) {
     PET_VISUALS[imageKey] ?? {
       emoji: "✨",
       className:
-        "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(253,186,116,0.82),rgba(68,41,27,0.9))]",
-      accent: "from-orange-300/30 via-amber-300/10 to-transparent",
+        "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(201,164,106,0.82),rgba(38,35,32,0.92))]",
+      accent: "from-accent/16 via-accent/6 to-transparent",
     }
   );
 }

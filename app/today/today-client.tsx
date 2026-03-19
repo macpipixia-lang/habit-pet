@@ -197,7 +197,7 @@ export function TodayClient({
               <h1 className="mt-4 text-3xl font-semibold text-ink">{zhCN.today.title}</h1>
               <p className="mt-2 text-sm leading-7 text-mist">{zhCN.today.description}</p>
             </div>
-            <Pill className="text-accentWarm">{zhCN.today.statusRealtime}</Pill>
+            <Pill>{zhCN.today.statusRealtime}</Pill>
           </div>
 
           <div className="mt-6 space-y-4">
@@ -259,10 +259,10 @@ export function TodayClient({
         <div className="space-y-6">
           {petSummary ? (
             <Card className="overflow-hidden p-0">
-              <div className="border-b border-line bg-gradient-to-br from-accent/20 via-accentWarm/10 to-transparent px-6 py-6">
+              <div className="border-b border-line bg-gradient-to-br from-accent/16 via-accent/6 to-transparent px-6 py-6">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <Pill className="text-accentWarm">{zhCN.pet.activeBadge}</Pill>
+                    <Pill className="text-accent">{zhCN.pet.activeBadge}</Pill>
                     <h2 className="mt-4 text-2xl font-semibold text-ink">{petSummary.name}</h2>
                     <p className="mt-2 text-sm text-mist">{petSummary.speciesName}</p>
                   </div>
@@ -303,7 +303,7 @@ export function TodayClient({
           ) : null}
 
           <Card>
-            <Pill className="text-accentWarm">{zhCN.today.rewardBadge}</Pill>
+            <Pill className="text-accent">{zhCN.today.rewardBadge}</Pill>
             <p className="mt-4 text-3xl font-semibold text-ink">
               {formatText(zhCN.today.rewardExp, {
                 exp: rewardExp,
@@ -318,7 +318,7 @@ export function TodayClient({
 
           {showMakeupPrompt ? (
             <Card>
-              <Pill className="text-accentWarm">{zhCN.today.recoveryBadge}</Pill>
+              <Pill>{zhCN.today.recoveryBadge}</Pill>
               <h2 className="mt-4 text-xl font-semibold text-ink">{zhCN.today.makeupPromptTitle}</h2>
               <p className="mt-2 text-sm leading-7 text-mist">{zhCN.today.makeupPromptDescription}</p>
               <div className="mt-4">

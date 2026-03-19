@@ -73,7 +73,7 @@ export function AdminTodayClient({
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <Pill className="text-accentWarm">{zhCN.admin.todayAuditTargetBadge}</Pill>
+            <Pill>{zhCN.admin.todayAuditTargetBadge}</Pill>
             <h2 className="mt-4 text-2xl font-semibold text-ink">{state.targetUser.username}</h2>
             <p className="mt-2 text-sm text-mist">{formatText(zhCN.admin.todayAuditUserId, { id: state.targetUser.id })}</p>
           </div>
@@ -100,7 +100,7 @@ export function AdminTodayClient({
                     <span className="font-medium text-ink">{task.nameZh}</span>
                     <Pill>+{task.exp} EXP</Pill>
                     <Pill>{formatText(zhCN.today.taskPoints, { points: task.points })}</Pill>
-                    <Pill className={task.completed ? "text-success" : "text-accentWarm"}>
+                    <Pill className={task.completed ? "text-accent" : ""}>
                       {task.completed ? zhCN.admin.todayAuditCompleted : zhCN.admin.todayAuditPending}
                     </Pill>
                   </div>

@@ -49,9 +49,9 @@ export function getRarityLabel(rarity: string | null) {
 }
 
 function getRarityPillClass(rarity: string | null) {
-  if (rarity === "EPIC") return "border-fuchsia-300/30 bg-fuchsia-400/10 text-fuchsia-100";
-  if (rarity === "RARE") return "border-amber-300/30 bg-amber-400/10 text-amber-100";
-  return "border-emerald-300/30 bg-emerald-400/10 text-emerald-100";
+  if (rarity === "EPIC") return "border-accent/45 bg-accent/12 text-ink";
+  if (rarity === "RARE") return "border-accent/25 bg-panelAlt/90 text-accent";
+  return "border-line bg-panelAlt/70 text-mist";
 }
 
 export function StageHero({

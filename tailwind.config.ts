@@ -10,22 +10,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#fff7ed",
-        night: "#1f1712",
-        mist: "#cfbda9",
-        panel: "#2a1f18",
-        panelAlt: "#38281f",
-        line: "rgba(255,237,213,0.12)",
-        accent: "#f6ad55",
-        accentWarm: "#d97706",
-        success: "#68b984",
-        danger: "#e58a72",
+        ink: "#f5f2ea",
+        night: "#141312",
+        mist: "#ada79d",
+        panel: "#1d1b19",
+        panelAlt: "#262320",
+        line: "rgba(245, 242, 234, 0.12)",
+        accent: "#c9a46a",
+        accentWarm: "#a8844f",
+        success: "#c9a46a",
+        danger: "#c56f61",
       },
       boxShadow: {
-        glow: "0 24px 80px rgba(217, 119, 6, 0.18)",
+        glow: "0 20px 48px rgba(0, 0, 0, 0.28)",
       },
       backgroundImage: {
-        grid: "linear-gradient(rgba(255,237,213,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,237,213,0.05) 1px, transparent 1px)",
+        grid: "linear-gradient(rgba(245,242,234,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(245,242,234,0.04) 1px, transparent 1px)",
+        spotlight: "radial-gradient(circle at top, rgba(201,164,106,0.08), transparent 34%)",
       },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
