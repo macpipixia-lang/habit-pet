@@ -11,9 +11,16 @@ export type Pet3DActivePet = {
   species: {
     nameZh: string;
     modelGlbUrl?: string | null;
+    stages: Array<{
+      id: string;
+      stageIndex: number;
+      nameZh: string;
+      modelGlbUrl?: string | null;
+    }>;
   };
   currentStage: {
     id: string;
+    stageIndex: number;
     nameZh: string;
     modelGlbUrl?: string | null;
   };
@@ -31,8 +38,23 @@ export function getPet3DModelSrc(pet: Pet3DActivePet) {
   return pet.currentStage.modelGlbUrl || pet.species.modelGlbUrl || PET_3D_PLACEHOLDER_MODEL;
 }
 
+export function getPet3DPreviewModelSrc(
+  pet: Pick<Pet3DActivePet, "species">,
+  stage: Pick<Pet3DActivePet["currentStage"], "modelGlbUrl">,
+) {
+  return stage.modelGlbUrl || pet.species.modelGlbUrl || PET_3D_PLACEHOLDER_MODEL;
+}
+
 export function getPet3DViewerKey(pet: Pet3DActivePet) {
   return `${pet.id}:${pet.currentStage.id}:${getPet3DModelSrc(pet)}`;
+}
+
+export function getPet3DPreviewViewerKey(
+  petId: string,
+  stageId: string,
+  modelSrc: string,
+) {
+  return `${petId}:${stageId}:${modelSrc}`;
 }
 
 export function getPet3DActionLabel(action: Pet3DAction, labels: Record<Pet3DAction, string>) {

@@ -1,19 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Card, Pill } from "@/components/ui";
 import { formatText, zhCN } from "@/lib/i18n/zhCN";
-import { formatNumber } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import { Pet3DViewer } from "@/modules/pet3d/Pet3DViewer";
-import { getPet3DModelSrc, getPet3DViewerKey, type Pet3DActivePet } from "@/modules/pet3d/pet3d";
+import { getPet3DPreviewModelSrc, getPet3DPreviewViewerKey, type Pet3DActivePet } from "@/modules/pet3d/pet3d";
 
 type Pet3DCardProps = {
   pet: Pet3DActivePet;
 };
 
 export function Pet3DCard({ pet }: Pet3DCardProps) {
-  const modelSrc = getPet3DModelSrc(pet);
-  const viewerKey = getPet3DViewerKey(pet);
+  const [selectedStageId, setSelectedStageId] = useState(pet.currentStage.id);
+  const selectedStage = pet.species.stages.find((stage) => stage.id === selectedStageId) ?? pet.currentStage;
+  const modelSrc = getPet3DPreviewModelSrc(pet, selectedStage);
+  const viewerKey = getPet3DPreviewViewerKey(pet.id, selectedStage.id, modelSrc);
 
   return (
     <div className="space-y-6">
@@ -29,7 +32,7 @@ export function Pet3DCard({ pet }: Pet3DCardProps) {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
         <Card className="overflow-hidden p-0">
           <div className="border-b border-line bg-gradient-to-br from-amber-300/20 via-sky-300/10 to-transparent px-6 py-6">
             <Pill className="text-accent">{zhCN.pet.mode3dTitle}</Pill>
@@ -39,6 +42,47 @@ export function Pet3DCard({ pet }: Pet3DCardProps) {
             <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.pet.mode3dDescription}</p>
           </div>
           <div className="px-6 py-6">
+            <div className="mb-6 rounded-[2rem] border border-line bg-black/20 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm text-mist">{zhCN.pet.mode3dPreviewLabel}</p>
+                  <p className="mt-2 text-sm leading-6 text-mist">{zhCN.pet.mode3dPreviewDescription}</p>
+                </div>
+                <p className="text-sm text-white">
+                  {formatText(zhCN.pokedex.stageLabel, { index: selectedStage.stageIndex + 1 })} · {selectedStage.nameZh}
+                </p>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-3">
+                {pet.species.stages.map((stage) => {
+                  const isUnlocked = stage.stageIndex <= pet.currentStage.stageIndex;
+                  const isSelected = stage.id === selectedStage.id;
+
+                  return (
+                    <button
+                      key={stage.id}
+                      type="button"
+                      disabled={!isUnlocked}
+                      onClick={() => setSelectedStageId(stage.id)}
+                      className={cn(
+                        "rounded-2xl border px-4 py-2 text-sm transition",
+                        isSelected
+                          ? "border-accent bg-accent text-slate-950"
+                          : isUnlocked
+                            ? "border-line bg-black/20 text-white hover:border-white/30"
+                            : "cursor-not-allowed border-line/60 bg-black/10 text-mist/60",
+                      )}
+                    >
+                      {formatText(zhCN.pokedex.stageLabel, { index: stage.stageIndex + 1 })}
+                      <span className="ml-2">{stage.nameZh}</span>
+                      {stage.stageIndex === pet.currentStage.stageIndex ? (
+                        <span className="ml-2 text-xs">{zhCN.pet.mode3dPreviewCurrent}</span>
+                      ) : null}
+                      {!isUnlocked ? <span className="ml-2 text-xs">{zhCN.pet.mode3dPreviewLocked}</span> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <Pet3DViewer viewerKey={viewerKey} modelSrc={modelSrc} petName={pet.displayName} />
           </div>
         </Card>

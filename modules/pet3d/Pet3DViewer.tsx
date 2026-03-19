@@ -83,7 +83,7 @@ export function Pet3DViewer({ viewerKey, modelSrc, petName }: Pet3DViewerProps) 
         type="module"
         src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.1.0/model-viewer.min.js"
       />
-      <div className="relative overflow-hidden rounded-[2rem] border border-line bg-[radial-gradient(circle_at_top,_rgba(250,204,21,0.16),_transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.12))] p-3">
+      <div className="relative mx-auto aspect-square w-full max-w-[32rem] overflow-hidden rounded-[2rem] border border-line bg-[radial-gradient(circle_at_top,_rgba(250,204,21,0.16),_transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.08),rgba(15,23,42,0.12))] p-3 lg:max-w-[40rem]">
         <model-viewer
           ref={viewerRef}
           key={viewerKey}
@@ -94,7 +94,7 @@ export function Pet3DViewer({ viewerKey, modelSrc, petName }: Pet3DViewerProps) 
           autoplay
           animation-name="Idle"
           interaction-prompt="none"
-          className="h-[360px] w-full overflow-hidden rounded-[1.6rem] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.14),_rgba(15,23,42,0.94)_72%)]"
+          className="h-full w-full overflow-hidden rounded-[1.6rem] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.14),_rgba(15,23,42,0.94)_72%)]"
         />
 
         {!modelLoaded ? (
