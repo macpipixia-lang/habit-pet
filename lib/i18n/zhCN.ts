@@ -132,6 +132,8 @@ export const zhCN = {
     panelBadge: "宠物面板",
     mode3dEntry: "查看详情",
     inline3dToggle: "切换3D展示",
+    inline3dShow: "查看3D",
+    inline3dHide: "查看图片", 
     mode3dTitle: "3D 宠物模式",
     mode3dDescription: "这是独立的 3D 预览模块，保留原有 2D 逻辑，方便随时回滚。",
     mode3dBack: "返回 2D 宠物面板",

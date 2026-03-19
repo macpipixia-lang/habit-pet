@@ -34,11 +34,11 @@ export function InlinePet3DPreview({
       className={cn(
         "absolute right-3 top-3 z-10 rounded-full border px-3 py-1.5 text-xs font-medium transition backdrop-blur",
         disabled
-          ? "cursor-not-allowed border-white/10 bg-black/40 text-mist/60"
-          : "border-white/15 bg-black/55 text-white hover:border-white/30",
+          ? "cursor-not-allowed border-line bg-panel/80 text-mist/70"
+          : "border-line bg-panel/90 text-ink hover:border-accent/40",
       )}
     >
-      {zhCN.pet.inline3dToggle}
+      {show3d ? zhCN.pet.inline3dHide : zhCN.pet.inline3dShow}
     </button>
   );
 
