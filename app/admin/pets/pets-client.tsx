@@ -89,7 +89,7 @@ export function AdminPetsClient({
                   <div className="flex gap-4">
                     {pet.coverImageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={pet.coverImageUrl} alt={pet.nameZh} className="h-24 w-24 rounded-2xl object-cover" />
+                      <img src={pet.coverImageUrl} alt={pet.nameZh} className="aspect-square h-24 w-24 rounded-2xl object-cover" />
                     ) : null}
                     <div>
                       <div className="flex flex-wrap items-center gap-2">

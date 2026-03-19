@@ -275,8 +275,8 @@ export function TodayClient({
               </div>
               <div className="space-y-4 px-6 py-6">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <div className="flex h-56 items-center justify-center rounded-3xl border border-line bg-white/5 p-4">
-                  <img src={petSummary.coverImageUrl} alt={petSummary.stageName} className="h-full w-full rounded-[1.25rem] object-contain" />
+                <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-3xl border border-line bg-white/5">
+                  <img src={petSummary.coverImageUrl} alt={petSummary.stageName} className="h-full w-full object-cover" />
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>

@@ -80,7 +80,7 @@ export default async function BackpackPage({
                 <Card key={pet.id}>
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
                     <div className="flex min-w-0 flex-1 items-center gap-4">
-                      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                      <div className="flex w-16 aspect-square shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/20">
                         {/* 当前出战宠物优先展示阶段封面，列表项也保持同一口径。 */}
                         <img
                           src={pet.currentStageCoverImageUrl}

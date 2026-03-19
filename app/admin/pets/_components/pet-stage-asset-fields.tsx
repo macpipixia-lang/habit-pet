@@ -204,12 +204,14 @@ export function PetStageAssetFields({
                     {stage.coverImageUrl ? (
                       <div className="mt-4 space-y-3">
                         <p className="text-xs text-mist">{zhCN.admin.imagePreviewLabel}</p>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={stage.coverImageUrl}
-                          alt={stage.nameZh}
-                          className="h-40 w-full rounded-2xl object-cover"
-                        />
+                        <div className="aspect-square w-full overflow-hidden rounded-2xl">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={stage.coverImageUrl}
+                            alt={stage.nameZh}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
                       </div>
                     ) : null}
                   </div>

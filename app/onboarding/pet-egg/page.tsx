@@ -41,11 +41,11 @@ export default async function PetEggOnboardingPage({
                 <div className={`border-b border-line bg-gradient-to-br ${visual.accent} px-6 py-6`}>
                   <Pill className="text-accentWarm">{species.rarity ?? zhCN.shop.petEggAvailable}</Pill>
                   <div
-                    className={`mt-5 flex h-28 w-28 items-center justify-center overflow-hidden rounded-[2rem] border border-white/10 shadow-glow ${visual.className}`}
+                    className={`mt-5 flex w-28 aspect-square items-center justify-center overflow-hidden rounded-[2rem] border border-white/10 shadow-glow ${visual.className}`}
                   >
                     {previewImageUrl ? (
                       /* eslint-disable-next-line @next/next/no-img-element */
-                      <img src={previewImageUrl} alt={preview.nameZh} className="h-full w-full object-contain p-2" />
+                      <img src={previewImageUrl} alt={preview.nameZh} className="h-full w-full object-cover" />
                     ) : (
                       <span className="text-5xl">{visual.emoji}</span>
                     )}

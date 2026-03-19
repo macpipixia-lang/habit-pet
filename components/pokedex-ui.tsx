@@ -85,7 +85,7 @@ export function StageHero({
         {title ? <p className="text-sm text-mist">{title}</p> : null}
         <div
           className={cn(
-            "mx-auto mt-4 flex h-40 w-40 items-center justify-center rounded-full border border-white/10 text-7xl shadow-glow transition",
+            "mx-auto mt-4 flex w-40 aspect-square items-center justify-center overflow-hidden rounded-[2rem] border border-white/10 text-7xl shadow-glow transition",
             visual.className,
             concealed && "bg-white/5",
           )}
@@ -95,7 +95,7 @@ export function StageHero({
             <img
               src={heroImage}
               alt={stage.nameZh}
-              className={cn("h-full w-full rounded-full object-contain p-3", concealed && "blur-md saturate-0")}
+              className={cn("h-full w-full object-cover", concealed && "blur-md saturate-0")}
             />
           ) : (
             visual.emoji
