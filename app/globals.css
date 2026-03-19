@@ -4,6 +4,16 @@
 
 :root {
   color-scheme: dark;
+  --app-bg: #1f1712;
+  --app-bg-soft: #2a1f18;
+  --app-bg-elevated: #38281f;
+  --app-ink: #fff7ed;
+  --app-mist: #cfbda9;
+  --app-line: rgba(255, 237, 213, 0.12);
+  --app-accent: #f6ad55;
+  --app-accent-warm: #d97706;
+  --app-success: #68b984;
+  --app-danger: #e58a72;
 }
 
 * {
@@ -17,8 +27,10 @@ html {
 body {
   margin: 0;
   font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
-  background: #09090b;
-  color: #f5f7fb;
+  background:
+    radial-gradient(circle at top, rgba(246, 173, 85, 0.14), transparent 34%),
+    linear-gradient(180deg, #1f1712 0%, #241913 44%, #2d2119 100%);
+  color: var(--app-ink);
 }
 
 a {
@@ -32,5 +44,17 @@ input {
 }
 
 ::selection {
-  background: rgba(125, 211, 252, 0.35);
+  background: rgba(246, 173, 85, 0.32);
+}
+
+input,
+select,
+textarea {
+  color: var(--app-ink);
+  caret-color: var(--app-accent);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(207, 189, 169, 0.72);
 }

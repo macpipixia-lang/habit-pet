@@ -56,12 +56,12 @@ export default async function PokedexPage({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <Pill className="text-accent">{zhCN.pokedex.badge}</Pill>
-            <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.pokedex.title}</h1>
+            <h1 className="mt-4 text-3xl font-semibold text-ink">{zhCN.pokedex.title}</h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.pokedex.description}</p>
           </div>
-          <div className="rounded-3xl border border-line bg-black/20 px-5 py-4">
+          <div className="rounded-3xl border border-line bg-panelAlt/70 px-5 py-4">
             <p className="text-sm text-mist">{zhCN.pokedex.filterLabel}</p>
-            <p className="mt-2 text-2xl font-semibold text-white">
+            <p className="mt-2 text-2xl font-semibold text-ink">
               {formatText(zhCN.pokedex.ownershipSummary, {
                 count: String(state.ownedPets.length),
                 total: String(state.species.length),
@@ -73,19 +73,19 @@ export default async function PokedexPage({
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
             href={`/pokedex?filter=all&sort=${sort}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
-            className={`rounded-full border px-4 py-2 text-sm ${filter === "all" ? "border-accent bg-accent text-slate-950" : "border-line text-white"}`}
+            className={`rounded-full border px-4 py-2 text-sm transition ${filter === "all" ? "border-accent bg-accent text-night" : "border-line text-ink hover:border-accent/35"}`}
           >
             {zhCN.pokedex.filterAll}
           </Link>
           <Link
             href={`/pokedex?filter=owned&sort=${sort}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
-            className={`rounded-full border px-4 py-2 text-sm ${filter === "owned" ? "border-accent bg-accent text-slate-950" : "border-line text-white"}`}
+            className={`rounded-full border px-4 py-2 text-sm transition ${filter === "owned" ? "border-accent bg-accent text-night" : "border-line text-ink hover:border-accent/35"}`}
           >
             {zhCN.pokedex.filterOwned}
           </Link>
           <Link
             href={`/pokedex?filter=unowned&sort=${sort}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
-            className={`rounded-full border px-4 py-2 text-sm ${filter === "unowned" ? "border-accent bg-accent text-slate-950" : "border-line text-white"}`}
+            className={`rounded-full border px-4 py-2 text-sm transition ${filter === "unowned" ? "border-accent bg-accent text-night" : "border-line text-ink hover:border-accent/35"}`}
           >
             {zhCN.pokedex.filterUnowned}
           </Link>
@@ -99,7 +99,7 @@ export default async function PokedexPage({
               name="q"
               defaultValue={query}
               placeholder={zhCN.pokedex.searchPlaceholder}
-              className="rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
+              className="rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
             />
           </label>
           <label className="grid gap-2 text-sm text-mist">
@@ -107,17 +107,17 @@ export default async function PokedexPage({
             <select
               name="sort"
               defaultValue={sort}
-              className="rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
+              className="rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
             >
               <option value="rarity">{zhCN.pokedex.sortByRarity}</option>
               <option value="name">{zhCN.pokedex.sortByName}</option>
             </select>
           </label>
           <input type="hidden" name="filter" value={filter} />
-          <button className="self-end rounded-2xl bg-accent px-5 py-3 text-sm font-semibold text-slate-950">
+          <button className="self-end rounded-2xl bg-accent px-5 py-3 text-sm font-semibold text-night transition hover:brightness-105">
             {zhCN.pokedex.searchButton}
           </button>
-          <Link href="/pokedex" className="self-end rounded-2xl border border-line px-5 py-3 text-center text-sm text-white">
+          <Link href="/pokedex" className="self-end rounded-2xl border border-line px-5 py-3 text-center text-sm text-ink transition hover:border-accent/35">
             {zhCN.pokedex.resetButton}
           </Link>
         </form>

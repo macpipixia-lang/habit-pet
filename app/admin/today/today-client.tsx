@@ -74,13 +74,13 @@ export function AdminTodayClient({
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <Pill className="text-accentWarm">{zhCN.admin.todayAuditTargetBadge}</Pill>
-            <h2 className="mt-4 text-2xl font-semibold text-white">{state.targetUser.username}</h2>
+            <h2 className="mt-4 text-2xl font-semibold text-ink">{state.targetUser.username}</h2>
             <p className="mt-2 text-sm text-mist">{formatText(zhCN.admin.todayAuditUserId, { id: state.targetUser.id })}</p>
           </div>
           {state.targetUser.profile ? (
             <div className="text-right">
               <p className="text-sm text-mist">{zhCN.admin.todayAuditUserSummary}</p>
-              <p className="mt-2 text-white">
+              <p className="mt-2 text-ink">
                 {formatText(zhCN.admin.todayAuditUserStats, {
                   points: formatNumber(state.targetUser.profile.points),
                   exp: formatNumber(state.targetUser.profile.exp),
@@ -93,11 +93,11 @@ export function AdminTodayClient({
 
         <div className="mt-6 space-y-4">
           {state.tasks.map((task) => (
-            <div key={task.slug} className="rounded-2xl border border-line bg-black/20 p-4">
+            <div key={task.slug} className="rounded-2xl border border-line bg-panelAlt/70 p-4">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium text-white">{task.nameZh}</span>
+                    <span className="font-medium text-ink">{task.nameZh}</span>
                     <Pill>+{task.exp} EXP</Pill>
                     <Pill>{formatText(zhCN.today.taskPoints, { points: task.points })}</Pill>
                     <Pill className={task.completed ? "text-success" : "text-accentWarm"}>
@@ -110,14 +110,14 @@ export function AdminTodayClient({
                   <button
                     disabled={task.completed || Boolean(pendingTask)}
                     onClick={() => void handleAction(task.slug, "complete")}
-                    className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-night disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {pendingTask === `complete:${task.slug}` ? zhCN.auth.submitting : zhCN.admin.todayAuditMarkComplete}
                   </button>
                   <button
                     disabled={!task.completed || Boolean(pendingTask)}
                     onClick={() => void handleAction(task.slug, "revert")}
-                    className="rounded-2xl border border-line px-4 py-3 text-sm text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-2xl border border-line px-4 py-3 text-sm text-ink transition hover:border-accent/35 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {pendingTask === `revert:${task.slug}` ? zhCN.auth.submitting : zhCN.admin.todayAuditRevert}
                   </button>

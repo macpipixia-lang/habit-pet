@@ -164,15 +164,15 @@ export function TodayClient({
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Card>
           <p className="text-sm text-mist">{zhCN.today.streak}</p>
-          <p className="mt-3 text-3xl font-semibold text-white">{profile.streak}</p>
+          <p className="mt-3 text-3xl font-semibold text-ink">{profile.streak}</p>
           <p className="mt-2 text-sm text-mist">{zhCN.today.streakHint}</p>
         </Card>
         <Card>
           <p className="text-sm text-mist">{zhCN.today.level}</p>
-          <p className="mt-3 text-3xl font-semibold text-white">
+          <p className="mt-3 text-3xl font-semibold text-ink">
             {profile.level} / {MAX_LEVEL}
           </p>
-          <div className="mt-3 h-2 rounded-full bg-white/10">
+          <div className="mt-3 h-2 rounded-full bg-line">
             <div className="h-2 rounded-full bg-accent" style={{ width: `${progressPercent}%` }} />
           </div>
           <p className="mt-2 text-sm text-mist">
@@ -184,7 +184,7 @@ export function TodayClient({
         </Card>
         <Card>
           <p className="text-sm text-mist">{zhCN.today.points}</p>
-          <p className="mt-3 text-3xl font-semibold text-white">{formatNumber(profile.points)}</p>
+          <p className="mt-3 text-3xl font-semibold text-ink">{formatNumber(profile.points)}</p>
           <p className="mt-2 text-sm text-mist">{formatText(zhCN.today.pointsHint, { price: nextShopPrice })}</p>
         </Card>
       </div>
@@ -194,7 +194,7 @@ export function TodayClient({
           <div className="flex items-start justify-between gap-4">
             <div>
               <Pill className="text-accent">{zhCN.today.badge}</Pill>
-              <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.today.title}</h1>
+              <h1 className="mt-4 text-3xl font-semibold text-ink">{zhCN.today.title}</h1>
               <p className="mt-2 text-sm leading-7 text-mist">{zhCN.today.description}</p>
             </div>
             <Pill className="text-accentWarm">{zhCN.today.statusRealtime}</Pill>
@@ -207,11 +207,11 @@ export function TodayClient({
               return (
                 <div
                   key={task.id}
-                  className="flex items-start gap-4 rounded-2xl border border-line bg-black/20 p-4 transition hover:border-white/20"
+                  className="flex items-start gap-4 rounded-2xl border border-line bg-panelAlt/70 p-4 transition hover:border-accent/35"
                 >
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-white">{task.nameZh}</span>
+                      <span className="font-medium text-ink">{task.nameZh}</span>
                       <Pill>+{task.exp} EXP</Pill>
                       <Pill>{formatText(zhCN.today.taskPoints, { points: task.points })}</Pill>
                     </div>
@@ -223,8 +223,8 @@ export function TodayClient({
                     onClick={() => void handleComplete(task.slug)}
                     className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                       task.completed
-                        ? "cursor-not-allowed border border-line bg-white/5 text-mist"
-                        : "bg-accent text-slate-950 hover:brightness-110"
+                        ? "cursor-not-allowed border border-line bg-panel text-mist"
+                        : "bg-accent text-night hover:brightness-110"
                     }`}
                   >
                     {isPending ? zhCN.today.completingButton : task.completed ? zhCN.today.completedButton : zhCN.today.completeButton}
@@ -233,7 +233,7 @@ export function TodayClient({
               );
             })}
             {lockedTasks.length > 0 ? (
-              <details className="rounded-2xl border border-line bg-black/10 p-4">
+              <details className="rounded-2xl border border-line bg-panel/60 p-4">
                 <summary className="cursor-pointer list-none text-sm font-medium text-mist">
                   <span className="inline-flex items-center gap-2">
                     <span aria-hidden="true">🔒</span>
@@ -242,10 +242,10 @@ export function TodayClient({
                 </summary>
                 <div className="mt-4 space-y-3">
                   {lockedTasks.map((task) => (
-                    <div key={task.slug} className="rounded-2xl border border-line bg-black/20 p-4 opacity-80">
+                    <div key={task.slug} className="rounded-2xl border border-line bg-panelAlt/70 p-4 opacity-80">
                       <div className="flex items-center gap-2">
                         <span aria-hidden="true">🔒</span>
-                        <span className="font-medium text-white">{task.nameZh}</span>
+                        <span className="font-medium text-ink">{task.nameZh}</span>
                       </div>
                       <p className="mt-2 text-sm text-mist">{task.unlockHint}</p>
                     </div>
@@ -259,15 +259,15 @@ export function TodayClient({
         <div className="space-y-6">
           {petSummary ? (
             <Card className="overflow-hidden p-0">
-              <div className="border-b border-line bg-gradient-to-br from-cyan-400/15 via-sky-300/10 to-transparent px-6 py-6">
+              <div className="border-b border-line bg-gradient-to-br from-accent/20 via-accentWarm/10 to-transparent px-6 py-6">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <Pill className="text-accentWarm">{zhCN.pet.activeBadge}</Pill>
-                    <h2 className="mt-4 text-2xl font-semibold text-white">{petSummary.name}</h2>
+                    <h2 className="mt-4 text-2xl font-semibold text-ink">{petSummary.name}</h2>
                     <p className="mt-2 text-sm text-mist">{petSummary.speciesName}</p>
                   </div>
                   {petSummary.mode3dHref ? (
-                    <Link href={petSummary.mode3dHref} className="rounded-full border border-line px-4 py-2 text-sm text-white transition hover:border-white/30">
+                    <Link href={petSummary.mode3dHref} className="rounded-full border border-line px-4 py-2 text-sm text-ink transition hover:border-accent/35">
                       {zhCN.pet.mode3dEntry}
                     </Link>
                   ) : null}
@@ -275,18 +275,18 @@ export function TodayClient({
               </div>
               <div className="space-y-4 px-6 py-6">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-3xl border border-line bg-white/5">
+                <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-3xl border border-line bg-panel/80">
                   <img src={petSummary.coverImageUrl} alt={petSummary.stageName} className="h-full w-full object-cover" />
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
                     <p className="text-sm text-mist">{zhCN.pet.stageLabel}</p>
-                    <p className="mt-2 text-lg text-white">{petSummary.stageName}</p>
+                    <p className="mt-2 text-lg text-ink">{petSummary.stageName}</p>
                     <p className="mt-1 text-xs text-mist">{petSummary.stageLabel}</p>
                   </div>
                   <div>
                     <p className="text-sm text-mist">{zhCN.pet.skinLabel}</p>
-                    <p className="mt-2 text-lg text-white">{petSummary.skinName}</p>
+                    <p className="mt-2 text-lg text-ink">{petSummary.skinName}</p>
                   </div>
                 </div>
                 <div>
@@ -294,7 +294,7 @@ export function TodayClient({
                     <span>{zhCN.pet.exp}</span>
                     <span>{formatNumber(petSummary.xp)} XP</span>
                   </div>
-                  <div className="mt-3 h-3 rounded-full bg-white/10">
+                  <div className="mt-3 h-3 rounded-full bg-line">
                     <div className="h-3 rounded-full bg-accent" style={{ width: `${petSummary.progressPercent}%` }} />
                   </div>
                 </div>
@@ -304,7 +304,7 @@ export function TodayClient({
 
           <Card>
             <Pill className="text-accentWarm">{zhCN.today.rewardBadge}</Pill>
-            <p className="mt-4 text-3xl font-semibold text-white">
+            <p className="mt-4 text-3xl font-semibold text-ink">
               {formatText(zhCN.today.rewardExp, {
                 exp: rewardExp,
               })}
@@ -319,14 +319,14 @@ export function TodayClient({
           {showMakeupPrompt ? (
             <Card>
               <Pill className="text-accentWarm">{zhCN.today.recoveryBadge}</Pill>
-              <h2 className="mt-4 text-xl font-semibold text-white">{zhCN.today.makeupPromptTitle}</h2>
+              <h2 className="mt-4 text-xl font-semibold text-ink">{zhCN.today.makeupPromptTitle}</h2>
               <p className="mt-2 text-sm leading-7 text-mist">{zhCN.today.makeupPromptDescription}</p>
               <div className="mt-4">
                 <button
                   type="button"
                   onClick={() => void handleMakeup()}
                   disabled={makeupPending}
-                  className="w-full rounded-2xl border border-line px-4 py-3 text-sm text-white transition hover:border-white/20 disabled:opacity-70"
+                  className="w-full rounded-2xl border border-line px-4 py-3 text-sm text-ink transition hover:border-accent/35 disabled:opacity-70"
                 >
                   {zhCN.today.recoveryButton}
                 </button>

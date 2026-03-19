@@ -77,7 +77,7 @@ export function StageHero({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-[2rem] border bg-black/20",
+        "overflow-hidden rounded-[2rem] border bg-panelAlt/70",
         highlighted ? "border-accent/60 shadow-glow" : "border-line",
       )}
     >
@@ -85,9 +85,9 @@ export function StageHero({
         {title ? <p className="text-sm text-mist">{title}</p> : null}
         <div
           className={cn(
-            "mx-auto mt-4 flex w-40 aspect-square items-center justify-center overflow-hidden rounded-[2rem] border border-white/10 text-7xl shadow-glow transition",
+            "mx-auto mt-4 flex w-40 aspect-square items-center justify-center overflow-hidden rounded-[2rem] border border-line text-7xl shadow-glow transition",
             visual.className,
-            concealed && "bg-white/5",
+            concealed && "bg-panel/80",
           )}
         >
           {heroImage ? (
@@ -107,12 +107,12 @@ export function StageHero({
           <div>
             {concealed ? (
               <div className="space-y-2 pt-1">
-                <div className="h-5 w-28 rounded-full bg-white/10" />
-                <div className="h-4 w-20 rounded-full bg-white/10" />
+                <div className="h-5 w-28 rounded-full bg-line" />
+                <div className="h-4 w-20 rounded-full bg-line" />
               </div>
             ) : (
               <>
-                <p className="text-lg font-semibold text-white">{stage.nameZh}</p>
+                <p className="text-lg font-semibold text-ink">{stage.nameZh}</p>
                 <p className="mt-1 text-sm text-mist">XP {formatNumber(stage.minXp)}+</p>
               </>
             )}
@@ -120,7 +120,7 @@ export function StageHero({
           {highlighted && !concealed ? <Pill className="text-accent">{zhCN.pokedex.highlightCurrentStage}</Pill> : null}
         </div>
         {subtitle ? (
-          concealed ? <div className="mt-4 h-4 w-3/4 rounded-full bg-white/10" /> : <p className="mt-3 text-sm leading-7 text-mist">{subtitle}</p>
+          concealed ? <div className="mt-4 h-4 w-3/4 rounded-full bg-line" /> : <p className="mt-3 text-sm leading-7 text-mist">{subtitle}</p>
         ) : null}
       </div>
     </div>
@@ -149,13 +149,13 @@ export function PokedexSpeciesCard({ species }: { species: SpeciesSummary }) {
             concealed={!species.owned}
           />
         </div>
-        <h2 className="mt-5 text-2xl font-semibold text-white">{species.nameZh}</h2>
+        <h2 className="mt-5 text-2xl font-semibold text-ink">{species.nameZh}</h2>
         <p className="mt-3 text-sm leading-7 text-mist">{species.descriptionZh}</p>
       </div>
       <div className="px-6 py-6">
         <Link
           href={`/pokedex/${species.slug}`}
-          className="inline-flex w-full items-center justify-center rounded-2xl bg-accent px-5 py-3 text-sm font-semibold text-slate-950"
+          className="inline-flex w-full items-center justify-center rounded-2xl bg-accent px-5 py-3 text-sm font-semibold text-night transition hover:brightness-105"
         >
           {zhCN.pokedex.viewDetail}
         </Link>

@@ -57,8 +57,8 @@ export function ToastProvider({
             key={toast.id}
             className={`pointer-events-auto w-full max-w-md rounded-2xl border px-4 py-3 text-sm shadow-glow ${
               toast.tone === "error"
-                ? "border-danger/40 bg-slate-950/95 text-red-100"
-                : "border-success/40 bg-slate-950/95 text-emerald-100"
+                ? "border-danger/45 bg-panel/95 text-rose-100"
+                : "border-success/45 bg-panel/95 text-emerald-50"
             }`}
           >
             {toast.message}

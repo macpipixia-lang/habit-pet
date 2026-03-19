@@ -23,7 +23,7 @@ export default async function AdminPage({
       <div className="mx-auto max-w-xl">
         <Card>
           <Pill className="text-accent">{zhCN.admin.title}</Pill>
-          <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.admin.loginTitle}</h1>
+          <h1 className="mt-4 text-3xl font-semibold text-ink">{zhCN.admin.loginTitle}</h1>
           <p className="mt-3 text-sm leading-7 text-mist">{zhCN.admin.loginDescription}</p>
           <AdminFeedback error={error} successMessage={successMessage} />
           <div className="mt-6">
@@ -88,7 +88,7 @@ export default async function AdminPage({
         {summaryCards.map((card) => (
           <Card key={card.label}>
             <p className="text-sm text-mist">{card.label}</p>
-            <p className="mt-3 text-3xl font-semibold text-white">{card.value}</p>
+            <p className="mt-3 text-3xl font-semibold text-ink">{card.value}</p>
           </Card>
         ))}
       </div>
@@ -96,11 +96,11 @@ export default async function AdminPage({
         {moduleCards.map((card) => (
           <Card key={card.href} className="flex h-full flex-col">
             <Pill className="text-accent">{card.badge}</Pill>
-            <h2 className="mt-4 text-2xl font-semibold text-white">{card.title}</h2>
+            <h2 className="mt-4 text-2xl font-semibold text-ink">{card.title}</h2>
             <p className="mt-3 flex-1 text-sm leading-7 text-mist">{card.description}</p>
             <Link
               href={card.href}
-              className="mt-6 inline-flex w-fit rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950"
+              className="mt-6 inline-flex w-fit rounded-2xl bg-accent px-4 py-3 font-semibold text-night transition hover:brightness-105"
             >
               {zhCN.admin.goToModule}
             </Link>

@@ -20,7 +20,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           id={`${mode}-username`}
           name="username"
           autoComplete="username"
-          className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
+          className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
           placeholder={zhCN.auth.usernamePlaceholder}
           required
         />
@@ -34,7 +34,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           name="password"
           type="password"
           autoComplete={mode === "login" ? "current-password" : "new-password"}
-          className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
+          className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
           placeholder={zhCN.auth.passwordPlaceholder}
           required
         />
@@ -43,7 +43,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+        className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-night transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {pending ? zhCN.auth.submitting : mode === "login" ? zhCN.auth.loginSubmit : zhCN.auth.registerSubmit}
       </button>

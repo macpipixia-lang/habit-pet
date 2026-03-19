@@ -28,13 +28,13 @@ export default async function AdminTodayAuditPage({
       {!state.targetUser ? <AdminNoticeCard notice={initialNotice} /> : null}
       <Card>
         <Pill className="text-accent">{zhCN.admin.todayAuditBadge}</Pill>
-        <h2 className="mt-4 text-2xl font-semibold text-white">{zhCN.admin.todayAuditLookupTitle}</h2>
+        <h2 className="mt-4 text-2xl font-semibold text-ink">{zhCN.admin.todayAuditLookupTitle}</h2>
         <p className="mt-3 text-sm leading-7 text-mist">
           {formatText(zhCN.admin.todayAuditDateHint, { date: state.dateKey })}
         </p>
         <form className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <input name="user" defaultValue={userQuery} placeholder={zhCN.admin.todayAuditUserPlaceholder} className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white" />
-          <button className="rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950">
+          <input name="user" defaultValue={userQuery} placeholder={zhCN.admin.todayAuditUserPlaceholder} className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink" />
+          <button className="rounded-2xl bg-accent px-4 py-3 font-semibold text-night transition hover:brightness-105">
             {zhCN.admin.filterButton}
           </button>
         </form>

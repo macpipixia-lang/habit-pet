@@ -24,18 +24,18 @@ export default async function PetEggPage({
     <div className="space-y-6">
       <Card>
         <Pill className="text-accent">{zhCN.shop.kindPetEgg}</Pill>
-        <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.shop.petEggTitle}</h1>
+        <h1 className="mt-4 text-3xl font-semibold text-ink">{zhCN.shop.petEggTitle}</h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.shop.petEggDescription}</p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <div className="rounded-2xl border border-line bg-black/20 p-4">
+          <div className="rounded-2xl border border-line bg-panelAlt/70 p-4">
             <p className="text-sm text-mist">{zhCN.shop.yourPoints}</p>
-            <p className="mt-2 text-2xl text-white">{state.profile.points}</p>
+            <p className="mt-2 text-2xl text-ink">{state.profile.points}</p>
           </div>
-          <div className="rounded-2xl border border-line bg-black/20 p-4">
+          <div className="rounded-2xl border border-line bg-panelAlt/70 p-4">
             <p className="text-sm text-mist">{zhCN.shop.currentPrice}</p>
-            <p className="mt-2 text-2xl text-white">{item.currentPrice}</p>
+            <p className="mt-2 text-2xl text-ink">{item.currentPrice}</p>
           </div>
-          <Link href="/pokedex" className="inline-flex items-center rounded-2xl border border-line px-5 py-3 text-sm text-white">
+          <Link href="/pokedex" className="inline-flex items-center rounded-2xl border border-line px-5 py-3 text-sm text-ink transition hover:border-accent/35">
             {zhCN.shop.viewPokedex}
           </Link>
         </div>
@@ -56,7 +56,7 @@ export default async function PetEggPage({
                 <div className={`border-b border-line bg-gradient-to-br ${visual.accent} px-6 py-6`}>
                   <Pill className="text-accentWarm">{species.rarity ?? zhCN.shop.petEggAvailable}</Pill>
                   <div
-                    className={`mt-5 flex w-28 aspect-square items-center justify-center overflow-hidden rounded-[2rem] border border-white/10 shadow-glow ${visual.className}`}
+                    className={`mt-5 flex w-28 aspect-square items-center justify-center overflow-hidden rounded-[2rem] border border-line shadow-glow ${visual.className}`}
                   >
                     {previewImageUrl ? (
                       /* eslint-disable-next-line @next/next/no-img-element */
@@ -65,17 +65,17 @@ export default async function PetEggPage({
                       <span className="text-5xl">{visual.emoji}</span>
                     )}
                   </div>
-                  <h2 className="mt-5 text-2xl font-semibold text-white">{species.nameZh}</h2>
+                  <h2 className="mt-5 text-2xl font-semibold text-ink">{species.nameZh}</h2>
                   <p className="mt-3 text-sm leading-7 text-mist">{species.descriptionZh}</p>
                 </div>
                 <div className="px-6 py-6">
                   <div className="grid gap-3">
                     {species.stages.map((stage) => (
-                      <div key={stage.id} className="rounded-2xl border border-line bg-black/20 p-4">
+                      <div key={stage.id} className="rounded-2xl border border-line bg-panelAlt/70 p-4">
                         <p className="text-sm text-mist">
                           {formatText(zhCN.pokedex.stageLabel, { index: stage.stageIndex + 1 })}
                         </p>
-                        <p className="mt-2 text-white">{stage.nameZh}</p>
+                        <p className="mt-2 text-ink">{stage.nameZh}</p>
                         <p className="mt-1 text-sm text-mist">XP {stage.minXp}+</p>
                       </div>
                     ))}
@@ -83,7 +83,7 @@ export default async function PetEggPage({
                   <ClientActionForm action="/api/shop/pet-egg/purchase" successMessage={zhCN.feedback.petUnlocked} redirectTo="/pet" className="mt-6" refreshOnSuccess={false}>
                     <input type="hidden" name="itemId" value={item.id} />
                     <input type="hidden" name="speciesId" value={species.id} />
-                    <button className="w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950">
+                    <button className="w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-night transition hover:brightness-105">
                       {formatText(zhCN.shop.petEggConfirm, { points: item.currentPrice })}
                     </button>
                   </ClientActionForm>

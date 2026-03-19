@@ -85,14 +85,14 @@ export function ShopClient({
       {coupon ? <CouponCodeModal code={coupon.code} itemName={coupon.itemName} /> : null}
       <Card>
         <Pill className="text-accent">{zhCN.shop.badge}</Pill>
-        <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.shop.title}</h1>
+        <h1 className="mt-4 text-3xl font-semibold text-ink">{zhCN.shop.title}</h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.shop.description}</p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <div className="min-w-48 rounded-2xl border border-line bg-black/20 p-4">
+          <div className="min-w-48 rounded-2xl border border-line bg-panelAlt/70 p-4">
             <p className="text-sm text-mist">{zhCN.shop.yourPoints}</p>
-            <p className="mt-2 text-2xl text-white">{points}</p>
+            <p className="mt-2 text-2xl text-ink">{points}</p>
           </div>
-          <Link href="/pokedex" className="inline-flex items-center rounded-2xl border border-line px-5 py-3 text-sm text-white">
+          <Link href="/pokedex" className="inline-flex items-center rounded-2xl border border-line px-5 py-3 text-sm text-ink transition hover:border-accent/35">
             {zhCN.shop.viewPokedex}
           </Link>
         </div>
@@ -107,7 +107,7 @@ export function ShopClient({
               {item.kind === "PET_SKIN" && item.petSkin ? (
                 <div className={`mb-6 rounded-[2rem] border border-line bg-gradient-to-br ${getPetVisual(item.petSkin.imageKey).accent} p-5`}>
                   <div
-                    className={`flex h-20 w-20 items-center justify-center rounded-[1.5rem] border border-white/10 text-4xl ${getPetVisual(
+                    className={`flex h-20 w-20 items-center justify-center rounded-[1.5rem] border border-line text-4xl ${getPetVisual(
                       item.petSkin.imageKey,
                     ).className}`}
                   >
@@ -127,29 +127,29 @@ export function ShopClient({
                 <Pill className="text-accentWarm">{getKindLabel(item.kind)}</Pill>
                 <Pill>{formatText(zhCN.shop.priceRule, { base: item.priceBase, count: item.purchaseCount, step: item.priceStep })}</Pill>
               </div>
-              <h2 className="mt-4 text-2xl font-semibold text-white">{item.nameZh}</h2>
+              <h2 className="mt-4 text-2xl font-semibold text-ink">{item.nameZh}</h2>
               <p className="mt-3 text-sm leading-7 text-mist">{item.descriptionZh}</p>
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-line bg-black/20 p-4">
+                <div className="rounded-2xl border border-line bg-panelAlt/70 p-4">
                   <p className="text-sm text-mist">{zhCN.shop.currentPrice}</p>
-                  <p className="mt-2 text-xl text-white">{item.currentPrice}</p>
+                  <p className="mt-2 text-xl text-ink">{item.currentPrice}</p>
                 </div>
-                <div className="rounded-2xl border border-line bg-black/20 p-4">
+                <div className="rounded-2xl border border-line bg-panelAlt/70 p-4">
                   <p className="text-sm text-mist">{zhCN.shop.owned}</p>
-                  <p className="mt-2 text-xl text-white">
+                  <p className="mt-2 text-xl text-ink">
                     {item.kind === "MAKEUP_CARD" ? makeupCards : item.kind === "PET_SKIN" ? Number(item.ownsSkin) : item.purchaseCount}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-line bg-black/20 p-4">
+                <div className="rounded-2xl border border-line bg-panelAlt/70 p-4">
                   <p className="text-sm text-mist">Slug</p>
-                  <p className="mt-2 text-sm text-white">{item.slug}</p>
+                  <p className="mt-2 text-sm text-ink">{item.slug}</p>
                 </div>
               </div>
               {item.kind === "PET_SKIN" && !item.ownsRequiredSpecies ? (
                 <p className="mt-4 text-sm text-mist">{zhCN.shop.petSkinSpeciesRequiredHint}</p>
               ) : null}
               {item.kind === "PET_EGG" ? (
-                <Link href="/shop/pet-egg" className="mt-6 inline-flex rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950">
+                <Link href="/shop/pet-egg" className="mt-6 inline-flex rounded-2xl bg-accent px-5 py-3 font-semibold text-night transition hover:brightness-105">
                   {zhCN.shop.choosePetButton}
                 </Link>
               ) : (
@@ -157,7 +157,7 @@ export function ShopClient({
                   type="button"
                   onClick={() => void handlePurchase(item.id)}
                   disabled={pendingItemId === item.id || (item.kind === "PET_SKIN" && (item.ownsSkin || !item.ownsRequiredSpecies))}
-                  className="mt-6 rounded-2xl bg-accent px-5 py-3 font-semibold text-slate-950 disabled:cursor-not-allowed disabled:bg-white/20 disabled:text-mist"
+                  className="mt-6 rounded-2xl bg-accent px-5 py-3 font-semibold text-night disabled:cursor-not-allowed disabled:bg-panelAlt disabled:text-mist"
                 >
                   {item.kind === "PET_SKIN" && item.ownsSkin
                     ? zhCN.shop.petSkinOwned

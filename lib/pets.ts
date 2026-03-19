@@ -89,20 +89,20 @@ const PET_VISUALS: Record<string, { emoji: string; className: string; accent: st
   "sun-seal-2": {
     emoji: "🌞",
     className:
-      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(251,191,36,0.98),rgba(14,165,233,0.6))]",
-    accent: "from-amber-300/35 via-sky-300/10 to-transparent",
+      "bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22),transparent_28%),linear-gradient(135deg,rgba(251,191,36,0.98),rgba(217,119,6,0.62))]",
+    accent: "from-amber-300/35 via-orange-300/10 to-transparent",
   },
   "sun-seal-3": {
     emoji: "🌊",
     className:
-      "bg-[radial-gradient(circle_at_32%_32%,rgba(255,255,255,0.24),transparent_30%),linear-gradient(135deg,rgba(56,189,248,0.96),rgba(2,132,199,0.8))]",
-    accent: "from-cyan-300/35 via-sky-400/10 to-transparent",
+      "bg-[radial-gradient(circle_at_32%_32%,rgba(255,255,255,0.24),transparent_30%),linear-gradient(135deg,rgba(251,191,36,0.96),rgba(180,83,9,0.8))]",
+    accent: "from-amber-300/35 via-orange-400/10 to-transparent",
   },
   "sun-seal-wave-float": {
     emoji: "🛟",
     className:
-      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.26),transparent_28%),linear-gradient(135deg,rgba(125,211,252,0.96),rgba(251,191,36,0.65))]",
-    accent: "from-sky-200/35 via-cyan-300/10 to-transparent",
+      "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.26),transparent_28%),linear-gradient(135deg,rgba(254,215,170,0.96),rgba(251,191,36,0.65))]",
+    accent: "from-orange-200/35 via-amber-300/10 to-transparent",
   },
   "plum-owl-0": {
     emoji: "🥚",
@@ -141,8 +141,8 @@ export function getPetVisual(imageKey: string) {
     PET_VISUALS[imageKey] ?? {
       emoji: "✨",
       className:
-        "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(125,211,252,0.8),rgba(15,23,42,0.9))]",
-      accent: "from-sky-300/30 via-cyan-300/10 to-transparent",
+        "bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(135deg,rgba(253,186,116,0.82),rgba(68,41,27,0.9))]",
+      accent: "from-orange-300/30 via-amber-300/10 to-transparent",
     }
   );
 }

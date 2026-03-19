@@ -10,22 +10,22 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#f5f7fb",
-        night: "#09090b",
-        mist: "#a1a1aa",
-        panel: "#111827",
-        panelAlt: "#161b26",
-        line: "rgba(255,255,255,0.08)",
-        accent: "#7dd3fc",
-        accentWarm: "#f59e0b",
-        success: "#34d399",
-        danger: "#fb7185",
+        ink: "#fff7ed",
+        night: "#1f1712",
+        mist: "#cfbda9",
+        panel: "#2a1f18",
+        panelAlt: "#38281f",
+        line: "rgba(255,237,213,0.12)",
+        accent: "#f6ad55",
+        accentWarm: "#d97706",
+        success: "#68b984",
+        danger: "#e58a72",
       },
       boxShadow: {
-        glow: "0 20px 80px rgba(14, 165, 233, 0.12)",
+        glow: "0 24px 80px rgba(217, 119, 6, 0.18)",
       },
       backgroundImage: {
-        grid: "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+        grid: "linear-gradient(rgba(255,237,213,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,237,213,0.05) 1px, transparent 1px)",
       },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
