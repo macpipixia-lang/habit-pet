@@ -87,7 +87,13 @@ export default async function PokedexSpeciesPage({
         <h2 className="mt-4 text-2xl font-semibold text-ink">{zhCN.pokedex.timelineTitle}</h2>
         <p className="mt-3 text-sm leading-7 text-mist">{zhCN.pokedex.timelineDescription}</p>
         <div className="mt-6">
-          <PokedexTimeline species={state.species} currentStageId={state.ownedPet?.currentStage.id ?? null} concealed={!state.owned} />
+          <PokedexTimeline
+            species={state.species}
+            speciesName={state.species.nameZh}
+            currentStageId={state.ownedPet?.currentStage.id ?? null}
+            petId={state.ownedPet?.id ?? null}
+            concealed={!state.owned}
+          />
         </div>
       </Card>
     </div>

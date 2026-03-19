@@ -9,6 +9,7 @@ import { LEVEL_EXP_THRESHOLDS, MAX_LEVEL } from "@/lib/constants";
 import { postJson } from "@/lib/client-api";
 import { formatText, zhCN } from "@/lib/i18n/zhCN";
 import { formatNumber } from "@/lib/utils";
+import { InlinePet3DPreview } from "@/modules/pet3d/InlinePet3DPreview";
 
 type TodayTask = {
   id: string;
@@ -50,7 +51,9 @@ type TodayClientProps = {
     coverImageUrl: string;
     stageLabel: string;
     skinName: string;
-    mode3dHref?: string | null;
+    detailHref: string;
+    pet3dModelSrc: string;
+    pet3dViewerKey: string;
   } | null;
 };
 
@@ -266,18 +269,21 @@ export function TodayClient({
                     <h2 className="mt-4 text-2xl font-semibold text-ink">{petSummary.name}</h2>
                     <p className="mt-2 text-sm text-mist">{petSummary.speciesName}</p>
                   </div>
-                  {petSummary.mode3dHref ? (
-                    <Link href={petSummary.mode3dHref} className="rounded-full border border-line px-4 py-2 text-sm text-ink transition hover:border-accent/35">
+                  {petSummary.detailHref ? (
+                    <Link href={petSummary.detailHref} className="rounded-full border border-line px-4 py-2 text-sm text-ink transition hover:border-accent/35">
                       {zhCN.pet.mode3dEntry}
                     </Link>
                   ) : null}
                 </div>
               </div>
               <div className="space-y-4 px-6 py-6">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-3xl border border-line bg-panel/80">
-                  <img src={petSummary.coverImageUrl} alt={petSummary.stageName} className="h-full w-full object-cover" />
-                </div>
+                <InlinePet3DPreview
+                  imageSrc={petSummary.coverImageUrl}
+                  imageAlt={petSummary.stageName}
+                  modelSrc={petSummary.pet3dModelSrc}
+                  viewerKey={petSummary.pet3dViewerKey}
+                  petName={petSummary.name}
+                />
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
                     <p className="text-sm text-mist">{zhCN.pet.stageLabel}</p>

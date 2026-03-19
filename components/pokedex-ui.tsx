@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { type ReactNode } from "react";
+import { InlinePet3DPreview } from "@/modules/pet3d/InlinePet3DPreview";
+import { getPet3DPreviewViewerKey } from "@/modules/pet3d/pet3d";
 import { Card, Pill } from "@/components/ui";
 import { formatText, zhCN } from "@/lib/i18n/zhCN";
 import { getPetVisual } from "@/lib/pets";
@@ -11,6 +14,7 @@ type SpeciesStage = {
   minXp: number;
   imageKey: string;
   coverImageUrl?: string | null;
+  modelGlbUrl?: string | null;
 };
 
 type OwnedPetSummary = {
@@ -62,6 +66,7 @@ export function StageHero({
   subtitle,
   concealed = false,
   highlighted = false,
+  media,
 }: {
   stage: SpeciesStage;
   imageKey?: string;
@@ -70,6 +75,7 @@ export function StageHero({
   subtitle?: string;
   concealed?: boolean;
   highlighted?: boolean;
+  media?: ReactNode;
 }) {
   const visual = getPetVisual(imageKey ?? stage.imageKey);
   const heroImage = coverImageUrl ?? stage.coverImageUrl;
@@ -83,24 +89,26 @@ export function StageHero({
     >
       <div className={cn("border-b border-line bg-gradient-to-br px-6 py-6", visual.accent)}>
         {title ? <p className="text-sm text-mist">{title}</p> : null}
-        <div
-          className={cn(
-            "mx-auto mt-4 flex w-40 aspect-square items-center justify-center overflow-hidden rounded-[2rem] border border-line text-7xl shadow-glow transition",
-            visual.className,
-            concealed && "bg-panel/80",
-          )}
-        >
-          {heroImage ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={heroImage}
-              alt={stage.nameZh}
-              className={cn("h-full w-full object-cover", concealed && "blur-md saturate-0")}
-            />
-          ) : (
-            visual.emoji
-          )}
-        </div>
+        {media ?? (
+          <div
+            className={cn(
+              "mx-auto mt-4 flex w-40 aspect-square items-center justify-center overflow-hidden rounded-[2rem] border border-line text-7xl shadow-glow transition",
+              visual.className,
+              concealed && "bg-panel/80",
+            )}
+          >
+            {heroImage ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={heroImage}
+                alt={stage.nameZh}
+                className={cn("h-full w-full object-cover", concealed && "blur-md saturate-0")}
+              />
+            ) : (
+              visual.emoji
+            )}
+          </div>
+        )}
       </div>
       <div className="px-6 py-5">
         <div className="flex items-center justify-between gap-3">
@@ -167,10 +175,14 @@ export function PokedexSpeciesCard({ species }: { species: SpeciesSummary }) {
 export function PokedexTimeline({
   species,
   currentStageId,
+  speciesName,
+  petId,
   concealed = false,
 }: {
   species: Pick<SpeciesSummary, "stages">;
   currentStageId?: string | null;
+  speciesName: string;
+  petId?: string | null;
   concealed?: boolean;
 }) {
   return (
@@ -183,6 +195,17 @@ export function PokedexTimeline({
           title={formatText(zhCN.pokedex.stageLabel, { index: stage.stageIndex + 1 })}
           highlighted={currentStageId === stage.id}
           concealed={concealed}
+          media={
+            <InlinePet3DPreview
+              imageSrc={stage.coverImageUrl ?? ""}
+              imageAlt={stage.nameZh}
+              modelSrc={stage.modelGlbUrl ?? ""}
+              viewerKey={getPet3DPreviewViewerKey(petId ?? speciesName, stage.id, stage.modelGlbUrl ?? "")}
+              petName={`${speciesName} · ${stage.nameZh}`}
+              concealed={concealed}
+              disabled={concealed}
+            />
+          }
         />
       ))}
     </div>

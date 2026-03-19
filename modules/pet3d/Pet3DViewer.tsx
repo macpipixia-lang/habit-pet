@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { zhCN } from "@/lib/i18n/zhCN";
 import { cn } from "@/lib/utils";
 import { PET_3D_ACTIONS, type Pet3DAction } from "@/modules/pet3d/pet3d";
@@ -10,6 +10,8 @@ type Pet3DViewerProps = {
   viewerKey: string;
   modelSrc: string;
   petName: string;
+  overlay?: ReactNode;
+  showActions?: boolean;
 };
 
 type ToastState = {
@@ -17,7 +19,7 @@ type ToastState = {
   message: string;
 } | null;
 
-export function Pet3DViewer({ viewerKey, modelSrc, petName }: Pet3DViewerProps) {
+export function Pet3DViewer({ viewerKey, modelSrc, petName, overlay, showActions = true }: Pet3DViewerProps) {
   const viewerRef = useRef<ModelViewerElement | null>(null);
   const [selectedAction, setSelectedAction] = useState<Pet3DAction>("Idle");
   const [toast, setToast] = useState<ToastState>(null);
@@ -112,27 +114,30 @@ export function Pet3DViewer({ viewerKey, modelSrc, petName }: Pet3DViewerProps) 
             {toast.message}
           </div>
         ) : null}
+        {overlay}
       </div>
-      <div>
-        <p className="text-sm text-mist">{zhCN.pet.mode3dActionsLabel}</p>
-        <div className="mt-3 flex flex-wrap gap-3">
-          {PET_3D_ACTIONS.map((action) => (
-            <button
-              key={action}
-              type="button"
-              onClick={() => setSelectedAction(action)}
-              className={cn(
-                "rounded-2xl border px-4 py-2 text-sm transition",
-                selectedAction === action
-                  ? "border-accent bg-accent text-slate-950"
-                  : "border-line bg-black/20 text-white hover:border-white/30",
-              )}
-            >
-              {ACTION_LABELS[action]}
-            </button>
-          ))}
+      {showActions ? (
+        <div>
+          <p className="text-sm text-mist">{zhCN.pet.mode3dActionsLabel}</p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            {PET_3D_ACTIONS.map((action) => (
+              <button
+                key={action}
+                type="button"
+                onClick={() => setSelectedAction(action)}
+                className={cn(
+                  "rounded-2xl border px-4 py-2 text-sm transition",
+                  selectedAction === action
+                    ? "border-accent bg-accent text-slate-950"
+                    : "border-line bg-black/20 text-white hover:border-white/30",
+                )}
+              >
+                {ACTION_LABELS[action]}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

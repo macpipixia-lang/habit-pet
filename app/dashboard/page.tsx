@@ -3,7 +3,7 @@ import { PetOnboardingGuard } from "@/components/pet-onboarding-guard";
 import { requireUser } from "@/lib/auth";
 import { getDashboardState, getPetPageState } from "@/lib/data";
 import { zhCN } from "@/lib/i18n/zhCN";
-import { isPet3DEnabled, PET_3D_ROUTE } from "@/modules/pet3d/pet3d";
+import { getPet3DModelSrc, getPet3DViewerKey } from "@/modules/pet3d/pet3d";
 
 export default async function DashboardPage({
   searchParams,
@@ -18,7 +18,6 @@ export default async function DashboardPage({
   ]);
   const error = typeof params.error === "string" ? params.error : null;
   const success = typeof params.success === "string" ? params.success : null;
-  const pet3dEnabled = isPet3DEnabled();
   const successMessage =
     success === "makeup-used"
       ? zhCN.feedback.makeupApplied
@@ -58,7 +57,9 @@ export default async function DashboardPage({
                 coverImageUrl: activePet.currentStageCoverImageUrl,
                 stageLabel: `${zhCN.pet.stageLabel} · ${activePet.currentStage.nameZh}`,
                 skinName: activePet.activeSkin?.nameZh ?? zhCN.pet.skinDefault,
-                mode3dHref: pet3dEnabled ? PET_3D_ROUTE : null,
+                detailHref: `/pokedex/${activePet.species.slug}`,
+                pet3dModelSrc: getPet3DModelSrc(activePet),
+                pet3dViewerKey: getPet3DViewerKey(activePet),
               }
             : null
         }
