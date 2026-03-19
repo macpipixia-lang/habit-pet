@@ -32,7 +32,7 @@ export function InlinePet3DPreview({
       aria-pressed={show3d}
       onClick={() => setShow3d((current) => !current)}
       className={cn(
-        "absolute right-3 top-3 z-10 rounded-full border px-3 py-1.5 text-xs font-medium transition backdrop-blur",
+        "absolute right-3 top-3 z-30 rounded-full border px-3 py-1.5 text-xs font-medium transition backdrop-blur",
         disabled
           ? "cursor-not-allowed border-line bg-panel/80 text-mist/70"
           : "border-line bg-panel/90 text-ink hover:border-accent/40",
@@ -42,14 +42,16 @@ export function InlinePet3DPreview({
     </button>
   );
 
-  if (show3d && !disabled) {
-    return <Pet3DViewer viewerKey={viewerKey} modelSrc={modelSrc} petName={petName} overlay={button} showActions={false} />;
-  }
-
   return (
-    <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-3xl border border-line bg-panel/80">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={imageSrc} alt={imageAlt} className={cn("h-full w-full object-cover", concealed && "blur-md saturate-0")} />
+    <div className="relative">
+      {show3d && !disabled ? (
+        <Pet3DViewer viewerKey={viewerKey} modelSrc={modelSrc} petName={petName} showActions={false} />
+      ) : (
+        <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-3xl border border-line bg-panel/80">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={imageSrc} alt={imageAlt} className={cn("h-full w-full object-cover", concealed && "blur-md saturate-0")} />
+        </div>
+      )}
       {button}
     </div>
   );
