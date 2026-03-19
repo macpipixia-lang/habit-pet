@@ -32,7 +32,7 @@ export function InlinePet3DPreview({
       aria-pressed={show3d}
       onClick={() => setShow3d((current) => !current)}
       className={cn(
-        "absolute right-3 top-3 z-30 rounded-full border px-3 py-1.5 text-xs font-medium transition backdrop-blur",
+        "pointer-events-auto rounded-full border px-3 py-1.5 text-xs font-medium transition backdrop-blur",
         disabled
           ? "cursor-not-allowed border-line bg-panel/80 text-mist/70"
           : "border-line bg-panel/90 text-ink hover:border-accent/40",
@@ -52,7 +52,7 @@ export function InlinePet3DPreview({
           <img src={imageSrc} alt={imageAlt} className={cn("h-full w-full object-cover", concealed && "blur-md saturate-0")} />
         </div>
       )}
-      {button}
+      <div className="pointer-events-none absolute right-3 top-3 z-40 flex items-center justify-end">{button}</div>
     </div>
   );
 }
