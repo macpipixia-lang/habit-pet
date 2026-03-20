@@ -241,6 +241,34 @@ npm run dev:clean
 
 ---
 
+## 3D 模式增强：阶段模型、内联预览与交互细化
+
+### 完成内容
+- `/pet/3d` 按“当前出战宠物 + 当前阶段”加载模型（阶段优先，物种兜底，最后 placeholder）。
+- 3D viewer 放大并保持 1:1 比例；新增“历史阶段模型预览”切换（仅预览，不改真实数据）。
+- `/dashboard` 与 `/pokedex/[slug]` 支持卡片内联图片/3D切换。
+- “进入3D模式”入口文案改为“查看详情”，行为改为跳转对应图鉴详情。
+- 内联 3D 切换按钮定位修正：固定在图片容器右上角，并支持 3D/图片双向切换。
+
+### 验证方式
+- 切换宠物/阶段后进入 3D 页面能看到对应模型；
+- dashboard 与图鉴阶段卡可在原位图片↔3D切换，按钮位置稳定在容器右上角。
+
+---
+
+## 视觉系统重构：三色极简 + 1:1 图片规范
+
+### 完成内容
+- 全站宠物图片容器统一为 1:1，图片铺满（`object-cover`）。
+- 暖色改造后再次收敛为“三色系统”：中性色 + 主强调色 + 危险色，移除冲突渐变与多色噪音。
+- 关键页面（dashboard/shop/pokedex/admin）按新 token 适配，保证可读性与层次。
+
+### 验证方式
+- 各页面宠物图尺寸一致（正方形）；
+- 全站视觉基调统一且不花哨，按钮/边框/Toast 风格一致。
+
+---
+
 ## 里程碑时间线（commit 摘要）
 - `3e456ec` feat: backpack module
 - `9ee8ddb` feat: starter pet onboarding
@@ -254,5 +282,12 @@ npm run dev:clean
 - `6580008` feat: blob direct upload + editable stages + unified toasts
 - `0626442` feat: add admin sync today tasks action
 - `92997e0` feat: refine dashboard and pokedex visuals
+- `1df612f` feat: load stage-specific model in pet 3d
+- `a3f2290` style: unify pet image containers to 1:1 cover
+- `841d643` style: switch to warm color palette
+- `8f869e4` style: simplify palette to three-color system
+- `636529a` feat: enlarge 3d viewer and add stage model preview
+- `28d4f63` feat: inline 3d preview on dashboard and pokedex
+- `2292566` fix: anchor inline 3d toggle at image top-right
 
 > 注：更早的 commit 请在 GitHub 提交历史中查看。
