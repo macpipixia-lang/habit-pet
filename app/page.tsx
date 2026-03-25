@@ -21,6 +21,9 @@ export default function LandingPage() {
             <Link href="/dashboard" className="rounded-full border border-line px-5 py-3 text-mist transition hover:border-accent/35 hover:text-ink">
               {zhCN.landing.secondaryCta}
             </Link>
+            <Link href="/project-intro" className="rounded-full border border-accent/35 px-5 py-3 text-accent transition hover:bg-accent/10">
+              项目介绍 Demo
+            </Link>
           </div>
         </div>
         <div className="grid gap-3 px-6 py-5 sm:grid-cols-2">

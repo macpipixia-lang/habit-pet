@@ -288,6 +288,16 @@ npm run dev:clean
 - `8f869e4` style: simplify palette to three-color system
 - `636529a` feat: enlarge 3d viewer and add stage model preview
 - `28d4f63` feat: inline 3d preview on dashboard and pokedex
+- `5068aba` fix: absolute inline 3d toggle with bidirectional labels
+- `0798ff7` fix: pin inline 3d toggle to top-right container
 - `2292566` fix: anchor inline 3d toggle at image top-right
+- `adf8460` fix: robust blob upload error handling
+- `22c6189` fix: sync lockfile with @vercel/blob dependency
+- `98c4345` fix: bundle @vercel/blob with static import
+- `2f58a00` feat: show stage cover images in user pages
+- `6aa9b5f` chore: ignore tsbuildinfo artifact
+- `2a5ce0f` docs: update iteration log
+- `0d91e5b` docs: sync today progress into iteration log
+- `f2201fa` docs: update recent iteration progress
 
 > 注：更早的 commit 请在 GitHub 提交历史中查看。
