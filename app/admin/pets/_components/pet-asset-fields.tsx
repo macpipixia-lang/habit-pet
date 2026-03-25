@@ -62,7 +62,7 @@ export function PetAssetFields({
             name="coverImageUrl"
             value={coverImageUrl}
             onChange={(event) => setCoverImageUrl(event.target.value)}
-            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+            className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink"
             placeholder="https://..."
           />
         </div>
@@ -75,16 +75,16 @@ export function PetAssetFields({
             name="modelGlbUrl"
             value={modelGlbUrl}
             onChange={(event) => setModelGlbUrl(event.target.value)}
-            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+            className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink"
             placeholder="https://..."
           />
         </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-3xl border border-line bg-black/20 p-4">
+        <div className="rounded-3xl border border-line bg-panelAlt/70 p-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-white">{zhCN.admin.uploadCoverButton}</p>
+            <p className="text-sm font-medium text-ink">{zhCN.admin.uploadCoverButton}</p>
             <span className="text-xs text-mist">{getUploadStatusLabel(coverStatus)}</span>
           </div>
           <input
@@ -126,9 +126,9 @@ export function PetAssetFields({
           ) : null}
         </div>
 
-        <div className="rounded-3xl border border-line bg-black/20 p-4">
+        <div className="rounded-3xl border border-line bg-panelAlt/70 p-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-white">{zhCN.admin.uploadModelButton}</p>
+            <p className="text-sm font-medium text-ink">{zhCN.admin.uploadModelButton}</p>
             <span className="text-xs text-mist">{getUploadStatusLabel(modelStatus)}</span>
           </div>
           <input
@@ -155,10 +155,10 @@ export function PetAssetFields({
             }
           />
           {modelError ? <p className="mt-3 text-sm text-red-200">{modelError}</p> : null}
-          <div className="mt-4 rounded-2xl border border-line bg-black/20 p-4">
+          <div className="mt-4 rounded-2xl border border-line bg-panelAlt/70 p-4">
             <p className="text-xs text-mist">{zhCN.admin.modelPreviewLabel}</p>
             {modelGlbUrl ? (
-              <a href={modelGlbUrl} target="_blank" rel="noreferrer" className="mt-2 block break-all text-sm text-white underline">
+              <a href={modelGlbUrl} target="_blank" rel="noreferrer" className="mt-2 block break-all text-sm text-ink underline">
                 {getFileNameFromUrl(modelGlbUrl)}
               </a>
             ) : (

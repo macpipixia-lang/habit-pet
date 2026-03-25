@@ -22,7 +22,7 @@ export default async function PetEggOnboardingPage({
     <div className="space-y-6">
       <Card>
         <Pill className="text-accent">{zhCN.nav.onboarding}</Pill>
-        <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.onboarding.title}</h1>
+        <h1 className="mt-4 text-3xl font-semibold text-ink">{zhCN.onboarding.title}</h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.onboarding.description}</p>
         <p className="mt-4 text-sm text-mist">{zhCN.onboarding.hint}</p>
       </Card>
@@ -50,8 +50,8 @@ export default async function PetEggOnboardingPage({
                       <span className="text-5xl">{visual.emoji}</span>
                     )}
                   </div>
-                  <h2 className="mt-5 text-2xl font-semibold text-white">{species.nameZh}</h2>
-                  <p className="mt-3 text-sm leading-7 text-mist">{species.descriptionZh}</p>
+                  <h2 className="mt-5 text-2xl font-semibold text-slate-950">{species.nameZh}</h2>
+                  <p className="mt-3 text-sm leading-7 text-slate-800/80">{species.descriptionZh}</p>
                 </div>
                 <div className="px-6 py-6">
                   <ClientActionForm action="/api/onboarding/pet/grant" successMessage={zhCN.feedback.starterPetGranted} redirectTo="/pet" refreshOnSuccess={false}>

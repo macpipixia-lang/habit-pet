@@ -85,16 +85,16 @@ export default async function HistoryPage() {
       <div className="grid gap-6 xl:grid-cols-2">
       <Card>
         <Pill className="text-accent">{zhCN.history.logsBadge}</Pill>
-        <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.history.logsTitle}</h1>
+        <h1 className="mt-4 text-3xl font-semibold text-ink">{zhCN.history.logsTitle}</h1>
         <p className="mt-3 text-sm text-mist">{zhCN.history.timezoneHint}</p>
         <div className="mt-6 space-y-3">
           {state.recentLogs.length === 0 ? (
             <p className="text-sm text-mist">{zhCN.history.emptyLogs}</p>
           ) : (
             state.recentLogs.map((log) => (
-              <div key={log.id} className="rounded-2xl border border-line bg-black/20 p-4">
+              <div key={log.id} className="rounded-2xl border border-line bg-panelAlt/70 p-4">
                 <div className="flex items-center justify-between gap-4">
-                  <p className="font-medium text-white">{log.date}</p>
+                  <p className="font-medium text-ink">{log.date}</p>
                   <Pill className={log.settledAt ? "text-success" : "text-accentWarm"}>
                     {log.settledAt ? zhCN.history.settled : zhCN.history.open}
                   </Pill>
@@ -114,16 +114,16 @@ export default async function HistoryPage() {
 
       <Card>
         <Pill className="text-accentWarm">{zhCN.history.pointsBadge}</Pill>
-        <h2 className="mt-4 text-3xl font-semibold text-white">{zhCN.history.pointsTitle}</h2>
+        <h2 className="mt-4 text-3xl font-semibold text-ink">{zhCN.history.pointsTitle}</h2>
         <p className="mt-3 text-sm text-mist">{zhCN.history.timezoneHint}</p>
         <div className="mt-6 space-y-3">
           {state.recentLedger.length === 0 ? (
             <p className="text-sm text-mist">{zhCN.history.emptyLedger}</p>
           ) : (
             state.recentLedger.map((entry) => (
-              <div key={entry.id} className="rounded-2xl border border-line bg-black/20 p-4">
+              <div key={entry.id} className="rounded-2xl border border-line bg-panelAlt/70 p-4">
                 <div className="flex items-center justify-between gap-4">
-                  <p className="font-medium text-white">{getLedgerDescription(entry)}</p>
+                  <p className="font-medium text-ink">{getLedgerDescription(entry)}</p>
                   <p className={entry.delta >= 0 ? "text-success" : "text-danger"}>
                     {entry.delta >= 0 ? `+${entry.delta}` : entry.delta}
                   </p>
@@ -142,15 +142,15 @@ export default async function HistoryPage() {
 
       <Card>
         <Pill className="text-accent">{zhCN.history.purchasesBadge}</Pill>
-        <h2 className="mt-4 text-3xl font-semibold text-white">{zhCN.history.purchasesTitle}</h2>
+        <h2 className="mt-4 text-3xl font-semibold text-ink">{zhCN.history.purchasesTitle}</h2>
         <p className="mt-3 text-sm text-mist">{zhCN.history.timezoneHint}</p>
         <div className="mt-6 space-y-3">
           {state.recentPurchases.length === 0 ? (
             <p className="text-sm text-mist">{zhCN.history.emptyPurchases}</p>
           ) : (
             state.recentPurchases.map((purchase) => (
-              <div key={purchase.id} className="rounded-2xl border border-line bg-black/20 p-4">
-                <p className="font-medium text-white">
+              <div key={purchase.id} className="rounded-2xl border border-line bg-panelAlt/70 p-4">
+                <p className="font-medium text-ink">
                   {formatText(zhCN.history.purchaseSummary, {
                     item: purchase.item.nameZh,
                     quantity: purchase.quantity,
@@ -166,23 +166,23 @@ export default async function HistoryPage() {
 
       <Card>
         <Pill className="text-accentWarm">{zhCN.history.redeemCodesBadge}</Pill>
-        <h2 className="mt-4 text-3xl font-semibold text-white">{zhCN.history.redeemCodesTitle}</h2>
+        <h2 className="mt-4 text-3xl font-semibold text-ink">{zhCN.history.redeemCodesTitle}</h2>
         <p className="mt-3 text-sm text-mist">{zhCN.history.timezoneHint}</p>
         <div className="mt-6 space-y-3">
           {state.recentRedeemCodes.length === 0 ? (
             <p className="text-sm text-mist">{zhCN.history.emptyRedeemCodes}</p>
           ) : (
             state.recentRedeemCodes.map((code) => (
-              <div key={code.id} className="rounded-2xl border border-line bg-black/20 p-4">
+              <div key={code.id} className="rounded-2xl border border-line bg-panelAlt/70 p-4">
                 <div className="flex items-center justify-between gap-4">
-                  <p className="font-medium text-white">{code.item.nameZh}</p>
+                  <p className="font-medium text-ink">{code.item.nameZh}</p>
                   <Pill>{getRedeemStatusLabel(code.status)}</Pill>
                 </div>
                 <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="break-all text-sm text-white">{formatText(zhCN.history.codeValue, { code: code.id })}</p>
+                  <p className="break-all text-sm text-ink">{formatText(zhCN.history.codeValue, { code: code.id })}</p>
                   <CopyCodeButton
                     code={code.id}
-                    className="rounded-2xl border border-line px-3 py-2 text-sm text-white"
+                    className="rounded-2xl border border-line px-3 py-2 text-sm text-ink"
                   />
                 </div>
                 <p className="mt-2 text-sm text-mist">

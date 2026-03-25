@@ -11,21 +11,21 @@ export default async function SettingsPage() {
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <Pill className="text-accent">{zhCN.settings.accountBadge}</Pill>
-        <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.settings.title}</h1>
-        <div className="mt-6 rounded-2xl border border-line bg-black/20 p-4">
+        <h1 className="mt-4 text-3xl font-semibold text-ink">{zhCN.settings.title}</h1>
+        <div className="mt-6 rounded-2xl border border-line bg-panelAlt/70 p-4">
           <p className="text-sm text-mist">{zhCN.settings.username}</p>
-          <p className="mt-2 text-lg text-white">{user.username}</p>
+          <p className="mt-2 text-lg text-ink">{user.username}</p>
         </div>
         <form action={logoutAction} className="mt-6">
-          <button className="rounded-2xl border border-line px-4 py-3 text-white">{zhCN.settings.logout}</button>
+          <button className="rounded-2xl border border-line px-4 py-3 text-ink">{zhCN.settings.logout}</button>
         </form>
       </Card>
 
       <Card>
         <Pill className="text-accentWarm">{zhCN.settings.developmentBadge}</Pill>
-        <h2 className="mt-4 text-3xl font-semibold text-white">{zhCN.settings.debugTitle}</h2>
+        <h2 className="mt-4 text-3xl font-semibold text-ink">{zhCN.settings.debugTitle}</h2>
         <p className="mt-3 text-sm leading-7 text-mist">{zhCN.settings.debugDescription}</p>
-        <div className="mt-6 rounded-2xl border border-line bg-black/20 p-4 text-sm text-mist">
+        <div className="mt-6 rounded-2xl border border-line bg-panelAlt/70 p-4 text-sm text-mist">
           <p>{formatText(zhCN.settings.environment, { env: process.env.NODE_ENV ?? "" })}</p>
           <p className="mt-2">
             {formatText(zhCN.settings.endpoint, {
@@ -35,7 +35,7 @@ export default async function SettingsPage() {
         </div>
         {isDevelopment ? (
           <form action="/api/debug/reset" method="post" className="mt-6">
-            <button className="rounded-2xl border border-line px-4 py-3 text-white">{zhCN.settings.resetButton}</button>
+            <button className="rounded-2xl border border-line px-4 py-3 text-ink">{zhCN.settings.resetButton}</button>
           </form>
         ) : null}
       </Card>

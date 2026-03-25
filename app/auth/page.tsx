@@ -17,7 +17,7 @@ export default async function AuthPage() {
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <Pill className="text-accent">{zhCN.auth.loginBadge}</Pill>
-        <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.auth.loginTitle}</h1>
+        <h1 className="mt-4 text-3xl font-semibold text-ink">{zhCN.auth.loginTitle}</h1>
         <p className="mt-3 text-sm leading-7 text-mist">{zhCN.auth.loginDescription}</p>
         <div className="mt-6">
           <AuthForm mode="login" />
@@ -25,7 +25,7 @@ export default async function AuthPage() {
       </Card>
       <Card>
         <Pill className="text-accentWarm">{zhCN.auth.registerBadge}</Pill>
-        <h2 className="mt-4 text-3xl font-semibold text-white">{zhCN.auth.registerTitle}</h2>
+        <h2 className="mt-4 text-3xl font-semibold text-ink">{zhCN.auth.registerTitle}</h2>
         <p className="mt-3 text-sm leading-7 text-mist">{zhCN.auth.registerDescription}</p>
         <div className="mt-6">
           <AuthForm mode="register" />

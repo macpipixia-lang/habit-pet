@@ -19,7 +19,7 @@ export function AdminLoginForm() {
           id="admin-secret"
           name="secret"
           type="password"
-          className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
+          className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
           required
         />
       </div>

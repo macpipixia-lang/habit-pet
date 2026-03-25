@@ -33,13 +33,13 @@ export function CouponCodeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-lg rounded-3xl border border-line bg-slate-950 p-6 shadow-glow">
+      <div className="w-full max-w-lg rounded-3xl border border-line bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(250,244,233,0.94))] p-6 shadow-glow">
         <p className="text-sm text-accentWarm">{itemName}</p>
-        <h2 className="mt-2 text-2xl font-semibold text-white">{zhCN.shop.couponModalTitle}</h2>
+        <h2 className="mt-2 text-2xl font-semibold text-ink">{zhCN.shop.couponModalTitle}</h2>
         <p className="mt-3 text-sm leading-7 text-mist">{zhCN.shop.couponModalDescription}</p>
         <div className="mt-6 rounded-2xl border border-accent/30 bg-accent/10 p-4">
           <p className="text-sm text-mist">{zhCN.shop.couponCodeLabel}</p>
-          <p className="mt-2 break-all text-lg font-semibold text-white">{code}</p>
+          <p className="mt-2 break-all text-lg font-semibold text-ink">{code}</p>
         </div>
         <div className="mt-6 flex gap-3">
           <button
@@ -53,7 +53,7 @@ export function CouponCodeModal({
             type="button"
             onClick={handleClose}
             disabled={isPending}
-            className="flex-1 rounded-2xl border border-line px-4 py-3 text-white"
+            className="flex-1 rounded-2xl border border-line px-4 py-3 text-ink"
           >
             {zhCN.shop.closeButton}
           </button>

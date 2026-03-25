@@ -28,14 +28,14 @@ export default async function AdminCodesPage({
   return (
     <AdminShell activePath="/admin/codes" title={zhCN.admin.codesTitle} description={zhCN.admin.codesDescription}>
       <form className="mb-6 flex flex-col gap-3 sm:flex-row">
-        <select name="status" defaultValue={status} className="rounded-2xl border border-line bg-black/20 px-4 py-3 text-white">
+        <select name="status" defaultValue={status} className="rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink">
           <option value="">{zhCN.admin.statusFilterAll}</option>
           <option value="ISSUED">{zhCN.admin.statusFilterIssued}</option>
           <option value="REDEEMED">{zhCN.admin.statusFilterRedeemed}</option>
           <option value="VOID">{zhCN.admin.statusFilterVoid}</option>
         </select>
-        <input name="code" defaultValue={code} placeholder={zhCN.admin.codeSearchPlaceholder} className="min-w-0 flex-1 rounded-2xl border border-line bg-black/20 px-4 py-3 text-white" />
-        <button className="rounded-2xl border border-line px-4 py-3 text-white">{zhCN.admin.filterButton}</button>
+        <input name="code" defaultValue={code} placeholder={zhCN.admin.codeSearchPlaceholder} className="min-w-0 flex-1 rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink" />
+        <button className="rounded-2xl border border-line px-4 py-3 text-ink">{zhCN.admin.filterButton}</button>
       </form>
       <AdminCodesClient initialCodes={redeemCodes} initialNotice={initialNotice} statusFilter={status} />
     </AdminShell>

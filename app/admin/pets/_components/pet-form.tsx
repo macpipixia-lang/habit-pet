@@ -85,11 +85,11 @@ export function PetForm({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <Pill className="text-accent">{title}</Pill>
-            <h2 className="mt-4 text-2xl font-semibold text-white">{title}</h2>
+            <h2 className="mt-4 text-2xl font-semibold text-ink">{title}</h2>
             <p className="mt-3 text-sm leading-7 text-mist">{description}</p>
             <p className="mt-2 text-xs text-mist">{zhCN.admin.formHint}</p>
           </div>
-          <Link href="/admin/pets" className="rounded-2xl border border-line px-4 py-3 text-white">
+          <Link href="/admin/pets" className="rounded-2xl border border-line px-4 py-3 text-ink">
             {zhCN.admin.backToPetsButton}
           </Link>
         </div>
@@ -105,7 +105,7 @@ export function PetForm({
                 id="slug"
                 name="slug"
                 defaultValue={formPet?.slug ?? ""}
-                className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink"
                 required
               />
             </div>
@@ -117,7 +117,7 @@ export function PetForm({
                 id="nameZh"
                 name="nameZh"
                 defaultValue={formPet?.nameZh ?? ""}
-                className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink"
                 required
               />
             </div>
@@ -131,7 +131,7 @@ export function PetForm({
               id="summaryZh"
               name="summaryZh"
               defaultValue={formPet?.summaryZh ?? ""}
-              className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+              className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink"
             />
           </div>
 
@@ -143,7 +143,7 @@ export function PetForm({
               id="descriptionZh"
               name="descriptionZh"
               defaultValue={formPet?.descriptionZh ?? ""}
-              className="min-h-32 w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+              className="min-h-32 w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink"
               required
             />
           </div>
@@ -157,7 +157,7 @@ export function PetForm({
                 id="rarity"
                 name="rarity"
                 defaultValue={formPet?.rarity ?? ""}
-                className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink"
               />
             </div>
             <div className="space-y-2">
@@ -170,7 +170,7 @@ export function PetForm({
                 type="number"
                 min="0"
                 defaultValue={formPet?.sortOrder ?? 0}
-                className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink"
                 required
               />
             </div>
@@ -182,7 +182,7 @@ export function PetForm({
                 id="isActive"
                 name="isActive"
                 defaultValue={String(formPet?.isActive ?? true)}
-                className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink"
               >
                 <option value="true">{zhCN.admin.activeOption}</option>
                 <option value="false">{zhCN.admin.inactiveOption}</option>

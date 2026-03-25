@@ -3,17 +3,17 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
-  --app-bg: #141312;
-  --app-bg-soft: #1d1b19;
-  --app-bg-elevated: #262320;
-  --app-ink: #f5f2ea;
-  --app-mist: #ada79d;
-  --app-line: rgba(245, 242, 234, 0.12);
-  --app-accent: #c9a46a;
-  --app-accent-warm: #a8844f;
-  --app-success: #c9a46a;
-  --app-danger: #c56f61;
+  color-scheme: light;
+  --app-bg: #f8f5ef;
+  --app-bg-soft: #fffdf8;
+  --app-bg-elevated: #ffffff;
+  --app-ink: #1f2937;
+  --app-mist: #5f6b7a;
+  --app-line: rgba(114, 88, 58, 0.14);
+  --app-accent: #f28c52;
+  --app-accent-warm: #d86f7a;
+  --app-success: #2f9d7e;
+  --app-danger: #c75b58;
 }
 
 * {
@@ -28,9 +28,11 @@ body {
   margin: 0;
   font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
   background:
-    radial-gradient(circle at top, rgba(201, 164, 106, 0.08), transparent 32%),
-    linear-gradient(180deg, #141312 0%, #181715 46%, #1d1b19 100%);
+    radial-gradient(circle at top left, rgba(242, 140, 82, 0.16), transparent 28%),
+    radial-gradient(circle at top right, rgba(216, 111, 122, 0.14), transparent 24%),
+    linear-gradient(180deg, #fffdf8 0%, #f8f5ef 52%, #f3ecdf 100%);
   color: var(--app-ink);
+  background-attachment: fixed;
 }
 
 a {
@@ -44,8 +46,8 @@ input {
 }
 
 ::selection {
-  background: rgba(201, 164, 106, 0.32);
-  color: var(--app-bg);
+  background: rgba(242, 140, 82, 0.24);
+  color: var(--app-ink);
 }
 
 input,
@@ -53,9 +55,23 @@ select,
 textarea {
   color: var(--app-ink);
   caret-color: var(--app-accent);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: rgba(173, 167, 157, 0.68);
+  color: rgba(95, 107, 122, 0.72);
+}
+
+input,
+select,
+textarea,
+button {
+  color: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
 }

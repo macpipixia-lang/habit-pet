@@ -115,7 +115,7 @@ export function PetStageAssetFields({
 
   if (stageValues.length === 0) {
     return (
-      <Card className="border border-line bg-black/20">
+      <Card className="border border-line bg-panelAlt/70">
         <Pill className="text-accentWarm">{zhCN.admin.stageAssetsTitle}</Pill>
         <p className="mt-3 text-sm text-mist">{zhCN.admin.stageAssetsEmpty}</p>
       </Card>
@@ -140,10 +140,10 @@ export function PetStageAssetFields({
             };
 
             return (
-              <div key={stage.id} className="rounded-3xl border border-line bg-black/20 p-5">
+              <div key={stage.id} className="rounded-3xl border border-line bg-panelAlt/70 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-lg font-semibold text-white">{stage.nameZh}</p>
+                    <p className="text-lg font-semibold text-ink">{stage.nameZh}</p>
                     <p className="mt-1 text-sm text-mist">
                       {formatText(zhCN.pokedex.stageLabel, { index: stage.stageIndex + 1 })}
                     </p>
@@ -159,7 +159,7 @@ export function PetStageAssetFields({
                       id={`stage-name-${stage.id}`}
                       value={stage.nameZh}
                       onChange={(event) => updateStageValue(stage.id, "nameZh", event.target.value)}
-                      className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                      className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink"
                     />
                   </div>
                   <div className="space-y-2">
@@ -170,7 +170,7 @@ export function PetStageAssetFields({
                       id={`stage-cover-${stage.id}`}
                       value={stage.coverImageUrl}
                       onChange={(event) => updateStageValue(stage.id, "coverImageUrl", event.target.value)}
-                      className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                      className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink"
                       placeholder="https://..."
                     />
                   </div>
@@ -182,16 +182,16 @@ export function PetStageAssetFields({
                       id={`stage-model-${stage.id}`}
                       value={stage.modelGlbUrl}
                       onChange={(event) => updateStageValue(stage.id, "modelGlbUrl", event.target.value)}
-                      className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white"
+                      className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink"
                       placeholder="https://..."
                     />
                   </div>
                 </div>
 
                 <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                  <div className="rounded-3xl border border-line bg-black/20 p-4">
+                  <div className="rounded-3xl border border-line bg-panelAlt/70 p-4">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium text-white">{zhCN.admin.stageAssetsUploadCoverButton}</p>
+                      <p className="text-sm font-medium text-ink">{zhCN.admin.stageAssetsUploadCoverButton}</p>
                       <span className="text-xs text-mist">{getUploadStatusLabel(uploadState.coverStatus)}</span>
                     </div>
                     <input
@@ -216,9 +216,9 @@ export function PetStageAssetFields({
                     ) : null}
                   </div>
 
-                  <div className="rounded-3xl border border-line bg-black/20 p-4">
+                  <div className="rounded-3xl border border-line bg-panelAlt/70 p-4">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium text-white">{zhCN.admin.stageAssetsUploadModelButton}</p>
+                      <p className="text-sm font-medium text-ink">{zhCN.admin.stageAssetsUploadModelButton}</p>
                       <span className="text-xs text-mist">{getUploadStatusLabel(uploadState.modelStatus)}</span>
                     </div>
                     <input
@@ -228,14 +228,14 @@ export function PetStageAssetFields({
                       onChange={(event) => void handleUpload(stage.id, event.target.files?.[0], "model")}
                     />
                     {uploadState.modelError ? <p className="mt-3 text-sm text-red-200">{uploadState.modelError}</p> : null}
-                    <div className="mt-4 rounded-2xl border border-line bg-black/20 p-4">
+                    <div className="mt-4 rounded-2xl border border-line bg-panelAlt/70 p-4">
                       <p className="text-xs text-mist">{zhCN.admin.modelPreviewLabel}</p>
                       {stage.modelGlbUrl ? (
                         <a
                           href={stage.modelGlbUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="mt-2 block break-all text-sm text-white underline"
+                          className="mt-2 block break-all text-sm text-ink underline"
                         >
                           {getFileNameFromUrl(stage.modelGlbUrl)}
                         </a>

@@ -37,17 +37,17 @@ export default async function BackpackPage({
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <Pill className="text-accent">{zhCN.backpack.badge}</Pill>
-            <h1 className="mt-4 text-3xl font-semibold text-white">{zhCN.backpack.title}</h1>
+            <h1 className="mt-4 text-3xl font-semibold text-ink">{zhCN.backpack.title}</h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-mist">{zhCN.backpack.description}</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-line bg-black/20 px-4 py-3">
+            <div className="rounded-2xl border border-line bg-panelAlt/70 px-4 py-3">
               <p className="text-sm text-mist">{zhCN.backpack.pointsLabel}</p>
-              <p className="mt-2 text-2xl font-semibold text-white">{formatNumber(state.profile.points)}</p>
+              <p className="mt-2 text-2xl font-semibold text-ink">{formatNumber(state.profile.points)}</p>
             </div>
-            <div className="rounded-2xl border border-line bg-black/20 px-4 py-3">
+            <div className="rounded-2xl border border-line bg-panelAlt/70 px-4 py-3">
               <p className="text-sm text-mist">{zhCN.today.makeupCards}</p>
-              <p className="mt-2 text-2xl font-semibold text-white">{formatNumber(state.profile.makeupCards)}</p>
+              <p className="mt-2 text-2xl font-semibold text-ink">{formatNumber(state.profile.makeupCards)}</p>
             </div>
           </div>
         </div>
@@ -70,7 +70,7 @@ export default async function BackpackPage({
           {state.ownedPets.length === 0 ? (
             <Card className="text-sm text-mist">
               {zhCN.backpack.petsEmpty}{" "}
-              <Link href="/shop/pet-egg" className="text-white underline decoration-white/20 underline-offset-4">
+              <Link href="/shop/pet-egg" className="text-ink underline decoration-accent/35 underline-offset-4">
                 {zhCN.pet.emptyAction}
               </Link>
             </Card>
@@ -80,7 +80,7 @@ export default async function BackpackPage({
                 <Card key={pet.id}>
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
                     <div className="flex min-w-0 flex-1 items-center gap-4">
-                      <div className="flex w-16 aspect-square shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                      <div className="flex w-16 aspect-square shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-accent/15 bg-panelAlt/70">
                         {/* 当前出战宠物优先展示阶段封面，列表项也保持同一口径。 */}
                         <img
                           src={pet.currentStageCoverImageUrl}
@@ -90,7 +90,7 @@ export default async function BackpackPage({
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="truncate text-xl font-semibold text-white">{pet.displayName}</p>
+                          <p className="truncate text-xl font-semibold text-ink">{pet.displayName}</p>
                           {pet.isActive ? <Pill>{zhCN.pet.activeTag}</Pill> : null}
                         </div>
                         <p className="mt-2 text-sm text-mist">
@@ -113,16 +113,16 @@ export default async function BackpackPage({
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-2 lg:w-[26rem]">
-                      <div className="space-y-3 rounded-2xl border border-line bg-black/20 p-4 sm:col-span-2">
+                      <div className="space-y-3 rounded-2xl border border-line bg-panelAlt/70 p-4 sm:col-span-2">
                         <label className="block text-sm text-mist">{zhCN.pet.nicknameLabel}</label>
                         {pet.nicknameUpdatedAt ? (
                           <div className="space-y-2">
-                            <p className="text-white">{pet.nickname?.trim() || zhCN.pet.nicknameEmpty}</p>
+                            <p className="text-ink">{pet.nickname?.trim() || zhCN.pet.nicknameEmpty}</p>
                             <p className="text-xs text-mist">{zhCN.pet.nicknameLocked}</p>
                           </div>
                         ) : (
                           <details>
-                            <summary className="inline-flex cursor-pointer list-none rounded-2xl border border-line px-4 py-2 text-sm text-white">
+                            <summary className="inline-flex cursor-pointer list-none rounded-2xl border border-line px-4 py-2 text-sm text-ink">
                               {zhCN.pet.nicknameSetButton}
                             </summary>
                             <ClientActionForm action="/api/pet/nickname" successMessage={zhCN.feedback.petNicknameUpdated} className="mt-3 space-y-3">
@@ -133,7 +133,7 @@ export default async function BackpackPage({
                                 defaultValue={pet.nickname ?? ""}
                                 maxLength={12}
                                 placeholder={zhCN.pet.nicknamePlaceholder}
-                                className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
+                                className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
                               />
                               <button className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-slate-950">
                                 {zhCN.pet.nicknameSaveButton}
@@ -143,18 +143,18 @@ export default async function BackpackPage({
                         )}
                       </div>
 
-                      <ClientActionForm action="/api/pet/skin/apply" successMessage={zhCN.feedback.petSkinUpdated} className="rounded-2xl border border-line bg-black/20 p-4">
+                      <ClientActionForm action="/api/pet/skin/apply" successMessage={zhCN.feedback.petSkinUpdated} className="rounded-2xl border border-line bg-panelAlt/70 p-4">
                         <input type="hidden" name="userPetId" value={pet.id} />
                         <p className="text-sm text-mist">{zhCN.pet.skinLabel}</p>
-                        <p className="mt-2 text-white">{pet.activeSkin?.nameZh ?? zhCN.pet.skinDefault}</p>
-                        <button className="mt-4 rounded-2xl border border-line px-4 py-2 text-sm text-white">
+                        <p className="mt-2 text-ink">{pet.activeSkin?.nameZh ?? zhCN.pet.skinDefault}</p>
+                        <button className="mt-4 rounded-2xl border border-line px-4 py-2 text-sm text-ink">
                           {zhCN.pet.skinRemoveButton}
                         </button>
                       </ClientActionForm>
 
-                      <div className="rounded-2xl border border-line bg-black/20 p-4">
+                      <div className="rounded-2xl border border-line bg-panelAlt/70 p-4">
                         <p className="text-sm text-mist">{zhCN.backpack.obtainedAtLabel}</p>
-                        <p className="mt-2 text-white">{formatShanghaiDate(pet.obtainedAt)}</p>
+                        <p className="mt-2 text-ink">{formatShanghaiDate(pet.obtainedAt)}</p>
                         {pet.isActive ? (
                           <span className="mt-4 inline-flex rounded-2xl border border-line px-4 py-2 text-sm text-mist">
                             {zhCN.pet.activatedButton}
@@ -212,7 +212,7 @@ export default async function BackpackPage({
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="truncate text-xl font-semibold text-white">{skin.nameZh}</p>
+                          <p className="truncate text-xl font-semibold text-ink">{skin.nameZh}</p>
                           {activePets.length > 0 ? <Pill>{zhCN.backpack.skinAppliedTag}</Pill> : null}
                         </div>
                         <p className="mt-2 text-sm text-mist">{skin.descriptionZh}</p>
@@ -246,7 +246,7 @@ export default async function BackpackPage({
                       </div>
                     </div>
 
-                    <div className="w-full rounded-2xl border border-line bg-black/20 p-4 lg:w-[20rem]">
+                    <div className="w-full rounded-2xl border border-line bg-panelAlt/70 p-4 lg:w-[20rem]">
                       {usablePets.length > 0 ? (
                         <ClientActionForm action="/api/pet/skin/apply" successMessage={zhCN.feedback.petSkinUpdated} className="space-y-3">
                           <input type="hidden" name="skinId" value={skin.id} />
@@ -257,7 +257,7 @@ export default async function BackpackPage({
                             id={`pet-${skin.id}`}
                             name="userPetId"
                             defaultValue={usablePets[0]?.id}
-                            className="w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white outline-none transition focus:border-accent"
+                            className="w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
                           >
                             {usablePets.map((pet) => (
                               <option key={pet.id} value={pet.id}>
@@ -309,10 +309,10 @@ export default async function BackpackPage({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="truncate text-lg font-semibold text-white">{code.item.nameZh}</p>
+                      <p className="truncate text-lg font-semibold text-ink">{code.item.nameZh}</p>
                       <Pill>{getRedeemStatusLabel(code.status)}</Pill>
                     </div>
-                    <p className="mt-2 break-all text-sm text-white">{formatText(zhCN.history.codeValue, { code: code.id })}</p>
+                    <p className="mt-2 break-all text-sm text-ink">{formatText(zhCN.history.codeValue, { code: code.id })}</p>
                     <p className="mt-2 text-sm text-mist">
                       {formatText(zhCN.backpack.codeIssuedAt, { date: formatShanghaiDate(code.issuedAt) })}
                     </p>
@@ -327,7 +327,7 @@ export default async function BackpackPage({
                       </p>
                     ) : null}
                   </div>
-                  <CopyCodeButton code={code.id} className="rounded-2xl border border-line px-4 py-2 text-sm text-white" />
+                  <CopyCodeButton code={code.id} className="rounded-2xl border border-line px-4 py-2 text-sm text-ink" />
                 </div>
               </Card>
             ))
@@ -351,7 +351,7 @@ export default async function BackpackPage({
         <div className="mt-4">
           <Card>
             <p className="text-sm text-mist">{zhCN.today.makeupCards}</p>
-            <p className="mt-3 text-4xl font-semibold text-white">{formatNumber(state.profile.makeupCards)}</p>
+            <p className="mt-3 text-4xl font-semibold text-ink">{formatNumber(state.profile.makeupCards)}</p>
             <p className="mt-3 text-sm leading-7 text-mist">{zhCN.today.makeupCardsHint}</p>
             <p className="mt-3 text-sm leading-7 text-mist">{zhCN.backpack.makeupCardsHint}</p>
           </Card>

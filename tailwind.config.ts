@@ -10,23 +10,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#f5f2ea",
-        night: "#141312",
-        mist: "#ada79d",
-        panel: "#1d1b19",
-        panelAlt: "#262320",
-        line: "rgba(245, 242, 234, 0.12)",
-        accent: "#c9a46a",
-        accentWarm: "#a8844f",
-        success: "#c9a46a",
-        danger: "#c56f61",
+        ink: "var(--app-ink)",
+        night: "var(--app-bg)",
+        mist: "var(--app-mist)",
+        panel: "var(--app-bg-soft)",
+        panelAlt: "#f4eadc",
+        line: "var(--app-line)",
+        accent: "var(--app-accent)",
+        accentWarm: "var(--app-accent-warm)",
+        success: "var(--app-success)",
+        danger: "var(--app-danger)",
       },
       boxShadow: {
-        glow: "0 20px 48px rgba(0, 0, 0, 0.28)",
+        glow: "0 18px 42px rgba(208, 175, 124, 0.18)",
       },
       backgroundImage: {
-        grid: "linear-gradient(rgba(245,242,234,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(245,242,234,0.04) 1px, transparent 1px)",
-        spotlight: "radial-gradient(circle at top, rgba(201,164,106,0.08), transparent 34%)",
+        grid: "linear-gradient(rgba(114,88,58,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(114,88,58,0.05) 1px, transparent 1px)",
+        spotlight: "radial-gradient(circle at top, rgba(242,140,82,0.12), transparent 34%)",
       },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],

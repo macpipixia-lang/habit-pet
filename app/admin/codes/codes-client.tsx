@@ -80,17 +80,17 @@ export function AdminCodesClient({
     <>
       <Card>
         <Pill className="text-accent">{zhCN.admin.codesBadge}</Pill>
-        <h2 className="mt-4 text-2xl font-semibold text-white">{zhCN.admin.codesTitle}</h2>
+        <h2 className="mt-4 text-2xl font-semibold text-ink">{zhCN.admin.codesTitle}</h2>
         <p className="mt-3 text-sm leading-7 text-mist">{zhCN.admin.codesDescription}</p>
         <div className="mt-6 space-y-3">
           {codes.length === 0 ? (
             <p className="text-sm text-mist">{zhCN.admin.emptyCodes}</p>
           ) : (
             codes.map((redeemCode) => (
-              <div key={redeemCode.id} className="rounded-2xl border border-line bg-black/20 p-4">
+              <div key={redeemCode.id} className="rounded-2xl border border-line bg-panelAlt/70 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="font-medium text-white">{redeemCode.item.nameZh}</p>
+                    <p className="font-medium text-ink">{redeemCode.item.nameZh}</p>
                     <p className="mt-1 break-all text-sm text-mist">{redeemCode.id}</p>
                   </div>
                   <Pill>{getRedeemCodeStatusLabel(redeemCode.status)}</Pill>
@@ -167,13 +167,13 @@ function CodeActionForm({
     >
       <label className="block text-sm text-mist">
         {zhCN.admin.noteLabel}
-        <input name="adminNote" defaultValue={noteDefault} className="mt-2 w-full rounded-2xl border border-line bg-black/20 px-4 py-3 text-white" />
+        <input name="adminNote" defaultValue={noteDefault} className="mt-2 w-full rounded-2xl border border-line bg-panelAlt/70 px-4 py-3 text-ink" />
       </label>
       <button
         disabled={pending}
         className={
           secondary
-            ? "w-full rounded-2xl border border-line px-4 py-3 text-white disabled:opacity-70"
+            ? "w-full rounded-2xl border border-line px-4 py-3 text-ink disabled:opacity-70"
             : "w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-slate-950 disabled:opacity-70"
         }
       >
